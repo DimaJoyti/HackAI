@@ -215,6 +215,64 @@ helm-uninstall: ## Uninstall Helm release
 	@echo "Uninstalling Helm release..."
 	helm uninstall hackai --namespace hackai
 
+# Infrastructure targets (Terraform)
+infra-tools: ## Install infrastructure tools
+	@echo "Installing infrastructure tools..."
+	cd infrastructure/terraform && ./install-tools.sh
+
+infra-init: ## Initialize Terraform infrastructure
+	@echo "Initializing Terraform..."
+	cd infrastructure/terraform && make init
+
+infra-plan: ## Plan infrastructure changes
+	@echo "Planning infrastructure changes..."
+	cd infrastructure/terraform && make plan ENV=$(ENV)
+
+infra-apply: ## Apply infrastructure changes
+	@echo "Applying infrastructure changes..."
+	cd infrastructure/terraform && make apply ENV=$(ENV)
+
+infra-destroy: ## Destroy infrastructure
+	@echo "Destroying infrastructure..."
+	cd infrastructure/terraform && make destroy ENV=$(ENV)
+
+infra-status: ## Show infrastructure status
+	@echo "Infrastructure status:"
+	cd infrastructure/terraform && make status ENV=$(ENV)
+
+infra-output: ## Show infrastructure outputs
+	@echo "Infrastructure outputs:"
+	cd infrastructure/terraform && make output ENV=$(ENV)
+
+# Quick deployment targets
+deploy-dev-infra: ## Deploy development infrastructure
+	@echo "Deploying development infrastructure..."
+	cd infrastructure/terraform && make quick-dev
+
+deploy-staging-infra: ## Deploy staging infrastructure
+	@echo "Deploying staging infrastructure..."
+	cd infrastructure/terraform && make quick-staging
+
+deploy-prod-infra: ## Deploy production infrastructure
+	@echo "Deploying production infrastructure..."
+	cd infrastructure/terraform && make prod
+
+# Complete deployment (infrastructure + applications)
+deploy-complete-dev: ## Complete development deployment
+	@echo "Complete development deployment..."
+	$(MAKE) deploy-dev-infra
+	$(MAKE) helm-install
+
+deploy-complete-staging: ## Complete staging deployment
+	@echo "Complete staging deployment..."
+	$(MAKE) deploy-staging-infra
+	$(MAKE) helm-install
+
+deploy-complete-prod: ## Complete production deployment
+	@echo "Complete production deployment..."
+	$(MAKE) deploy-prod-infra
+	$(MAKE) helm-install
+
 # Docker targets
 docker-build: ## Build Docker images
 	docker-compose build
