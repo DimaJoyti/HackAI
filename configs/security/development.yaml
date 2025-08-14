@@ -1,0 +1,275 @@
+version: "1.0.0"
+environment: "development"
+updated_at: "2024-01-01T00:00:00Z"
+
+# Agentic Security Framework Configuration
+agentic_framework:
+  enabled: true
+  real_time_analysis: true
+  threat_response_threshold: 0.8  # Higher threshold for dev
+  auto_block_enabled: false       # Don't auto-block in dev
+  learning_mode: true
+  max_concurrent_analysis: 5
+  threat_retention_duration: "1h"
+  alert_cooldown_period: "1m"
+  confidence_threshold: 0.6
+
+# AI Firewall Configuration
+ai_firewall:
+  enabled: true
+  ml_detection: true
+  behavior_analysis: false        # Disabled for dev performance
+  anomaly_detection: false
+  geo_blocking: false
+  rate_limiting: false
+  block_threshold: 0.9           # Very high threshold
+  alert_threshold: 0.7
+  rules:
+    - id: "sql_injection_basic"
+      name: "Basic SQL Injection Detection"
+      enabled: true
+      priority: 100
+      pattern: "(?i)(union|select|insert|update|delete|drop)\\s+"
+      action: "log"
+      severity: "medium"
+      confidence: 0.7
+      description: "Detects basic SQL injection patterns"
+  whitelisted_ips:
+    - "127.0.0.1"
+    - "::1"
+    - "localhost"
+  blacklisted_ips: []
+  geo_blocked_countries: []
+
+# Input/Output Filter Configuration
+input_output_filter:
+  enabled: true
+  input_validation: true
+  output_sanitization: true
+  content_analysis: false         # Disabled for dev performance
+  threat_scanning: false
+  strict_mode: false
+  max_input_length: 1000000
+  max_output_length: 10000000
+  allowed_file_types:
+    - "txt"
+    - "json"
+    - "xml"
+    - "csv"
+    - "log"
+  blocked_patterns:
+    - "(?i)(union|select|insert|update|delete|drop)\\s+"
+    - "(?i)<script[^>]*>"
+    - "(?i)javascript:"
+  sanitization_level: "basic"
+  log_violations: true
+  block_on_violation: false
+  encoding_detection: true
+  malware_scanning: false
+
+# Prompt Guard Configuration
+prompt_guard:
+  enabled: true
+  semantic_analysis: false        # Disabled for dev performance
+  context_analysis: false
+  strict_mode: false
+  confidence_threshold: 0.8
+  max_prompt_length: 50000
+  enable_learning: true
+  block_suspicious_prompts: false
+  log_all_attempts: true
+  role_manipulation_detection: false
+  instruction_injection_detection: false
+
+# Threat Intelligence Configuration
+threat_intelligence:
+  enabled: false                  # Disabled for dev
+  update_interval: "24h"
+  sources: []
+  api_keys: {}
+  cache_timeout: "1h"
+  max_cache_size: 1000
+  ioc_types:
+    - "ip"
+    - "domain"
+    - "hash"
+  reputation_scoring: false
+  auto_blocking: false
+
+# Web Layer Configuration
+web_layer:
+  enabled: true
+  security_headers: true
+  csp:
+    enabled: true
+    policy: "default-src 'self' 'unsafe-inline' 'unsafe-eval'; img-src 'self' data: *"
+    report_only: true             # Report only in dev
+    report_uri: ""
+    upgrade_insecure_requests: false
+  hsts:
+    enabled: false                # Disabled for dev (HTTP)
+    max_age: 0
+    include_subdomains: false
+    preload: false
+  x_frame_options: "SAMEORIGIN"
+  max_request_size: 52428800      # 50MB
+  request_timeout: "60s"
+  rate_limiting: false
+  session_security: false
+  cookie_security: false
+  ip_filtering: false
+  geo_blocking: false
+
+# Authentication Configuration
+authentication:
+  password_policy:
+    min_length: 6                 # Relaxed for dev
+    require_uppercase: false
+    require_lowercase: false
+    require_numbers: false
+    require_special: false
+    history_count: 0
+    max_age: "0s"
+    min_age: "0s"
+    complexity_score: 0
+  multi_factor_auth:
+    enabled: false                # Disabled for dev
+    required: false
+    methods: []
+    totp_issuer: "HackAI-Dev"
+    totp_digits: 6
+    totp_period: 30
+    backup_codes: false
+    sms_provider: ""
+    email_provider: ""
+  session_management:
+    timeout: "24h"                # Long timeout for dev
+    max_concurrent_sessions: 10
+    secure_cookies: false
+    http_only_cookies: true
+    same_site_cookies: "Lax"
+    session_rotation: false
+    idle_timeout: "4h"
+  account_lockout:
+    enabled: false                # Disabled for dev
+    max_failed_attempts: 100
+    lockout_duration: "1m"
+    reset_on_success: true
+    notify_on_lockout: false
+
+# Authorization Configuration
+authorization:
+  rbac:
+    enabled: true
+    default_role: "developer"
+    roles:
+      developer: "full_access"
+    inheritance: true
+  abac:
+    enabled: false
+    policies: []
+    attributes: {}
+  permissions:
+    granular: false
+    resources: []
+    actions: []
+    inheritance: true
+
+# Encryption Configuration
+encryption:
+  data_at_rest:
+    enabled: false
+    algorithm: "AES-256"
+    key_size: 256
+    mode: "GCM"
+  data_in_transit:
+    tls_version: "1.2"
+    cipher_suites: []
+    hsts: false
+    cert_pinning: false
+  key_management:
+    provider: "local"
+    rotation_interval: "0s"
+    backup_enabled: false
+    hsm_enabled: false
+
+# Compliance Configuration
+compliance:
+  gdpr:
+    enabled: false
+    data_retention: "0s"
+    consent_required: false
+    right_to_erasure: false
+  hipaa:
+    enabled: false
+    phi_protection: false
+    audit_logging: false
+    encryption: false
+  sox:
+    enabled: false
+    audit_trails: false
+    data_integrity: false
+  pci:
+    enabled: false
+    data_protection: false
+    network_security: false
+  auditing:
+    enabled: false
+    log_level: "info"
+    retention_period: "0s"
+    destinations: []
+
+# Monitoring Configuration
+monitoring:
+  enabled: true
+  metrics_enabled: true
+  tracing_enabled: false          # Disabled for dev performance
+  health_checks: true
+  dashboards: false
+  exporters:
+    - "console"
+  sample_rate: 0.1
+  retention_period: "1h"
+  endpoints: {}
+
+# Alerting Configuration
+alerting:
+  enabled: false                  # Disabled for dev
+  channels: []
+  rules: []
+  escalation:
+    enabled: false
+    levels: []
+  suppression:
+    enabled: false
+    duration: "0s"
+    rules: []
+    whitelist: []
+
+# Logging Configuration
+logging:
+  level: "debug"
+  format: "text"
+  output:
+    - "console"
+  security_events: true
+  audit_logs: false
+  retention_period: "24h"
+  encryption: false
+  compression: false
+
+# Feature Toggles Configuration
+feature_toggles:
+  security_features:
+    advanced_threat_detection: false
+    ml_based_analysis: false
+    real_time_blocking: false
+  experimental_features:
+    ai_powered_rules: true
+    behavioral_analysis: false
+    predictive_blocking: false
+  maintenance_mode: false
+  debug_mode: true
+
+# Environment-specific Overrides
+overrides: {}

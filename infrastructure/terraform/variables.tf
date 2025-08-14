@@ -390,3 +390,34 @@ variable "tags" {
   type        = map(string)
   default     = {}
 }
+
+# Missing variables for security.tf
+variable "project_name" {
+  description = "Name of the project"
+  type        = string
+  default     = "hackai"
+}
+
+variable "common_tags" {
+  description = "Common tags to apply to all resources"
+  type        = map(string)
+  default = {
+    Project     = "HackAI"
+    Environment = "dev"
+    ManagedBy   = "Terraform"
+    Owner       = "DevOps"
+    CostCenter  = "Engineering"
+  }
+}
+
+variable "blocked_countries" {
+  description = "List of country codes to block in WAF"
+  type        = list(string)
+  default     = ["CN", "RU", "KP"]
+}
+
+variable "ssl_certificate_arn" {
+  description = "ARN of SSL certificate for ALB"
+  type        = string
+  default     = ""
+}

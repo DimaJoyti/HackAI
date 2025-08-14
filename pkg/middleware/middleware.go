@@ -63,6 +63,11 @@ func RequestID(next http.Handler) http.Handler {
 	})
 }
 
+// RequestIDMiddleware returns the RequestID middleware function
+func RequestIDMiddleware() func(http.Handler) http.Handler {
+	return RequestID
+}
+
 // Logging middleware logs HTTP requests
 func Logging(log *logger.Logger) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {

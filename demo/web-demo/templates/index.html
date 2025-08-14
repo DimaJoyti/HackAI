@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{.title}}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .hero-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 80px 0;
+        }
+        .feature-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: none;
+            border-radius: 15px;
+            overflow: hidden;
+        }
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        .navbar-brand {
+            font-weight: bold;
+            font-size: 1.5rem;
+        }
+        .demo-stats {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 2rem;
+            margin: 2rem 0;
+        }
+        .stat-item {
+            text-align: center;
+            padding: 1rem;
+        }
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+        .footer {
+            background: #2c3e50;
+            color: white;
+            padding: 3rem 0;
+            margin-top: 5rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-shield-alt me-2"></i>
+                HackAI Security Demo
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/dashboard">
+                            <i class="fas fa-tachometer-alt me-1"></i>Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/api/v1/health" target="_blank">
+                            <i class="fas fa-heartbeat me-1"></i>Health
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/api/v1/metrics" target="_blank">
+                            <i class="fas fa-chart-line me-1"></i>Metrics
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-6">
+                    <h1 class="display-4 fw-bold mb-4">
+                        HackAI Security Platform
+                    </h1>
+                    <p class="lead mb-4">
+                        Experience the power of AI-driven security with our comprehensive demo platform. 
+                        Test prompt injection protection, threat intelligence, AI firewall, and more.
+                    </p>
+                    <div class="d-flex gap-3">
+                        <a href="#features" class="btn btn-light btn-lg">
+                            <i class="fas fa-play me-2"></i>Start Demo
+                        </a>
+                        <a href="/dashboard" class="btn btn-outline-light btn-lg">
+                            <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                        </a>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="text-center">
+                        <i class="fas fa-shield-alt" style="font-size: 15rem; opacity: 0.3;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Demo Statistics -->
+    <div class="container">
+        <div class="demo-stats">
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="stat-item">
+                        <div class="stat-number" id="threats-detected">1,247</div>
+                        <div class="text-muted">Threats Detected</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-item">
+                        <div class="stat-number" id="requests-processed">15,892</div>
+                        <div class="text-muted">Requests Processed</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-item">
+                        <div class="stat-number" id="response-time">125ms</div>
+                        <div class="text-muted">Avg Response Time</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-item">
+                        <div class="stat-number" id="security-score">98.5%</div>
+                        <div class="text-muted">Security Score</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Features Section -->
+    <section id="features" class="py-5">
+        <div class="container">
+            <div class="text-center mb-5">
+                <h2 class="display-5 fw-bold">Interactive Security Demos</h2>
+                <p class="lead text-muted">
+                    Explore our comprehensive security features through hands-on demonstrations
+                </p>
+            </div>
+            
+            <div class="row g-4">
+                {{range .features}}
+                <div class="col-lg-6 col-xl-4">
+                    <div class="card feature-card h-100">
+                        <div class="card-body text-center p-4">
+                            <div class="feature-icon text-primary">
+                                {{if eq .name "Prompt Injection Protection"}}
+                                    <i class="fas fa-user-shield"></i>
+                                {{else if eq .name "Threat Intelligence"}}
+                                    <i class="fas fa-search"></i>
+                                {{else if eq .name "AI Firewall"}}
+                                    <i class="fas fa-fire"></i>
+                                {{else if eq .name "Security Testing"}}
+                                    <i class="fas fa-vial"></i>
+                                {{else if eq .name "Security Dashboard"}}
+                                    <i class="fas fa-chart-pie"></i>
+                                {{else}}
+                                    <i class="fas fa-cog"></i>
+                                {{end}}
+                            </div>
+                            <h4 class="card-title mb-3">{{.name}}</h4>
+                            <p class="card-text text-muted mb-4">{{.description}}</p>
+                            <a href="{{.url}}" class="btn btn-primary btn-lg">
+                                <i class="fas fa-arrow-right me-2"></i>Try Demo
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {{end}}
+            </div>
+        </div>
+    </section>
+
+    <!-- Quick Test Section -->
+    <section class="py-5 bg-light">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-8">
+                    <div class="text-center mb-4">
+                        <h3>Quick Security Test</h3>
+                        <p class="text-muted">Test our security analysis with your own input</p>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-body">
+                            <form id="quick-test-form">
+                                <div class="mb-3">
+                                    <label for="test-input" class="form-label">Enter text to analyze:</label>
+                                    <textarea class="form-control" id="test-input" rows="3" 
+                                              placeholder="Enter any text to test for security threats..."></textarea>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <select class="form-select mb-3" id="analysis-type">
+                                            <option value="general">General Analysis</option>
+                                            <option value="prompt_injection">Prompt Injection</option>
+                                            <option value="threat_intel">Threat Intelligence</option>
+                                            <option value="ai_firewall">AI Firewall</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <button type="submit" class="btn btn-primary w-100">
+                                            <i class="fas fa-search me-2"></i>Analyze
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+                            
+                            <div id="quick-test-result" class="mt-4" style="display: none;">
+                                <div class="alert" id="result-alert">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <strong>Analysis Result:</strong>
+                                            <span id="result-text"></span>
+                                        </div>
+                                        <div>
+                                            <span class="badge" id="risk-badge"></span>
+                                        </div>
+                                    </div>
+                                    <div class="mt-2">
+                                        <small class="text-muted">
+                                            Risk Score: <span id="risk-score"></span> | 
+                                            Confidence: <span id="confidence"></span>
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-6">
+                    <h5>HackAI Security Platform</h5>
+                    <p class="text-muted">
+                        Advanced AI-powered security solutions for modern applications.
+                        Protect your AI systems with comprehensive threat detection and prevention.
+                    </p>
+                </div>
+                <div class="col-lg-3">
+                    <h6>Demo Features</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="/prompt-injection" class="text-light">Prompt Injection</a></li>
+                        <li><a href="/threat-intelligence" class="text-light">Threat Intelligence</a></li>
+                        <li><a href="/ai-firewall" class="text-light">AI Firewall</a></li>
+                        <li><a href="/security-testing" class="text-light">Security Testing</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-3">
+                    <h6>Resources</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="/dashboard" class="text-light">Dashboard</a></li>
+                        <li><a href="/api/v1/health" class="text-light">API Health</a></li>
+                        <li><a href="/api/v1/metrics" class="text-light">Metrics</a></li>
+                        <li><a href="https://docs.hackai.security" class="text-light">Documentation</a></li>
+                    </ul>
+                </div>
+            </div>
+            <hr class="my-4">
+            <div class="text-center">
+                <p class="mb-0">&copy; 2024 HackAI Security Platform. Demo Application.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Quick test functionality
+        document.getElementById('quick-test-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const input = document.getElementById('test-input').value;
+            const analysisType = document.getElementById('analysis-type').value;
+            
+            if (!input.trim()) {
+                alert('Please enter some text to analyze');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/v1/analyze', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        content: input,
+                        type: 'text',
+                        analysis_types: [analysisType]
+                    })
+                });
+                
+                const result = await response.json();
+                displayResult(result, response.ok);
+                
+            } catch (error) {
+                console.error('Error:', error);
+                displayError('Failed to analyze input');
+            }
+        });
+        
+        function displayResult(result, success) {
+            const resultDiv = document.getElementById('quick-test-result');
+            const alertDiv = document.getElementById('result-alert');
+            const resultText = document.getElementById('result-text');
+            const riskBadge = document.getElementById('risk-badge');
+            const riskScore = document.getElementById('risk-score');
+            const confidence = document.getElementById('confidence');
+            
+            if (success) {
+                const isThreat = result.is_threat || result.risk_score > 0.7;
+                
+                alertDiv.className = isThreat ? 'alert alert-danger' : 'alert alert-success';
+                resultText.textContent = isThreat ? 'Threat Detected' : 'No Threat Detected';
+                
+                riskBadge.className = isThreat ? 'badge bg-danger' : 'badge bg-success';
+                riskBadge.textContent = isThreat ? 'HIGH RISK' : 'LOW RISK';
+                
+                riskScore.textContent = (result.risk_score || 0).toFixed(2);
+                confidence.textContent = ((result.confidence || 0) * 100).toFixed(1) + '%';
+            } else {
+                alertDiv.className = 'alert alert-warning';
+                resultText.textContent = 'Request Blocked: ' + (result.reason || 'Security violation detected');
+                riskBadge.className = 'badge bg-warning';
+                riskBadge.textContent = 'BLOCKED';
+                riskScore.textContent = 'N/A';
+                confidence.textContent = 'N/A';
+            }
+            
+            resultDiv.style.display = 'block';
+        }
+        
+        function displayError(message) {
+            const resultDiv = document.getElementById('quick-test-result');
+            const alertDiv = document.getElementById('result-alert');
+            
+            alertDiv.className = 'alert alert-danger';
+            alertDiv.innerHTML = '<strong>Error:</strong> ' + message;
+            
+            resultDiv.style.display = 'block';
+        }
+        
+        // Update demo statistics periodically
+        function updateStats() {
+            fetch('/api/v1/metrics')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.threats_detected) {
+                        document.getElementById('threats-detected').textContent = data.threats_detected.toLocaleString();
+                    }
+                    if (data.requests_processed) {
+                        document.getElementById('requests-processed').textContent = data.requests_processed.toLocaleString();
+                    }
+                    if (data.avg_response_time) {
+                        document.getElementById('response-time').textContent = Math.round(data.avg_response_time) + 'ms';
+                    }
+                    if (data.security_score) {
+                        document.getElementById('security-score').textContent = (data.security_score * 100).toFixed(1) + '%';
+                    }
+                })
+                .catch(error => console.log('Stats update failed:', error));
+        }
+        
+        // Update stats every 30 seconds
+        setInterval(updateStats, 30000);
+        
+        // Initial stats update
+        updateStats();
+    </script>
+</body>
+</html>
