@@ -1,0 +1,376 @@
+# Default values for HackAI platform
+# This is a YAML-formatted file.
+
+# Global configuration
+global:
+  imageRegistry: "ghcr.io"
+  imagePullSecrets:
+    - regcred
+  storageClass: "fast-ssd"
+
+# Application configuration
+app:
+  name: hackai
+  version: "1.0.0"
+  environment: production
+  
+# Image configuration
+image:
+  registry: ghcr.io
+  repository: hackai
+  tag: "latest"
+  pullPolicy: Always
+
+# Service configuration
+services:
+  apiGateway:
+    enabled: true
+    name: api-gateway
+    port: 8080
+    replicas: 3
+    image:
+      repository: hackai/api-gateway
+      tag: "latest"
+    resources:
+      requests:
+        memory: "256Mi"
+        cpu: "250m"
+      limits:
+        memory: "512Mi"
+        cpu: "500m"
+    autoscaling:
+      enabled: true
+      minReplicas: 3
+      maxReplicas: 10
+      targetCPUUtilizationPercentage: 70
+      targetMemoryUtilizationPercentage: 80
+
+  userService:
+    enabled: true
+    name: user-service
+    port: 8081
+    replicas: 2
+    image:
+      repository: hackai/user-service
+      tag: "latest"
+    resources:
+      requests:
+        memory: "128Mi"
+        cpu: "100m"
+      limits:
+        memory: "256Mi"
+        cpu: "250m"
+    autoscaling:
+      enabled: true
+      minReplicas: 2
+      maxReplicas: 8
+      targetCPUUtilizationPercentage: 70
+      targetMemoryUtilizationPercentage: 80
+
+  scannerService:
+    enabled: true
+    name: scanner-service
+    port: 8082
+    replicas: 2
+    image:
+      repository: hackai/scanner-service
+      tag: "latest"
+    resources:
+      requests:
+        memory: "256Mi"
+        cpu: "200m"
+      limits:
+        memory: "512Mi"
+        cpu: "500m"
+    autoscaling:
+      enabled: true
+      minReplicas: 2
+      maxReplicas: 6
+      targetCPUUtilizationPercentage: 70
+      targetMemoryUtilizationPercentage: 80
+
+  networkService:
+    enabled: true
+    name: network-service
+    port: 8083
+    replicas: 2
+    image:
+      repository: hackai/network-service
+      tag: "latest"
+    resources:
+      requests:
+        memory: "256Mi"
+        cpu: "200m"
+      limits:
+        memory: "512Mi"
+        cpu: "500m"
+    autoscaling:
+      enabled: true
+      minReplicas: 2
+      maxReplicas: 6
+      targetCPUUtilizationPercentage: 70
+      targetMemoryUtilizationPercentage: 80
+
+  threatService:
+    enabled: true
+    name: threat-service
+    port: 8084
+    replicas: 2
+    image:
+      repository: hackai/threat-service
+      tag: "latest"
+    resources:
+      requests:
+        memory: "256Mi"
+        cpu: "200m"
+      limits:
+        memory: "512Mi"
+        cpu: "500m"
+    autoscaling:
+      enabled: true
+      minReplicas: 2
+      maxReplicas: 6
+      targetCPUUtilizationPercentage: 70
+      targetMemoryUtilizationPercentage: 80
+
+  logService:
+    enabled: true
+    name: log-service
+    port: 8085
+    replicas: 2
+    image:
+      repository: hackai/log-service
+      tag: "latest"
+    resources:
+      requests:
+        memory: "128Mi"
+        cpu: "100m"
+      limits:
+        memory: "256Mi"
+        cpu: "250m"
+    autoscaling:
+      enabled: true
+      minReplicas: 2
+      maxReplicas: 6
+      targetCPUUtilizationPercentage: 70
+      targetMemoryUtilizationPercentage: 80
+
+# Web frontend configuration
+web:
+  enabled: true
+  name: web
+  port: 80
+  replicas: 2
+  image:
+    repository: hackai/web
+    tag: "latest"
+  resources:
+    requests:
+      memory: "64Mi"
+      cpu: "50m"
+    limits:
+      memory: "128Mi"
+      cpu: "100m"
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 6
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 80
+
+# Database configuration
+postgresql:
+  enabled: true
+  auth:
+    postgresPassword: "hackai_password"
+    username: "hackai"
+    password: "hackai_password"
+    database: "hackai"
+  primary:
+    persistence:
+      enabled: true
+      size: 10Gi
+      storageClass: "fast-ssd"
+    resources:
+      requests:
+        memory: "256Mi"
+        cpu: "250m"
+      limits:
+        memory: "1Gi"
+        cpu: "500m"
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: true
+
+# Redis configuration
+redis:
+  enabled: true
+  auth:
+    enabled: true
+    password: "redis_password"
+  master:
+    persistence:
+      enabled: true
+      size: 5Gi
+      storageClass: "fast-ssd"
+    resources:
+      requests:
+        memory: "128Mi"
+        cpu: "100m"
+      limits:
+        memory: "512Mi"
+        cpu: "250m"
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: true
+
+# Monitoring configuration
+monitoring:
+  enabled: true
+  
+  prometheus:
+    enabled: true
+    server:
+      persistentVolume:
+        enabled: true
+        size: 20Gi
+        storageClass: "fast-ssd"
+      resources:
+        requests:
+          memory: "512Mi"
+          cpu: "250m"
+        limits:
+          memory: "2Gi"
+          cpu: "1000m"
+      retention: "30d"
+    
+  grafana:
+    enabled: true
+    persistence:
+      enabled: true
+      size: 5Gi
+      storageClass: "fast-ssd"
+    adminPassword: "admin"
+    resources:
+      requests:
+        memory: "256Mi"
+        cpu: "100m"
+      limits:
+        memory: "512Mi"
+        cpu: "250m"
+    
+  jaeger:
+    enabled: true
+    allInOne:
+      enabled: true
+      resources:
+        requests:
+          memory: "256Mi"
+          cpu: "100m"
+        limits:
+          memory: "512Mi"
+          cpu: "250m"
+
+# Ingress configuration
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+    nginx.ingress.kubernetes.io/rate-limit: "100"
+    nginx.ingress.kubernetes.io/rate-limit-window: "1m"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+  hosts:
+    - host: api.hackai.com
+      paths:
+        - path: /
+          pathType: Prefix
+          service: api-gateway-service
+          port: 8080
+    - host: app.hackai.com
+      paths:
+        - path: /
+          pathType: Prefix
+          service: web-service
+          port: 80
+  tls:
+    - secretName: hackai-tls
+      hosts:
+        - api.hackai.com
+        - app.hackai.com
+
+# Security configuration
+security:
+  podSecurityPolicy:
+    enabled: true
+  networkPolicy:
+    enabled: true
+  rbac:
+    create: true
+  serviceAccount:
+    create: true
+    name: ""
+
+# Configuration
+config:
+  database:
+    host: "postgresql"
+    port: 5432
+    name: "hackai"
+    sslMode: "require"
+  redis:
+    host: "redis-master"
+    port: 6379
+  observability:
+    jaegerEndpoint: "http://jaeger:14268/api/traces"
+    prometheusEndpoint: "http://prometheus:9090"
+  security:
+    jwtIssuer: "hackai"
+    jwtAudience: "hackai-users"
+    sessionTimeout: "24h"
+  logging:
+    level: "info"
+    format: "json"
+  rateLimiting:
+    requests: 100
+    window: "1m"
+
+# Secrets (these should be overridden in production)
+secrets:
+  jwtSecret: "super_secret_jwt_key_for_production"
+  encryptionKey: "encryption_key_32_bytes_long_string"
+  threatIntelApiKey: "threat_intel_api_key"
+  virusTotalApiKey: "virustotal_api_key"
+  smtpPassword: "smtp_password"
+
+# Resource quotas
+resourceQuota:
+  enabled: true
+  hard:
+    requests.cpu: "4"
+    requests.memory: "8Gi"
+    limits.cpu: "8"
+    limits.memory: "16Gi"
+    persistentvolumeclaims: "10"
+    services: "20"
+    secrets: "20"
+    configmaps: "20"
+
+# Limit ranges
+limitRange:
+  enabled: true
+  limits:
+    - default:
+        cpu: "500m"
+        memory: "512Mi"
+      defaultRequest:
+        cpu: "100m"
+        memory: "128Mi"
+      type: Container
+    - default:
+        storage: "1Gi"
+      type: PersistentVolumeClaim
