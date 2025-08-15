@@ -30,56 +30,9 @@ type SecurityTestingFramework struct {
 	mu sync.RWMutex
 }
 
-// SecurityTestConfig configuration for security testing
-type SecurityTestConfig struct {
-	Enabled            bool          `json:"enabled"`
-	TestSuites         []string      `json:"test_suites"`
-	MaxConcurrentTests int           `json:"max_concurrent_tests"`
-	TestTimeout        time.Duration `json:"test_timeout"`
-	ReportFormat       string        `json:"report_format"`
-	OutputDirectory    string        `json:"output_directory"`
+// Note: SecurityTestConfig is defined in security_tester.go
 
-	// Penetration testing
-	PenetrationConfig *PenetrationConfig `json:"penetration_config"`
-
-	// Vulnerability scanning
-	VulnerabilityConfig *VulnerabilityConfig `json:"vulnerability_config"`
-
-	// Compliance testing
-	ComplianceConfig *ComplianceConfig `json:"compliance_config"`
-
-	// Fuzzing configuration
-	FuzzConfig *FuzzConfig `json:"fuzz_config"`
-}
-
-// TestResult represents the result of a security test
-type TestResult struct {
-	ID        string        `json:"id"`
-	TestType  string        `json:"test_type"`
-	TestName  string        `json:"test_name"`
-	Status    string        `json:"status"`
-	StartTime time.Time     `json:"start_time"`
-	EndTime   time.Time     `json:"end_time"`
-	Duration  time.Duration `json:"duration"`
-
-	// Results
-	Passed   bool    `json:"passed"`
-	Score    float64 `json:"score"`
-	Severity string  `json:"severity"`
-
-	// Findings
-	Vulnerabilities  []*Vulnerability   `json:"vulnerabilities"`
-	ComplianceIssues []*ComplianceIssue `json:"compliance_issues"`
-	SecurityFindings []*SecurityFinding `json:"security_findings"`
-
-	// Metrics
-	TestMetrics *TestMetrics `json:"test_metrics"`
-
-	// Metadata
-	Metadata        map[string]interface{} `json:"metadata"`
-	Recommendations []string               `json:"recommendations"`
-	References      []string               `json:"references"`
-}
+// Note: TestResult is defined in framework.go
 
 // TestSession represents a testing session
 type TestSession struct {
@@ -112,22 +65,7 @@ type TestSession struct {
 	Reports []*TestReport `json:"reports"`
 }
 
-// Vulnerability represents a security vulnerability
-type Vulnerability struct {
-	ID             string     `json:"id"`
-	Type           string     `json:"type"`
-	Severity       string     `json:"severity"`
-	Title          string     `json:"title"`
-	Description    string     `json:"description"`
-	Location       string     `json:"location"`
-	Evidence       string     `json:"evidence"`
-	Impact         string     `json:"impact"`
-	Recommendation string     `json:"recommendation"`
-	References     []string   `json:"references"`
-	CVSS           *CVSSScore `json:"cvss,omitempty"`
-	CWE            string     `json:"cwe,omitempty"`
-	OWASP          string     `json:"owasp,omitempty"`
-}
+// Note: Vulnerability is defined in security_tester.go
 
 // ComplianceIssue represents a compliance violation
 type ComplianceIssue struct {
@@ -204,11 +142,18 @@ func NewSecurityTestingFramework(config *SecurityTestConfig, logger Logger) *Sec
 		testSessions: make(map[string]*TestSession),
 	}
 
-	// Initialize test components
-	framework.penetrationTester = NewPenetrationTester(config.PenetrationConfig, logger)
-	framework.vulnerabilityScanner = NewVulnerabilityScanner(config.VulnerabilityConfig, logger)
-	framework.complianceTester = NewComplianceTester(config.ComplianceConfig, logger)
-	framework.fuzzTester = NewFuzzTester(config.FuzzConfig, logger)
+	// Initialize test components with default configurations
+	if config.EnablePenetrationTesting {
+		framework.penetrationTester = NewPenetrationTester(nil, logger) // Uses default config
+	}
+	if config.EnableVulnerabilityScanning {
+		framework.vulnerabilityScanner = NewVulnerabilityScanner(nil, logger) // Uses default config
+	}
+	if config.EnableComplianceChecking {
+		framework.complianceTester = NewComplianceTester(nil, logger) // Uses default config
+	}
+	// Always initialize fuzz tester with default config
+	framework.fuzzTester = NewFuzzTester(nil, logger)
 	framework.testOrchestrator = NewTestOrchestrator(config, logger)
 
 	return framework
@@ -216,8 +161,9 @@ func NewSecurityTestingFramework(config *SecurityTestConfig, logger Logger) *Sec
 
 // StartTestSession starts a new testing session
 func (stf *SecurityTestingFramework) StartTestSession(name, targetURL string, testSuites []string) (*TestSession, error) {
-	if !stf.config.Enabled {
-		return nil, fmt.Errorf("security testing framework is disabled")
+	// Note: SecurityTestConfig doesn't have Enabled field, so we check if any testing is enabled
+	if !stf.config.EnableVulnerabilityScanning && !stf.config.EnablePenetrationTesting && !stf.config.EnableComplianceChecking {
+		return nil, fmt.Errorf("all security testing is disabled")
 	}
 
 	sessionID := fmt.Sprintf("session_%d", time.Now().UnixNano())
@@ -260,7 +206,7 @@ func (stf *SecurityTestingFramework) runTestSession(session *TestSession) {
 			"failed", session.FailedTests)
 	}()
 
-	ctx, cancel := context.WithTimeout(context.Background(), stf.config.TestTimeout)
+	ctx, cancel := context.WithTimeout(context.Background(), stf.config.MaxScanDuration)
 	defer cancel()
 
 	// Execute test suites
@@ -311,41 +257,30 @@ func (stf *SecurityTestingFramework) addTestResults(session *TestSession, result
 		session.TestResults = append(session.TestResults, result)
 		session.TotalTests++
 
-		if result.Passed {
+		if result.Status == TestStatusPassed {
 			session.PassedTests++
 		} else {
 			session.FailedTests++
 		}
 
-		// Count findings by severity
-		for _, vuln := range result.Vulnerabilities {
-			switch vuln.Severity {
-			case "critical":
-				session.CriticalFindings++
-			case "high":
-				session.HighFindings++
-			case "medium":
-				session.MediumFindings++
-			case "low":
-				session.LowFindings++
-			}
-		}
-
-		for _, finding := range result.SecurityFindings {
-			switch finding.Severity {
-			case "critical":
-				session.CriticalFindings++
-			case "high":
-				session.HighFindings++
-			case "medium":
-				session.MediumFindings++
-			case "low":
-				session.LowFindings++
+		// Count findings by severity from security results
+		if result.Security != nil {
+			for _, vuln := range result.Security.Vulnerabilities {
+				switch vuln.Severity {
+				case "critical":
+					session.CriticalFindings++
+				case "high":
+					session.HighFindings++
+				case "medium":
+					session.MediumFindings++
+				case "low":
+					session.LowFindings++
+				}
 			}
 		}
 
 		// Store result
-		stf.testResults[result.ID] = result
+		stf.testResults[result.TestID] = result
 	}
 }
 
@@ -410,7 +345,7 @@ func (stf *SecurityTestingFramework) generateJSONReport(session *TestSession) *T
 		Title:       fmt.Sprintf("Security Test Report - %s", session.Name),
 		GeneratedAt: time.Now(),
 		Content:     string(content),
-		FilePath:    fmt.Sprintf("%s/%s_report.json", stf.config.OutputDirectory, session.ID),
+		FilePath:    fmt.Sprintf("./reports/%s_report.json", session.ID),
 		Size:        int64(len(content)),
 	}
 }
@@ -484,7 +419,7 @@ func (stf *SecurityTestingFramework) generateHTMLReport(session *TestSession) *T
 		Title:       fmt.Sprintf("Security Test Report - %s", session.Name),
 		GeneratedAt: time.Now(),
 		Content:     content,
-		FilePath:    fmt.Sprintf("%s/%s_report.html", stf.config.OutputDirectory, session.ID),
+		FilePath:    fmt.Sprintf("./reports/%s_report.html", session.ID),
 		Size:        int64(len(content)),
 	}
 }
@@ -494,15 +429,17 @@ func (stf *SecurityTestingFramework) generateCSVReport(session *TestSession) *Te
 	content := "Test ID,Test Type,Test Name,Status,Severity,Duration,Vulnerabilities,Findings\n"
 
 	for _, result := range session.TestResults {
-		content += fmt.Sprintf("%s,%s,%s,%s,%s,%v,%d,%d\n",
-			result.ID,
-			result.TestType,
-			result.TestName,
+		vulnCount := 0
+		if result.Security != nil {
+			vulnCount = len(result.Security.Vulnerabilities)
+		}
+		content += fmt.Sprintf("%s,%s,%s,%s,%v,%d\n",
+			result.TestID,
+			result.Name,
 			result.Status,
-			result.Severity,
 			result.Duration,
-			len(result.Vulnerabilities),
-			len(result.SecurityFindings))
+			vulnCount,
+			len(result.Assertions))
 	}
 
 	return &TestReport{
@@ -511,7 +448,7 @@ func (stf *SecurityTestingFramework) generateCSVReport(session *TestSession) *Te
 		Title:       fmt.Sprintf("Security Test Report - %s", session.Name),
 		GeneratedAt: time.Now(),
 		Content:     content,
-		FilePath:    fmt.Sprintf("%s/%s_report.csv", stf.config.OutputDirectory, session.ID),
+		FilePath:    fmt.Sprintf("./reports/%s_report.csv", session.ID),
 		Size:        int64(len(content)),
 	}
 }
@@ -571,22 +508,24 @@ func (stf *SecurityTestingFramework) GetTestStatistics() map[string]interface{} 
 	lowFindings := 0
 
 	for _, result := range stf.testResults {
-		if result.Passed {
+		if result.Status == TestStatusPassed {
 			passedTests++
 		} else {
 			failedTests++
 		}
 
-		for _, vuln := range result.Vulnerabilities {
-			switch vuln.Severity {
-			case "critical":
-				criticalFindings++
-			case "high":
-				highFindings++
-			case "medium":
-				mediumFindings++
-			case "low":
-				lowFindings++
+		if result.Security != nil {
+			for _, vuln := range result.Security.Vulnerabilities {
+				switch vuln.Severity {
+				case "critical":
+					criticalFindings++
+				case "high":
+					highFindings++
+				case "medium":
+					mediumFindings++
+				case "low":
+					lowFindings++
+				}
 			}
 		}
 	}

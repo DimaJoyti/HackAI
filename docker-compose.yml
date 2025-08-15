@@ -135,15 +135,40 @@ services:
       - hackai-network
     restart: unless-stopped
 
-  scanner-service:
+  ai-service:
     build:
       context: .
-      dockerfile: deployments/docker/Dockerfile.scanner
-    container_name: hackai-scanner-service
+      dockerfile: deployments/docker/Dockerfile.ai-service
+    container_name: hackai-ai-service
     ports:
       - "8082:8082"
     environment:
       - PORT=8082
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=hackai
+      - DB_USER=hackai
+      - DB_PASSWORD=hackai_password
+      - AI_MODEL_ENDPOINT=${AI_MODEL_ENDPOINT:-https://api.openai.com/v1}
+      - AI_API_KEY=${AI_API_KEY:-your-openai-api-key}
+      - AI_MODEL_NAME=${AI_MODEL_NAME:-gpt-4}
+      - JAEGER_ENDPOINT=http://jaeger:14268/api/traces
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - hackai-network
+    restart: unless-stopped
+
+  security-service:
+    build:
+      context: .
+      dockerfile: deployments/docker/Dockerfile.security-service
+    container_name: hackai-security-service
+    ports:
+      - "8083:8083"
+    environment:
+      - PORT=8083
       - DB_HOST=postgres
       - DB_PORT=5432
       - DB_NAME=hackai

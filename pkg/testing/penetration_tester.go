@@ -18,25 +18,25 @@ type PenetrationTester struct {
 
 // PenetrationConfig configuration for penetration testing
 type PenetrationConfig struct {
-	Enabled              bool          `json:"enabled"`
-	MaxConcurrentTests   int           `json:"max_concurrent_tests"`
-	RequestTimeout       time.Duration `json:"request_timeout"`
-	MaxRedirects         int           `json:"max_redirects"`
-	UserAgent            string        `json:"user_agent"`
-	
+	Enabled            bool          `json:"enabled"`
+	MaxConcurrentTests int           `json:"max_concurrent_tests"`
+	RequestTimeout     time.Duration `json:"request_timeout"`
+	MaxRedirects       int           `json:"max_redirects"`
+	UserAgent          string        `json:"user_agent"`
+
 	// Test categories
-	SQLInjectionTests    bool          `json:"sql_injection_tests"`
-	XSSTests             bool          `json:"xss_tests"`
-	CommandInjectionTests bool         `json:"command_injection_tests"`
-	PathTraversalTests   bool          `json:"path_traversal_tests"`
-	AuthenticationTests  bool          `json:"authentication_tests"`
-	AuthorizationTests   bool          `json:"authorization_tests"`
-	SessionTests         bool          `json:"session_tests"`
-	CSRFTests            bool          `json:"csrf_tests"`
-	
+	SQLInjectionTests     bool `json:"sql_injection_tests"`
+	XSSTests              bool `json:"xss_tests"`
+	CommandInjectionTests bool `json:"command_injection_tests"`
+	PathTraversalTests    bool `json:"path_traversal_tests"`
+	AuthenticationTests   bool `json:"authentication_tests"`
+	AuthorizationTests    bool `json:"authorization_tests"`
+	SessionTests          bool `json:"session_tests"`
+	CSRFTests             bool `json:"csrf_tests"`
+
 	// Payloads
-	CustomPayloads       []string      `json:"custom_payloads"`
-	PayloadFiles         []string      `json:"payload_files"`
+	CustomPayloads []string `json:"custom_payloads"`
+	PayloadFiles   []string `json:"payload_files"`
 }
 
 // NewPenetrationTester creates a new penetration tester
@@ -44,7 +44,7 @@ func NewPenetrationTester(config *PenetrationConfig, logger Logger) *Penetration
 	if config == nil {
 		config = DefaultPenetrationConfig()
 	}
-	
+
 	client := &http.Client{
 		Timeout: config.RequestTimeout,
 		CheckRedirect: func(req *http.Request, via []*http.Request) error {
@@ -54,7 +54,7 @@ func NewPenetrationTester(config *PenetrationConfig, logger Logger) *Penetration
 			return nil
 		},
 	}
-	
+
 	return &PenetrationTester{
 		config: config,
 		logger: logger,
@@ -88,61 +88,61 @@ func (pt *PenetrationTester) RunTests(ctx context.Context, targetURL string) []*
 	if !pt.config.Enabled {
 		return []*TestResult{}
 	}
-	
+
 	pt.logger.Info("Starting penetration tests", "target", targetURL)
-	
+
 	var results []*TestResult
-	
+
 	// SQL Injection Tests
 	if pt.config.SQLInjectionTests {
 		sqlResults := pt.runSQLInjectionTests(ctx, targetURL)
 		results = append(results, sqlResults...)
 	}
-	
+
 	// XSS Tests
 	if pt.config.XSSTests {
 		xssResults := pt.runXSSTests(ctx, targetURL)
 		results = append(results, xssResults...)
 	}
-	
+
 	// Command Injection Tests
 	if pt.config.CommandInjectionTests {
 		cmdResults := pt.runCommandInjectionTests(ctx, targetURL)
 		results = append(results, cmdResults...)
 	}
-	
+
 	// Path Traversal Tests
 	if pt.config.PathTraversalTests {
 		pathResults := pt.runPathTraversalTests(ctx, targetURL)
 		results = append(results, pathResults...)
 	}
-	
+
 	// Authentication Tests
 	if pt.config.AuthenticationTests {
 		authResults := pt.runAuthenticationTests(ctx, targetURL)
 		results = append(results, authResults...)
 	}
-	
+
 	// Authorization Tests
 	if pt.config.AuthorizationTests {
 		authzResults := pt.runAuthorizationTests(ctx, targetURL)
 		results = append(results, authzResults...)
 	}
-	
+
 	// Session Tests
 	if pt.config.SessionTests {
 		sessionResults := pt.runSessionTests(ctx, targetURL)
 		results = append(results, sessionResults...)
 	}
-	
+
 	// CSRF Tests
 	if pt.config.CSRFTests {
 		csrfResults := pt.runCSRFTests(ctx, targetURL)
 		results = append(results, csrfResults...)
 	}
-	
+
 	pt.logger.Info("Completed penetration tests", "target", targetURL, "results", len(results))
-	
+
 	return results
 }
 
@@ -150,7 +150,7 @@ func (pt *PenetrationTester) RunTests(ctx context.Context, targetURL string) []*
 func (pt *PenetrationTester) runSQLInjectionTests(ctx context.Context, targetURL string) []*TestResult {
 	testName := "SQL Injection Test"
 	startTime := time.Now()
-	
+
 	payloads := []string{
 		"' OR '1'='1",
 		"' OR '1'='1' --",
@@ -165,26 +165,26 @@ func (pt *PenetrationTester) runSQLInjectionTests(ctx context.Context, targetURL
 		"admin' /*",
 		"' OR 1=1 LIMIT 1 --",
 	}
-	
+
 	vulnerabilities := []*Vulnerability{}
 	testMetrics := &TestMetrics{
 		RequestsSent: len(payloads),
 	}
-	
+
 	for _, payload := range payloads {
 		select {
 		case <-ctx.Done():
 			break
 		default:
 		}
-		
+
 		// Test GET parameter
 		testURL := fmt.Sprintf("%s?id=%s", targetURL, url.QueryEscape(payload))
 		resp, err := pt.makeRequest(ctx, "GET", testURL, "")
-		
+
 		if err == nil {
 			testMetrics.ResponsesReceived++
-			
+
 			// Analyze response for SQL injection indicators
 			if pt.detectSQLInjection(resp, payload) {
 				vuln := &Vulnerability{
@@ -196,7 +196,7 @@ func (pt *PenetrationTester) runSQLInjectionTests(ctx context.Context, targetURL
 					Location:    testURL,
 					Evidence:    fmt.Sprintf("Payload: %s", payload),
 					Impact:      "Potential database compromise, data theft, or unauthorized access",
-					Recommendation: "Use parameterized queries and input validation",
+					Remediation: "Use parameterized queries and input validation",
 					References: []string{
 						"https://owasp.org/www-community/attacks/SQL_Injection",
 						"https://cwe.mitre.org/data/definitions/89.html",
@@ -210,36 +210,38 @@ func (pt *PenetrationTester) runSQLInjectionTests(ctx context.Context, targetURL
 			testMetrics.ErrorsEncountered++
 		}
 	}
-	
+
 	endTime := time.Now()
 	duration := endTime.Sub(startTime)
-	
+
+	// Create security test result
+	securityResult := &SecurityTestResult{
+		VulnerabilitiesFound: len(vulnerabilities),
+		SecurityScore:        pt.calculateSecurityScore(vulnerabilities),
+		Vulnerabilities:      vulnerabilities,
+	}
+
 	result := &TestResult{
-		ID:              fmt.Sprintf("pentest_sqli_%d", startTime.UnixNano()),
-		TestType:        "penetration",
-		TestName:        testName,
-		Status:          "completed",
-		StartTime:       startTime,
-		EndTime:         endTime,
-		Duration:        duration,
-		Passed:          len(vulnerabilities) == 0,
-		Score:           pt.calculateSecurityScore(vulnerabilities),
-		Severity:        pt.calculateOverallSeverity(vulnerabilities),
-		Vulnerabilities: vulnerabilities,
-		TestMetrics:     testMetrics,
+		TestID:    fmt.Sprintf("pentest_sqli_%d", startTime.UnixNano()),
+		Name:      testName,
+		Status:    TestStatusPassed,
+		StartTime: startTime,
+		EndTime:   endTime,
+		Duration:  duration,
+		Security:  securityResult,
 		Metadata: map[string]interface{}{
-			"target_url":     targetURL,
+			"target_url":      targetURL,
 			"payloads_tested": len(payloads),
-			"test_category":  "sql_injection",
+			"test_category":   "sql_injection",
 		},
-		Recommendations: []string{
+		Logs: []string{
 			"Implement parameterized queries",
 			"Use input validation and sanitization",
 			"Apply principle of least privilege for database access",
 			"Enable SQL injection detection in WAF",
 		},
 	}
-	
+
 	return []*TestResult{result}
 }
 
@@ -247,7 +249,7 @@ func (pt *PenetrationTester) runSQLInjectionTests(ctx context.Context, targetURL
 func (pt *PenetrationTester) runXSSTests(ctx context.Context, targetURL string) []*TestResult {
 	testName := "Cross-Site Scripting (XSS) Test"
 	startTime := time.Now()
-	
+
 	payloads := []string{
 		"<script>alert('XSS')</script>",
 		"<img src=x onerror=alert('XSS')>",
@@ -262,26 +264,26 @@ func (pt *PenetrationTester) runXSSTests(ctx context.Context, targetURL string) 
 		"<video><source onerror=alert('XSS')>",
 		"<audio src=x onerror=alert('XSS')>",
 	}
-	
+
 	vulnerabilities := []*Vulnerability{}
 	testMetrics := &TestMetrics{
 		RequestsSent: len(payloads),
 	}
-	
+
 	for _, payload := range payloads {
 		select {
 		case <-ctx.Done():
 			break
 		default:
 		}
-		
+
 		// Test GET parameter
 		testURL := fmt.Sprintf("%s?q=%s", targetURL, url.QueryEscape(payload))
 		resp, err := pt.makeRequest(ctx, "GET", testURL, "")
-		
+
 		if err == nil {
 			testMetrics.ResponsesReceived++
-			
+
 			// Analyze response for XSS indicators
 			if pt.detectXSS(resp, payload) {
 				vuln := &Vulnerability{
@@ -293,7 +295,7 @@ func (pt *PenetrationTester) runXSSTests(ctx context.Context, targetURL string) 
 					Location:    testURL,
 					Evidence:    fmt.Sprintf("Payload: %s", payload),
 					Impact:      "Session hijacking, credential theft, or malicious script execution",
-					Recommendation: "Implement proper output encoding and Content Security Policy",
+					Remediation: "Implement proper output encoding and Content Security Policy",
 					References: []string{
 						"https://owasp.org/www-community/attacks/xss/",
 						"https://cwe.mitre.org/data/definitions/79.html",
@@ -307,36 +309,38 @@ func (pt *PenetrationTester) runXSSTests(ctx context.Context, targetURL string) 
 			testMetrics.ErrorsEncountered++
 		}
 	}
-	
+
 	endTime := time.Now()
 	duration := endTime.Sub(startTime)
-	
+
+	// Create security test result
+	securityResult := &SecurityTestResult{
+		VulnerabilitiesFound: len(vulnerabilities),
+		SecurityScore:        pt.calculateSecurityScore(vulnerabilities),
+		Vulnerabilities:      vulnerabilities,
+	}
+
 	result := &TestResult{
-		ID:              fmt.Sprintf("pentest_xss_%d", startTime.UnixNano()),
-		TestType:        "penetration",
-		TestName:        testName,
-		Status:          "completed",
-		StartTime:       startTime,
-		EndTime:         endTime,
-		Duration:        duration,
-		Passed:          len(vulnerabilities) == 0,
-		Score:           pt.calculateSecurityScore(vulnerabilities),
-		Severity:        pt.calculateOverallSeverity(vulnerabilities),
-		Vulnerabilities: vulnerabilities,
-		TestMetrics:     testMetrics,
+		TestID:    fmt.Sprintf("pentest_xss_%d", startTime.UnixNano()),
+		Name:      testName,
+		Status:    TestStatusPassed,
+		StartTime: startTime,
+		EndTime:   endTime,
+		Duration:  duration,
+		Security:  securityResult,
 		Metadata: map[string]interface{}{
-			"target_url":     targetURL,
+			"target_url":      targetURL,
 			"payloads_tested": len(payloads),
-			"test_category":  "xss",
+			"test_category":   "xss",
 		},
-		Recommendations: []string{
+		Logs: []string{
 			"Implement output encoding/escaping",
 			"Use Content Security Policy (CSP)",
 			"Validate and sanitize all user inputs",
 			"Use secure coding practices",
 		},
 	}
-	
+
 	return []*TestResult{result}
 }
 
@@ -344,7 +348,7 @@ func (pt *PenetrationTester) runXSSTests(ctx context.Context, targetURL string) 
 func (pt *PenetrationTester) runCommandInjectionTests(ctx context.Context, targetURL string) []*TestResult {
 	testName := "Command Injection Test"
 	startTime := time.Now()
-	
+
 	payloads := []string{
 		"; ls -la",
 		"| whoami",
@@ -359,26 +363,26 @@ func (pt *PenetrationTester) runCommandInjectionTests(ctx context.Context, targe
 		"`ping -c 1 127.0.0.1`",
 		"$(ping -c 1 127.0.0.1)",
 	}
-	
+
 	vulnerabilities := []*Vulnerability{}
 	testMetrics := &TestMetrics{
 		RequestsSent: len(payloads),
 	}
-	
+
 	for _, payload := range payloads {
 		select {
 		case <-ctx.Done():
 			break
 		default:
 		}
-		
+
 		// Test GET parameter
 		testURL := fmt.Sprintf("%s?cmd=%s", targetURL, url.QueryEscape(payload))
 		resp, err := pt.makeRequest(ctx, "GET", testURL, "")
-		
+
 		if err == nil {
 			testMetrics.ResponsesReceived++
-			
+
 			// Analyze response for command injection indicators
 			if pt.detectCommandInjection(resp, payload) {
 				vuln := &Vulnerability{
@@ -390,7 +394,7 @@ func (pt *PenetrationTester) runCommandInjectionTests(ctx context.Context, targe
 					Location:    testURL,
 					Evidence:    fmt.Sprintf("Payload: %s", payload),
 					Impact:      "Remote code execution, system compromise, or data theft",
-					Recommendation: "Use parameterized commands and input validation",
+					Remediation: "Use parameterized commands and input validation",
 					References: []string{
 						"https://owasp.org/www-community/attacks/Command_Injection",
 						"https://cwe.mitre.org/data/definitions/78.html",
@@ -404,36 +408,38 @@ func (pt *PenetrationTester) runCommandInjectionTests(ctx context.Context, targe
 			testMetrics.ErrorsEncountered++
 		}
 	}
-	
+
 	endTime := time.Now()
 	duration := endTime.Sub(startTime)
-	
+
+	// Create security test result
+	securityResult := &SecurityTestResult{
+		VulnerabilitiesFound: len(vulnerabilities),
+		SecurityScore:        pt.calculateSecurityScore(vulnerabilities),
+		Vulnerabilities:      vulnerabilities,
+	}
+
 	result := &TestResult{
-		ID:              fmt.Sprintf("pentest_cmdi_%d", startTime.UnixNano()),
-		TestType:        "penetration",
-		TestName:        testName,
-		Status:          "completed",
-		StartTime:       startTime,
-		EndTime:         endTime,
-		Duration:        duration,
-		Passed:          len(vulnerabilities) == 0,
-		Score:           pt.calculateSecurityScore(vulnerabilities),
-		Severity:        pt.calculateOverallSeverity(vulnerabilities),
-		Vulnerabilities: vulnerabilities,
-		TestMetrics:     testMetrics,
+		TestID:    fmt.Sprintf("pentest_cmdi_%d", startTime.UnixNano()),
+		Name:      testName,
+		Status:    TestStatusPassed,
+		StartTime: startTime,
+		EndTime:   endTime,
+		Duration:  duration,
+		Security:  securityResult,
 		Metadata: map[string]interface{}{
-			"target_url":     targetURL,
+			"target_url":      targetURL,
 			"payloads_tested": len(payloads),
-			"test_category":  "command_injection",
+			"test_category":   "command_injection",
 		},
-		Recommendations: []string{
+		Logs: []string{
 			"Avoid system command execution",
 			"Use parameterized commands",
 			"Implement strict input validation",
 			"Apply principle of least privilege",
 		},
 	}
-	
+
 	return []*TestResult{result}
 }
 
@@ -441,7 +447,7 @@ func (pt *PenetrationTester) runCommandInjectionTests(ctx context.Context, targe
 func (pt *PenetrationTester) runPathTraversalTests(ctx context.Context, targetURL string) []*TestResult {
 	testName := "Path Traversal Test"
 	startTime := time.Now()
-	
+
 	payloads := []string{
 		"../../../etc/passwd",
 		"..\\..\\..\\windows\\system32\\drivers\\etc\\hosts",
@@ -456,26 +462,26 @@ func (pt *PenetrationTester) runPathTraversalTests(ctx context.Context, targetUR
 		"..\\..\\..\\windows\\win.ini",
 		"....\\\\....\\\\....\\\\windows\\\\system32\\\\drivers\\\\etc\\\\hosts",
 	}
-	
+
 	vulnerabilities := []*Vulnerability{}
 	testMetrics := &TestMetrics{
 		RequestsSent: len(payloads),
 	}
-	
+
 	for _, payload := range payloads {
 		select {
 		case <-ctx.Done():
 			break
 		default:
 		}
-		
+
 		// Test file parameter
 		testURL := fmt.Sprintf("%s?file=%s", targetURL, url.QueryEscape(payload))
 		resp, err := pt.makeRequest(ctx, "GET", testURL, "")
-		
+
 		if err == nil {
 			testMetrics.ResponsesReceived++
-			
+
 			// Analyze response for path traversal indicators
 			if pt.detectPathTraversal(resp, payload) {
 				vuln := &Vulnerability{
@@ -487,7 +493,7 @@ func (pt *PenetrationTester) runPathTraversalTests(ctx context.Context, targetUR
 					Location:    testURL,
 					Evidence:    fmt.Sprintf("Payload: %s", payload),
 					Impact:      "Unauthorized file access, information disclosure, or system compromise",
-					Recommendation: "Implement proper file path validation and sanitization",
+					Remediation: "Implement proper file path validation and sanitization",
 					References: []string{
 						"https://owasp.org/www-community/attacks/Path_Traversal",
 						"https://cwe.mitre.org/data/definitions/22.html",
@@ -501,36 +507,38 @@ func (pt *PenetrationTester) runPathTraversalTests(ctx context.Context, targetUR
 			testMetrics.ErrorsEncountered++
 		}
 	}
-	
+
 	endTime := time.Now()
 	duration := endTime.Sub(startTime)
-	
+
+	// Create security test result
+	securityResult := &SecurityTestResult{
+		VulnerabilitiesFound: len(vulnerabilities),
+		SecurityScore:        pt.calculateSecurityScore(vulnerabilities),
+		Vulnerabilities:      vulnerabilities,
+	}
+
 	result := &TestResult{
-		ID:              fmt.Sprintf("pentest_path_%d", startTime.UnixNano()),
-		TestType:        "penetration",
-		TestName:        testName,
-		Status:          "completed",
-		StartTime:       startTime,
-		EndTime:         endTime,
-		Duration:        duration,
-		Passed:          len(vulnerabilities) == 0,
-		Score:           pt.calculateSecurityScore(vulnerabilities),
-		Severity:        pt.calculateOverallSeverity(vulnerabilities),
-		Vulnerabilities: vulnerabilities,
-		TestMetrics:     testMetrics,
+		TestID:    fmt.Sprintf("pentest_path_%d", startTime.UnixNano()),
+		Name:      testName,
+		Status:    TestStatusPassed,
+		StartTime: startTime,
+		EndTime:   endTime,
+		Duration:  duration,
+		Security:  securityResult,
 		Metadata: map[string]interface{}{
-			"target_url":     targetURL,
+			"target_url":      targetURL,
 			"payloads_tested": len(payloads),
-			"test_category":  "path_traversal",
+			"test_category":   "path_traversal",
 		},
-		Recommendations: []string{
+		Logs: []string{
 			"Validate and sanitize file paths",
 			"Use whitelist-based file access",
 			"Implement proper access controls",
 			"Avoid direct file system access",
 		},
 	}
-	
+
 	return []*TestResult{result}
 }
 
@@ -562,9 +570,9 @@ func (pt *PenetrationTester) makeRequest(ctx context.Context, method, url, body 
 	if err != nil {
 		return nil, err
 	}
-	
+
 	req.Header.Set("User-Agent", pt.config.UserAgent)
-	
+
 	return pt.client.Do(req)
 }
 
@@ -593,7 +601,7 @@ func (pt *PenetrationTester) calculateSecurityScore(vulnerabilities []*Vulnerabi
 	if len(vulnerabilities) == 0 {
 		return 100.0
 	}
-	
+
 	score := 100.0
 	for _, vuln := range vulnerabilities {
 		switch vuln.Severity {
@@ -607,11 +615,11 @@ func (pt *PenetrationTester) calculateSecurityScore(vulnerabilities []*Vulnerabi
 			score -= 5.0
 		}
 	}
-	
+
 	if score < 0 {
 		score = 0
 	}
-	
+
 	return score
 }
 
@@ -619,11 +627,11 @@ func (pt *PenetrationTester) calculateOverallSeverity(vulnerabilities []*Vulnera
 	if len(vulnerabilities) == 0 {
 		return "none"
 	}
-	
+
 	hasCritical := false
 	hasHigh := false
 	hasMedium := false
-	
+
 	for _, vuln := range vulnerabilities {
 		switch vuln.Severity {
 		case "critical":
@@ -634,7 +642,7 @@ func (pt *PenetrationTester) calculateOverallSeverity(vulnerabilities []*Vulnera
 			hasMedium = true
 		}
 	}
-	
+
 	if hasCritical {
 		return "critical"
 	}
@@ -644,6 +652,6 @@ func (pt *PenetrationTester) calculateOverallSeverity(vulnerabilities []*Vulnera
 	if hasMedium {
 		return "medium"
 	}
-	
+
 	return "low"
 }

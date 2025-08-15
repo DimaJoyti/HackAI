@@ -1,0 +1,144 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: hackai
+  labels:
+    name: hackai
+    app.kubernetes.io/name: hackai
+    app.kubernetes.io/version: "1.0.0"
+    app.kubernetes.io/component: platform
+    app.kubernetes.io/part-of: hackai-platform
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: hackai-secrets
+  namespace: hackai
+type: Opaque
+data:
+  # Base64 encoded values
+  db-password: aGFja2FpX3Bhc3N3b3Jk  # hackai_password
+  redis-password: cmVkaXNfcGFzc3dvcmQ=  # redis_password
+  jwt-secret: eW91ci1zdXBlci1zZWNyZXQtand0LWtleQ==  # your-super-secret-jwt-key
+  ai-api-key: eW91ci1vcGVuYWktYXBpLWtleQ==  # your-openai-api-key
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: hackai-config
+  namespace: hackai
+data:
+  # Database configuration
+  DB_HOST: "postgres"
+  DB_PORT: "5432"
+  DB_NAME: "hackai"
+  DB_USER: "hackai"
+  
+  # Redis configuration
+  REDIS_HOST: "redis"
+  REDIS_PORT: "6379"
+  
+  # Application configuration
+  LOG_LEVEL: "info"
+  APP_ENV: "production"
+  
+  # AI configuration
+  AI_MODEL_ENDPOINT: "https://api.openai.com/v1"
+  AI_MODEL_NAME: "gpt-4"
+  MAX_TOKENS: "4000"
+  
+  # Security configuration
+  CORS_ORIGINS: "https://hackai.com,https://app.hackai.com"
+  JWT_EXPIRY: "24h"
+  BCRYPT_COST: "12"
+  
+  # Monitoring configuration
+  JAEGER_ENDPOINT: "http://jaeger:14268/api/traces"
+  PROMETHEUS_ENDPOINT: "http://prometheus:9090"
+  
+  # External services
+  SMTP_HOST: "smtp.gmail.com"
+  SMTP_PORT: "587"
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: hackai-service-account
+  namespace: hackai
+  labels:
+    app.kubernetes.io/name: hackai
+    app.kubernetes.io/component: service-account
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: hackai
+  name: hackai-role
+rules:
+- apiGroups: [""]
+  resources: ["pods", "services", "endpoints"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["apps"]
+  resources: ["deployments", "replicasets"]
+  verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: hackai-role-binding
+  namespace: hackai
+subjects:
+- kind: ServiceAccount
+  name: hackai-service-account
+  namespace: hackai
+roleRef:
+  kind: Role
+  name: hackai-role
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: hackai-network-policy
+  namespace: hackai
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: ingress-nginx
+  - from:
+    - podSelector:
+        matchLabels:
+          app: api-gateway
+  egress:
+  - to:
+    - podSelector:
+        matchLabels:
+          app: postgres
+    ports:
+    - protocol: TCP
+      port: 5432
+  - to:
+    - podSelector:
+        matchLabels:
+          app: redis
+    ports:
+    - protocol: TCP
+      port: 6379
+  - to: {}
+    ports:
+    - protocol: TCP
+      port: 53
+    - protocol: UDP
+      port: 53
+  - to: {}
+    ports:
+    - protocol: TCP
+      port: 443
+    - protocol: TCP
+      port: 80

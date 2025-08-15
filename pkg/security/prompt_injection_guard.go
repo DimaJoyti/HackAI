@@ -18,6 +18,7 @@ type PromptInjectionGuard struct {
 	patterns         []*InjectionPattern
 	semanticAnalyzer *SemanticAnalyzer
 	contextAnalyzer  *ContextAnalyzer
+	iteuAnalyzer     *ITEUAnalyzer
 	config           *PromptGuardConfig
 }
 
@@ -80,6 +81,153 @@ type ContextAnalyzer struct {
 	mu                  sync.RWMutex
 }
 
+// ITEUAnalyzer implements Intent-Technique-Evasion-Utility taxonomy for advanced prompt injection detection
+type ITEUAnalyzer struct {
+	logger            *logger.Logger
+	intentClassifier  *IntentClassifier
+	techniqueDetector *TechniqueDetector
+	evasionAnalyzer   *EvasionAnalyzer
+	utilityAssessor   *UtilityAssessor
+	config            *ITEUConfig
+	mu                sync.RWMutex
+}
+
+// ITEUConfig configuration for ITEU analyzer
+type ITEUConfig struct {
+	EnableIntentAnalysis     bool    `json:"enable_intent_analysis"`
+	EnableTechniqueDetection bool    `json:"enable_technique_detection"`
+	EnableEvasionAnalysis    bool    `json:"enable_evasion_analysis"`
+	EnableUtilityAssessment  bool    `json:"enable_utility_assessment"`
+	ConfidenceThreshold      float64 `json:"confidence_threshold"`
+	StrictMode               bool    `json:"strict_mode"`
+	LogDetailedAnalysis      bool    `json:"log_detailed_analysis"`
+}
+
+// ITEUResult represents the result of ITEU analysis
+type ITEUResult struct {
+	ID              string           `json:"id"`
+	PromptID        string           `json:"prompt_id"`
+	Intent          *IntentResult    `json:"intent"`
+	Technique       *TechniqueResult `json:"technique"`
+	Evasion         *EvasionResult   `json:"evasion"`
+	Utility         *UtilityResult   `json:"utility"`
+	OverallScore    float64          `json:"overall_score"`
+	ThreatLevel     string           `json:"threat_level"`
+	IsInjection     bool             `json:"is_injection"`
+	Confidence      float64          `json:"confidence"`
+	Recommendations []string         `json:"recommendations"`
+	AnalyzedAt      time.Time        `json:"analyzed_at"`
+}
+
+// IntentClassifier classifies the intent behind prompts
+type IntentClassifier struct {
+	logger           *logger.Logger
+	intentPatterns   map[string]*IntentPattern
+	maliciousIntents []string
+}
+
+// IntentPattern represents a pattern for intent classification
+type IntentPattern struct {
+	ID          string    `json:"id"`
+	Name        string    `json:"name"`
+	Description string    `json:"description"`
+	Pattern     string    `json:"pattern"`
+	Intent      string    `json:"intent"`
+	Malicious   bool      `json:"malicious"`
+	Confidence  float64   `json:"confidence"`
+	Examples    []string  `json:"examples"`
+	CreatedAt   time.Time `json:"created_at"`
+}
+
+// IntentResult represents intent analysis results
+type IntentResult struct {
+	PrimaryIntent    string   `json:"primary_intent"`
+	SecondaryIntents []string `json:"secondary_intents"`
+	MaliciousIntent  bool     `json:"malicious_intent"`
+	IntentConfidence float64  `json:"intent_confidence"`
+	IntentEvidence   []string `json:"intent_evidence"`
+}
+
+// TechniqueDetector detects specific injection techniques
+type TechniqueDetector struct {
+	logger             *logger.Logger
+	techniquePatterns  map[string]*TechniquePattern
+	advancedTechniques []string
+}
+
+// TechniquePattern represents a specific injection technique
+type TechniquePattern struct {
+	ID            string    `json:"id"`
+	Name          string    `json:"name"`
+	Description   string    `json:"description"`
+	Category      string    `json:"category"`
+	Pattern       string    `json:"pattern"`
+	Severity      string    `json:"severity"`
+	Complexity    string    `json:"complexity"`
+	Effectiveness float64   `json:"effectiveness"`
+	Examples      []string  `json:"examples"`
+	Mitigations   []string  `json:"mitigations"`
+	CreatedAt     time.Time `json:"created_at"`
+}
+
+// TechniqueResult represents technique detection results
+type TechniqueResult struct {
+	DetectedTechniques []string `json:"detected_techniques"`
+	PrimaryTechnique   string   `json:"primary_technique"`
+	TechniqueCategory  string   `json:"technique_category"`
+	Complexity         string   `json:"complexity"`
+	Effectiveness      float64  `json:"effectiveness"`
+	TechniqueEvidence  []string `json:"technique_evidence"`
+}
+
+// EvasionAnalyzer analyzes evasion attempts
+type EvasionAnalyzer struct {
+	logger           *logger.Logger
+	evasionPatterns  map[string]*EvasionPattern
+	obfuscationTypes []string
+}
+
+// EvasionPattern represents an evasion technique pattern
+type EvasionPattern struct {
+	ID              string    `json:"id"`
+	Name            string    `json:"name"`
+	Description     string    `json:"description"`
+	Type            string    `json:"type"`
+	Pattern         string    `json:"pattern"`
+	Sophistication  string    `json:"sophistication"`
+	Success         float64   `json:"success_rate"`
+	Examples        []string  `json:"examples"`
+	Countermeasures []string  `json:"countermeasures"`
+	CreatedAt       time.Time `json:"created_at"`
+}
+
+// EvasionResult represents evasion analysis results
+type EvasionResult struct {
+	EvasionAttempted   bool     `json:"evasion_attempted"`
+	EvasionTechniques  []string `json:"evasion_techniques"`
+	ObfuscationLevel   string   `json:"obfuscation_level"`
+	Sophistication     string   `json:"sophistication"`
+	SuccessProbability float64  `json:"success_probability"`
+	EvasionEvidence    []string `json:"evasion_evidence"`
+}
+
+// UtilityAssessor assesses the utility/impact of successful injection
+type UtilityAssessor struct {
+	logger         *logger.Logger
+	impactMetrics  map[string]float64
+	utilityFactors []string
+}
+
+// UtilityResult represents utility assessment results
+type UtilityResult struct {
+	PotentialImpact string   `json:"potential_impact"`
+	ImpactScore     float64  `json:"impact_score"`
+	TargetSystems   []string `json:"target_systems"`
+	DataAtRisk      []string `json:"data_at_risk"`
+	BusinessImpact  string   `json:"business_impact"`
+	UtilityEvidence []string `json:"utility_evidence"`
+}
+
 // PromptAnalysis represents the result of prompt analysis
 type PromptAnalysis struct {
 	ID               string                 `json:"id"`
@@ -90,6 +238,7 @@ type PromptAnalysis struct {
 	DetectedPatterns []*DetectedPattern     `json:"detected_patterns"`
 	SemanticAnalysis *SemanticResult        `json:"semantic_analysis"`
 	ContextAnalysis  *ContextResult         `json:"context_analysis"`
+	ITEUAnalysis     *ITEUResult            `json:"iteu_analysis"`
 	Recommendations  []string               `json:"recommendations"`
 	BlockRecommended bool                   `json:"block_recommended"`
 	Metadata         map[string]interface{} `json:"metadata"`
@@ -1533,4 +1682,544 @@ func absFloat(x float64) float64 {
 		return -x
 	}
 	return x
+}
+
+// NewITEUAnalyzer creates a new ITEU analyzer
+func NewITEUAnalyzer(config *ITEUConfig, logger *logger.Logger) *ITEUAnalyzer {
+	if config == nil {
+		config = DefaultITEUConfig()
+	}
+
+	analyzer := &ITEUAnalyzer{
+		logger: logger,
+		config: config,
+	}
+
+	// Initialize components
+	analyzer.intentClassifier = NewIntentClassifier(logger)
+	analyzer.techniqueDetector = NewTechniqueDetector(logger)
+	analyzer.evasionAnalyzer = NewEvasionAnalyzer(logger)
+	analyzer.utilityAssessor = NewUtilityAssessor(logger)
+
+	return analyzer
+}
+
+// DefaultITEUConfig returns default ITEU configuration
+func DefaultITEUConfig() *ITEUConfig {
+	return &ITEUConfig{
+		EnableIntentAnalysis:     true,
+		EnableTechniqueDetection: true,
+		EnableEvasionAnalysis:    true,
+		EnableUtilityAssessment:  true,
+		ConfidenceThreshold:      0.7,
+		StrictMode:               false,
+		LogDetailedAnalysis:      true,
+	}
+}
+
+// AnalyzePrompt performs comprehensive ITEU analysis on a prompt
+func (iteu *ITEUAnalyzer) AnalyzePrompt(ctx context.Context, prompt string, promptID string) (*ITEUResult, error) {
+	iteu.mu.RLock()
+	defer iteu.mu.RUnlock()
+
+	result := &ITEUResult{
+		ID:         uuid.New().String(),
+		PromptID:   promptID,
+		AnalyzedAt: time.Now(),
+	}
+
+	// Intent Analysis
+	if iteu.config.EnableIntentAnalysis {
+		intentResult, err := iteu.intentClassifier.ClassifyIntent(ctx, prompt)
+		if err != nil {
+			iteu.logger.WithError(err).Error("Intent classification failed")
+		} else {
+			result.Intent = intentResult
+		}
+	}
+
+	// Technique Detection
+	if iteu.config.EnableTechniqueDetection {
+		techniqueResult, err := iteu.techniqueDetector.DetectTechniques(ctx, prompt)
+		if err != nil {
+			iteu.logger.WithError(err).Error("Technique detection failed")
+		} else {
+			result.Technique = techniqueResult
+		}
+	}
+
+	// Evasion Analysis
+	if iteu.config.EnableEvasionAnalysis {
+		evasionResult, err := iteu.evasionAnalyzer.AnalyzeEvasion(ctx, prompt)
+		if err != nil {
+			iteu.logger.WithError(err).Error("Evasion analysis failed")
+		} else {
+			result.Evasion = evasionResult
+		}
+	}
+
+	// Utility Assessment
+	if iteu.config.EnableUtilityAssessment {
+		utilityResult, err := iteu.utilityAssessor.AssessUtility(ctx, prompt)
+		if err != nil {
+			iteu.logger.WithError(err).Error("Utility assessment failed")
+		} else {
+			result.Utility = utilityResult
+		}
+	}
+
+	// Calculate overall score and determine threat level
+	result.OverallScore = iteu.calculateOverallScore(result)
+	result.ThreatLevel = iteu.determineThreatLevel(result.OverallScore)
+	result.IsInjection = result.OverallScore >= iteu.config.ConfidenceThreshold
+	result.Confidence = result.OverallScore
+	result.Recommendations = iteu.generateRecommendations(result)
+
+	// Log detailed analysis if configured
+	if iteu.config.LogDetailedAnalysis {
+		iteu.logger.WithFields(map[string]interface{}{
+			"prompt_id":     promptID,
+			"overall_score": result.OverallScore,
+			"threat_level":  result.ThreatLevel,
+			"is_injection":  result.IsInjection,
+		}).Info("ITEU analysis completed")
+	}
+
+	return result, nil
+}
+
+// calculateOverallScore calculates the overall ITEU score
+func (iteu *ITEUAnalyzer) calculateOverallScore(result *ITEUResult) float64 {
+	score := 0.0
+	components := 0
+
+	// Intent score (25% weight)
+	if result.Intent != nil {
+		if result.Intent.MaliciousIntent {
+			score += result.Intent.IntentConfidence * 0.25
+		}
+		components++
+	}
+
+	// Technique score (35% weight)
+	if result.Technique != nil && len(result.Technique.DetectedTechniques) > 0 {
+		score += result.Technique.Effectiveness * 0.35
+		components++
+	}
+
+	// Evasion score (25% weight)
+	if result.Evasion != nil && result.Evasion.EvasionAttempted {
+		score += result.Evasion.SuccessProbability * 0.25
+		components++
+	}
+
+	// Utility score (15% weight)
+	if result.Utility != nil {
+		score += (result.Utility.ImpactScore / 10.0) * 0.15
+		components++
+	}
+
+	return score
+}
+
+// determineThreatLevel determines threat level based on overall score
+func (iteu *ITEUAnalyzer) determineThreatLevel(score float64) string {
+	switch {
+	case score >= 0.9:
+		return "critical"
+	case score >= 0.7:
+		return "high"
+	case score >= 0.5:
+		return "medium"
+	case score >= 0.3:
+		return "low"
+	default:
+		return "minimal"
+	}
+}
+
+// generateRecommendations generates recommendations based on ITEU analysis
+func (iteu *ITEUAnalyzer) generateRecommendations(result *ITEUResult) []string {
+	var recommendations []string
+
+	if result.Intent != nil && result.Intent.MaliciousIntent {
+		recommendations = append(recommendations, "Block request due to malicious intent")
+		recommendations = append(recommendations, "Implement intent-based filtering")
+	}
+
+	if result.Technique != nil && len(result.Technique.DetectedTechniques) > 0 {
+		recommendations = append(recommendations, "Apply technique-specific countermeasures")
+		recommendations = append(recommendations, "Update detection patterns")
+	}
+
+	if result.Evasion != nil && result.Evasion.EvasionAttempted {
+		recommendations = append(recommendations, "Enhance evasion detection capabilities")
+		recommendations = append(recommendations, "Implement anti-obfuscation measures")
+	}
+
+	if result.Utility != nil && result.Utility.ImpactScore > 7.0 {
+		recommendations = append(recommendations, "Implement additional access controls")
+		recommendations = append(recommendations, "Monitor for data exfiltration attempts")
+	}
+
+	if len(recommendations) == 0 {
+		recommendations = append(recommendations, "Continue monitoring for suspicious patterns")
+	}
+
+	return recommendations
+}
+
+// NewIntentClassifier creates a new intent classifier
+func NewIntentClassifier(logger *logger.Logger) *IntentClassifier {
+	classifier := &IntentClassifier{
+		logger:           logger,
+		intentPatterns:   make(map[string]*IntentPattern),
+		maliciousIntents: []string{"system_override", "data_extraction", "role_manipulation", "instruction_injection"},
+	}
+
+	classifier.loadDefaultIntentPatterns()
+	return classifier
+}
+
+// loadDefaultIntentPatterns loads default intent patterns
+func (ic *IntentClassifier) loadDefaultIntentPatterns() {
+	patterns := []*IntentPattern{
+		{
+			ID:          "intent_001",
+			Name:        "System Override",
+			Description: "Attempt to override system instructions",
+			Pattern:     `(?i)(ignore|forget|override|disregard).*(previous|system|instructions|rules)`,
+			Intent:      "system_override",
+			Malicious:   true,
+			Confidence:  0.9,
+			CreatedAt:   time.Now(),
+		},
+		{
+			ID:          "intent_002",
+			Name:        "Data Extraction",
+			Description: "Attempt to extract sensitive data",
+			Pattern:     `(?i)(show|reveal|extract|dump|list).*(data|information|secrets|passwords)`,
+			Intent:      "data_extraction",
+			Malicious:   true,
+			Confidence:  0.8,
+			CreatedAt:   time.Now(),
+		},
+		{
+			ID:          "intent_003",
+			Name:        "Role Manipulation",
+			Description: "Attempt to manipulate AI role or persona",
+			Pattern:     `(?i)(act as|pretend to be|role.?play|you are now).*(admin|root|system|developer)`,
+			Intent:      "role_manipulation",
+			Malicious:   true,
+			Confidence:  0.85,
+			CreatedAt:   time.Now(),
+		},
+	}
+
+	for _, pattern := range patterns {
+		ic.intentPatterns[pattern.ID] = pattern
+	}
+}
+
+// ClassifyIntent classifies the intent of a prompt
+func (ic *IntentClassifier) ClassifyIntent(ctx context.Context, prompt string) (*IntentResult, error) {
+	result := &IntentResult{
+		SecondaryIntents: []string{},
+		IntentEvidence:   []string{},
+	}
+
+	maxConfidence := 0.0
+	var primaryIntent string
+	maliciousDetected := false
+
+	for _, pattern := range ic.intentPatterns {
+		matched, _ := regexp.MatchString(pattern.Pattern, prompt)
+		if matched {
+			if pattern.Confidence > maxConfidence {
+				maxConfidence = pattern.Confidence
+				primaryIntent = pattern.Intent
+			}
+
+			if pattern.Malicious {
+				maliciousDetected = true
+			}
+
+			result.SecondaryIntents = append(result.SecondaryIntents, pattern.Intent)
+			result.IntentEvidence = append(result.IntentEvidence, pattern.Name)
+		}
+	}
+
+	result.PrimaryIntent = primaryIntent
+	result.MaliciousIntent = maliciousDetected
+	result.IntentConfidence = maxConfidence
+
+	return result, nil
+}
+
+// NewTechniqueDetector creates a new technique detector
+func NewTechniqueDetector(logger *logger.Logger) *TechniqueDetector {
+	detector := &TechniqueDetector{
+		logger:             logger,
+		techniquePatterns:  make(map[string]*TechniquePattern),
+		advancedTechniques: []string{"prompt_chaining", "context_switching", "role_hijacking", "instruction_override"},
+	}
+
+	detector.loadDefaultTechniquePatterns()
+	return detector
+}
+
+// loadDefaultTechniquePatterns loads default technique patterns
+func (td *TechniqueDetector) loadDefaultTechniquePatterns() {
+	patterns := []*TechniquePattern{
+		{
+			ID:            "tech_001",
+			Name:          "Direct Instruction Override",
+			Description:   "Direct attempt to override system instructions",
+			Category:      "instruction_manipulation",
+			Pattern:       `(?i)(ignore|forget|disregard).*(above|previous|system|instructions)`,
+			Severity:      "high",
+			Complexity:    "low",
+			Effectiveness: 0.8,
+			CreatedAt:     time.Now(),
+		},
+		{
+			ID:            "tech_002",
+			Name:          "Role Hijacking",
+			Description:   "Attempt to hijack AI role or persona",
+			Category:      "role_manipulation",
+			Pattern:       `(?i)(you are|act as|pretend).*(admin|developer|system|root)`,
+			Severity:      "high",
+			Complexity:    "medium",
+			Effectiveness: 0.7,
+			CreatedAt:     time.Now(),
+		},
+		{
+			ID:            "tech_003",
+			Name:          "Context Switching",
+			Description:   "Attempt to switch conversation context",
+			Category:      "context_manipulation",
+			Pattern:       `(?i)(new conversation|start over|reset|begin again)`,
+			Severity:      "medium",
+			Complexity:    "low",
+			Effectiveness: 0.6,
+			CreatedAt:     time.Now(),
+		},
+	}
+
+	for _, pattern := range patterns {
+		td.techniquePatterns[pattern.ID] = pattern
+	}
+}
+
+// DetectTechniques detects injection techniques in a prompt
+func (td *TechniqueDetector) DetectTechniques(ctx context.Context, prompt string) (*TechniqueResult, error) {
+	result := &TechniqueResult{
+		DetectedTechniques: []string{},
+		TechniqueEvidence:  []string{},
+	}
+
+	maxEffectiveness := 0.0
+	var primaryTechnique string
+	var primaryCategory string
+
+	for _, pattern := range td.techniquePatterns {
+		matched, _ := regexp.MatchString(pattern.Pattern, prompt)
+		if matched {
+			if pattern.Effectiveness > maxEffectiveness {
+				maxEffectiveness = pattern.Effectiveness
+				primaryTechnique = pattern.Name
+				primaryCategory = pattern.Category
+			}
+
+			result.DetectedTechniques = append(result.DetectedTechniques, pattern.Name)
+			result.TechniqueEvidence = append(result.TechniqueEvidence, pattern.Description)
+		}
+	}
+
+	result.PrimaryTechnique = primaryTechnique
+	result.TechniqueCategory = primaryCategory
+	result.Effectiveness = maxEffectiveness
+
+	return result, nil
+}
+
+// NewEvasionAnalyzer creates a new evasion analyzer
+func NewEvasionAnalyzer(logger *logger.Logger) *EvasionAnalyzer {
+	analyzer := &EvasionAnalyzer{
+		logger:           logger,
+		evasionPatterns:  make(map[string]*EvasionPattern),
+		obfuscationTypes: []string{"character_substitution", "encoding", "spacing", "case_variation", "unicode_tricks"},
+	}
+
+	analyzer.loadDefaultEvasionPatterns()
+	return analyzer
+}
+
+// loadDefaultEvasionPatterns loads default evasion patterns
+func (ea *EvasionAnalyzer) loadDefaultEvasionPatterns() {
+	patterns := []*EvasionPattern{
+		{
+			ID:             "evasion_001",
+			Name:           "Character Substitution",
+			Description:    "Using character substitution to evade detection",
+			Type:           "obfuscation",
+			Pattern:        `[a-zA-Z]*[0-9@#$%^&*]+[a-zA-Z]*`,
+			Sophistication: "low",
+			Success:        0.6,
+			CreatedAt:      time.Now(),
+		},
+		{
+			ID:             "evasion_002",
+			Name:           "Excessive Spacing",
+			Description:    "Using excessive spacing to break pattern matching",
+			Type:           "formatting",
+			Pattern:        `\w+\s{2,}\w+`,
+			Sophistication: "low",
+			Success:        0.4,
+			CreatedAt:      time.Now(),
+		},
+		{
+			ID:             "evasion_003",
+			Name:           "Case Variation",
+			Description:    "Using random case variation to evade detection",
+			Type:           "case_manipulation",
+			Pattern:        `[a-z][A-Z][a-z][A-Z]`,
+			Sophistication: "low",
+			Success:        0.5,
+			CreatedAt:      time.Now(),
+		},
+	}
+
+	for _, pattern := range patterns {
+		ea.evasionPatterns[pattern.ID] = pattern
+	}
+}
+
+// AnalyzeEvasion analyzes evasion attempts in a prompt
+func (ea *EvasionAnalyzer) AnalyzeEvasion(ctx context.Context, prompt string) (*EvasionResult, error) {
+	result := &EvasionResult{
+		EvasionTechniques: []string{},
+		EvasionEvidence:   []string{},
+	}
+
+	evasionDetected := false
+	maxSuccess := 0.0
+	var sophistication string
+
+	for _, pattern := range ea.evasionPatterns {
+		matched, _ := regexp.MatchString(pattern.Pattern, prompt)
+		if matched {
+			evasionDetected = true
+			if pattern.Success > maxSuccess {
+				maxSuccess = pattern.Success
+				sophistication = pattern.Sophistication
+			}
+
+			result.EvasionTechniques = append(result.EvasionTechniques, pattern.Name)
+			result.EvasionEvidence = append(result.EvasionEvidence, pattern.Description)
+		}
+	}
+
+	result.EvasionAttempted = evasionDetected
+	result.SuccessProbability = maxSuccess
+	result.Sophistication = sophistication
+
+	// Determine obfuscation level
+	if evasionDetected {
+		switch sophistication {
+		case "high":
+			result.ObfuscationLevel = "advanced"
+		case "medium":
+			result.ObfuscationLevel = "moderate"
+		default:
+			result.ObfuscationLevel = "basic"
+		}
+	} else {
+		result.ObfuscationLevel = "none"
+	}
+
+	return result, nil
+}
+
+// NewUtilityAssessor creates a new utility assessor
+func NewUtilityAssessor(logger *logger.Logger) *UtilityAssessor {
+	assessor := &UtilityAssessor{
+		logger:         logger,
+		impactMetrics:  make(map[string]float64),
+		utilityFactors: []string{"data_access", "system_control", "privilege_escalation", "information_disclosure"},
+	}
+
+	assessor.loadDefaultImpactMetrics()
+	return assessor
+}
+
+// loadDefaultImpactMetrics loads default impact metrics
+func (ua *UtilityAssessor) loadDefaultImpactMetrics() {
+	ua.impactMetrics["data_breach"] = 9.0
+	ua.impactMetrics["system_compromise"] = 8.5
+	ua.impactMetrics["privilege_escalation"] = 8.0
+	ua.impactMetrics["information_disclosure"] = 7.0
+	ua.impactMetrics["service_disruption"] = 6.0
+	ua.impactMetrics["reputation_damage"] = 5.0
+}
+
+// AssessUtility assesses the utility/impact of a successful injection
+func (ua *UtilityAssessor) AssessUtility(ctx context.Context, prompt string) (*UtilityResult, error) {
+	result := &UtilityResult{
+		TargetSystems:   []string{},
+		DataAtRisk:      []string{},
+		UtilityEvidence: []string{},
+	}
+
+	// Analyze potential impact based on prompt content
+	impactScore := 0.0
+
+	// Check for data access attempts
+	if strings.Contains(strings.ToLower(prompt), "data") ||
+		strings.Contains(strings.ToLower(prompt), "database") ||
+		strings.Contains(strings.ToLower(prompt), "information") {
+		impactScore += ua.impactMetrics["information_disclosure"]
+		result.DataAtRisk = append(result.DataAtRisk, "user_data", "system_information")
+		result.UtilityEvidence = append(result.UtilityEvidence, "Data access patterns detected")
+	}
+
+	// Check for system control attempts
+	if strings.Contains(strings.ToLower(prompt), "system") ||
+		strings.Contains(strings.ToLower(prompt), "admin") ||
+		strings.Contains(strings.ToLower(prompt), "root") {
+		impactScore += ua.impactMetrics["system_compromise"]
+		result.TargetSystems = append(result.TargetSystems, "core_system", "admin_interface")
+		result.UtilityEvidence = append(result.UtilityEvidence, "System control patterns detected")
+	}
+
+	// Check for privilege escalation attempts
+	if strings.Contains(strings.ToLower(prompt), "privilege") ||
+		strings.Contains(strings.ToLower(prompt), "permission") ||
+		strings.Contains(strings.ToLower(prompt), "access") {
+		impactScore += ua.impactMetrics["privilege_escalation"]
+		result.UtilityEvidence = append(result.UtilityEvidence, "Privilege escalation patterns detected")
+	}
+
+	result.ImpactScore = impactScore
+
+	// Determine potential impact level
+	switch {
+	case impactScore >= 8.0:
+		result.PotentialImpact = "critical"
+		result.BusinessImpact = "severe_financial_and_reputational_damage"
+	case impactScore >= 6.0:
+		result.PotentialImpact = "high"
+		result.BusinessImpact = "significant_operational_disruption"
+	case impactScore >= 4.0:
+		result.PotentialImpact = "medium"
+		result.BusinessImpact = "moderate_service_impact"
+	case impactScore >= 2.0:
+		result.PotentialImpact = "low"
+		result.BusinessImpact = "minimal_operational_impact"
+	default:
+		result.PotentialImpact = "minimal"
+		result.BusinessImpact = "negligible_impact"
+	}
+
+	return result, nil
 }

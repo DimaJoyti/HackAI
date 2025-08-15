@@ -149,6 +149,102 @@ deploy-monitoring: ## Deploy monitoring stack only
 	@echo "Deploying monitoring stack..."
 	./scripts/deploy.sh --monitoring-only
 
+# Kubernetes Deployment Commands
+.PHONY: deploy-k8s undeploy-k8s k8s-status k8s-logs
+
+deploy-k8s: ## Deploy to Kubernetes
+	@echo "Deploying to Kubernetes..."
+	kubectl apply -f deployments/k8s/namespace.yaml
+	kubectl apply -f deployments/k8s/postgres.yaml
+	kubectl apply -f deployments/k8s/redis.yaml
+	kubectl apply -f deployments/k8s/api-gateway.yaml
+	kubectl apply -f deployments/k8s/ingress.yaml
+	@echo "Kubernetes deployment completed!"
+
+undeploy-k8s: ## Remove Kubernetes deployment
+	@echo "Removing Kubernetes deployment..."
+	kubectl delete namespace hackai --ignore-not-found=true
+
+k8s-status: ## Check Kubernetes deployment status
+	@echo "Checking Kubernetes status..."
+	kubectl get pods -n hackai
+	kubectl get services -n hackai
+	kubectl get ingress -n hackai
+
+k8s-logs: ## View Kubernetes logs
+	@echo "Viewing Kubernetes logs..."
+	kubectl logs -f -l app=api-gateway -n hackai
+
+# Database Management Commands
+.PHONY: db-migrate db-rollback db-seed db-reset db-backup db-restore
+
+db-migrate: ## Run database migrations
+	@echo "Running database migrations..."
+	docker-compose exec postgres psql -U hackai -d hackai -f /docker-entrypoint-initdb.d/init.sql
+
+db-rollback: ## Rollback database migrations
+	@echo "Rolling back database migrations..."
+	@echo "Manual rollback required - check migration files"
+
+db-seed: ## Seed database with sample data
+	@echo "Seeding database with sample data..."
+	docker-compose exec postgres psql -U hackai -d hackai -c "INSERT INTO auth.users (email, password_hash, name, role) VALUES ('demo@hackai.com', crypt('demo123', gen_salt('bf', 12)), 'Demo User', 'student') ON CONFLICT (email) DO NOTHING;"
+
+db-reset: ## Reset database (drop and recreate)
+	@echo "Resetting database..."
+	docker-compose exec postgres psql -U hackai -d postgres -c "DROP DATABASE IF EXISTS hackai;"
+	docker-compose exec postgres psql -U hackai -d postgres -c "CREATE DATABASE hackai;"
+	make db-migrate
+	make db-seed
+
+db-backup: ## Backup database
+	@echo "Creating database backup..."
+	docker-compose exec postgres pg_dump -U hackai hackai > backup_$(shell date +%Y%m%d_%H%M%S).sql
+
+db-restore: ## Restore database from backup (requires BACKUP_FILE variable)
+	@echo "Restoring database from backup..."
+	@if [ -z "$(BACKUP_FILE)" ]; then echo "Please specify BACKUP_FILE=filename.sql"; exit 1; fi
+	docker-compose exec -T postgres psql -U hackai hackai < $(BACKUP_FILE)
+
+# Security and Quality Commands
+.PHONY: security-scan vulnerability-check lint format audit
+
+security-scan: ## Run comprehensive security scan
+	@echo "Running security vulnerability scan..."
+	@if command -v gosec >/dev/null 2>&1; then \
+		gosec ./...; \
+	else \
+		echo "gosec not installed. Install with: go install github.com/securecodewarrior/gosec/v2/cmd/gosec@latest"; \
+	fi
+
+vulnerability-check: ## Check for known vulnerabilities
+	@echo "Checking for known vulnerabilities..."
+	go list -json -m all | nancy sleuth
+
+lint: ## Run code linting
+	@echo "Running linters..."
+	@if command -v golangci-lint >/dev/null 2>&1; then \
+		golangci-lint run ./...; \
+	else \
+		echo "golangci-lint not installed. Install from: https://golangci-lint.run/usage/install/"; \
+	fi
+	@if [ -d "web" ]; then cd web && npm run lint; fi
+
+format: ## Format code
+	@echo "Formatting code..."
+	go fmt ./...
+	@if command -v goimports >/dev/null 2>&1; then \
+		goimports -w .; \
+	else \
+		echo "goimports not installed. Install with: go install golang.org/x/tools/cmd/goimports@latest"; \
+	fi
+	@if [ -d "web" ]; then cd web && npm run format; fi
+
+audit: ## Run security audit
+	@echo "Running security audit..."
+	go mod verify
+	@if [ -d "web" ]; then cd web && npm audit; fi
+
 deploy-dry-run: ## Show deployment plan without executing
 	@echo "Showing deployment plan..."
 	./scripts/deploy.sh --dry-run

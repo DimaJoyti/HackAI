@@ -1,0 +1,344 @@
+# HackAI Testing Framework Configuration
+# =====================================
+
+# Framework Configuration
+framework:
+  enable_parallel_execution: true
+  max_concurrent_tests: 10
+  test_timeout: "5m"
+  enable_security_testing: true
+  enable_performance_testing: true
+  enable_integration_testing: true
+  enable_coverage_reporting: true
+  enable_mutation_testing: false
+  report_formats:
+    - "json"
+    - "html"
+    - "junit"
+    - "console"
+  output_directory: "./test-results"
+
+# Security Testing Configuration
+security:
+  enable_vulnerability_scanning: true
+  enable_penetration_testing: true
+  enable_compliance_checking: true
+  enable_threat_modeling: true
+  scan_depth: "medium"  # shallow, medium, deep
+  max_scan_duration: "30m"
+  target_endpoints:
+    - "http://localhost:8080"
+    - "http://localhost:8081"
+  excluded_paths:
+    - "/health"
+    - "/metrics"
+  authentication_tokens:
+    api_key: "${API_KEY}"
+    jwt_token: "${JWT_TOKEN}"
+  compliance_frameworks:
+    - "OWASP"
+    - "NIST"
+    - "ISO27001"
+
+# Performance Testing Configuration
+performance:
+  load_test_duration: "10m"
+  stress_test_duration: "15m"
+  spike_test_duration: "5m"
+  volume_test_duration: "30m"
+  max_concurrent_users: 1000
+  ramp_up_duration: "2m"
+  ramp_down_duration: "1m"
+  think_time: "1s"
+  request_timeout: "30s"
+  acceptable_error_rate: 1.0
+  response_time_p95: "500ms"
+  response_time_p99: "1s"
+  throughput_threshold: 100.0
+  resource_thresholds:
+    cpu_usage_percent: 80.0
+    memory_usage_percent: 85.0
+    disk_usage_percent: 90.0
+    network_bandwidth: 100.0
+
+# Integration Testing Configuration
+integration:
+  test_environment: "test"
+  database_url: "${DATABASE_URL}"
+  redis_url: "${REDIS_URL}"
+  api_base_url: "http://localhost:8080"
+  external_services:
+    payment_service: "http://localhost:9001"
+    email_service: "http://localhost:9002"
+    notification_service: "http://localhost:9003"
+  test_data_path: "./testdata"
+  cleanup_after_tests: true
+  parallel_execution: false
+  retry_attempts: 3
+  retry_delay: "5s"
+  health_check_timeout: "30s"
+  service_start_timeout: "60s"
+
+# Test Suites Configuration
+test_suites:
+  unit_tests:
+    enabled: true
+    parallel: true
+    timeout: "10m"
+    tags:
+      - "unit"
+      - "fast"
+    include_patterns:
+      - "*_test.go"
+    exclude_patterns:
+      - "*_integration_test.go"
+      - "*_e2e_test.go"
+
+  integration_tests:
+    enabled: true
+    parallel: false
+    timeout: "20m"
+    tags:
+      - "integration"
+      - "slow"
+    include_patterns:
+      - "*_integration_test.go"
+    exclude_patterns: []
+
+  security_tests:
+    enabled: true
+    parallel: false
+    timeout: "30m"
+    tags:
+      - "security"
+      - "vulnerability"
+    include_patterns:
+      - "*_security_test.go"
+    exclude_patterns: []
+
+  performance_tests:
+    enabled: true
+    parallel: false
+    timeout: "45m"
+    tags:
+      - "performance"
+      - "load"
+    include_patterns:
+      - "*_performance_test.go"
+      - "*_load_test.go"
+    exclude_patterns: []
+
+  e2e_tests:
+    enabled: true
+    parallel: false
+    timeout: "60m"
+    tags:
+      - "e2e"
+      - "end-to-end"
+    include_patterns:
+      - "*_e2e_test.go"
+    exclude_patterns: []
+
+# Coverage Configuration
+coverage:
+  enabled: true
+  threshold: 80.0
+  exclude_patterns:
+    - "vendor/*"
+    - "*.pb.go"
+    - "*_mock.go"
+    - "testdata/*"
+  include_patterns:
+    - "pkg/*"
+    - "internal/*"
+    - "cmd/*"
+  output_formats:
+    - "html"
+    - "xml"
+    - "json"
+
+# Reporting Configuration
+reporting:
+  enabled: true
+  formats:
+    json:
+      enabled: true
+      output_file: "results.json"
+      pretty_print: true
+    html:
+      enabled: true
+      output_file: "report.html"
+      include_coverage: true
+      include_performance: true
+      include_security: true
+    junit:
+      enabled: true
+      output_file: "junit.xml"
+      include_properties: true
+    console:
+      enabled: true
+      verbose: true
+      show_passed: false
+      show_failed: true
+      show_skipped: true
+  notifications:
+    slack:
+      enabled: false
+      webhook_url: "${SLACK_WEBHOOK_URL}"
+      channel: "#testing"
+    email:
+      enabled: false
+      smtp_server: "${SMTP_SERVER}"
+      recipients:
+        - "team@hackai.com"
+
+# Environment Configuration
+environments:
+  development:
+    database_url: "postgres://localhost:5432/hackai_dev"
+    redis_url: "redis://localhost:6379/0"
+    api_base_url: "http://localhost:8080"
+    log_level: "debug"
+    enable_debug_mode: true
+
+  testing:
+    database_url: "postgres://localhost:5432/hackai_test"
+    redis_url: "redis://localhost:6379/1"
+    api_base_url: "http://localhost:8080"
+    log_level: "info"
+    enable_debug_mode: false
+
+  staging:
+    database_url: "${STAGING_DATABASE_URL}"
+    redis_url: "${STAGING_REDIS_URL}"
+    api_base_url: "${STAGING_API_URL}"
+    log_level: "warn"
+    enable_debug_mode: false
+
+  production:
+    database_url: "${PRODUCTION_DATABASE_URL}"
+    redis_url: "${PRODUCTION_REDIS_URL}"
+    api_base_url: "${PRODUCTION_API_URL}"
+    log_level: "error"
+    enable_debug_mode: false
+
+# AI-Specific Testing Configuration
+ai_testing:
+  model_testing:
+    enabled: true
+    test_models:
+      - "gpt-3.5-turbo"
+      - "gpt-4"
+      - "claude-3"
+    prompt_injection_tests:
+      enabled: true
+      payloads_file: "./testdata/prompt_injection_payloads.txt"
+      max_payload_length: 1000
+    model_extraction_tests:
+      enabled: true
+      query_limit: 1000
+      extraction_threshold: 0.05
+    adversarial_tests:
+      enabled: true
+      perturbation_methods:
+        - "fgsm"
+        - "pgd"
+        - "c&w"
+    data_poisoning_tests:
+      enabled: true
+      poison_ratio: 0.01
+      detection_threshold: 0.95
+
+  prompt_security:
+    enabled: true
+    injection_patterns:
+      - "ignore previous instructions"
+      - "system prompt"
+      - "new instructions"
+      - "override"
+    sanitization_tests:
+      enabled: true
+      encoding_tests:
+        - "base64"
+        - "url"
+        - "html"
+    validation_tests:
+      enabled: true
+      max_prompt_length: 4000
+      forbidden_patterns:
+        - "eval("
+        - "exec("
+        - "import os"
+
+# Compliance Testing Configuration
+compliance:
+  frameworks:
+    owasp:
+      enabled: true
+      version: "2021"
+      categories:
+        - "A01_2021-Broken_Access_Control"
+        - "A02_2021-Cryptographic_Failures"
+        - "A03_2021-Injection"
+        - "A04_2021-Insecure_Design"
+        - "A05_2021-Security_Misconfiguration"
+        - "A06_2021-Vulnerable_and_Outdated_Components"
+        - "A07_2021-Identification_and_Authentication_Failures"
+        - "A08_2021-Software_and_Data_Integrity_Failures"
+        - "A09_2021-Security_Logging_and_Monitoring_Failures"
+        - "A10_2021-Server-Side_Request_Forgery"
+
+    nist:
+      enabled: true
+      framework: "cybersecurity_framework_v1.1"
+      functions:
+        - "identify"
+        - "protect"
+        - "detect"
+        - "respond"
+        - "recover"
+
+    iso27001:
+      enabled: true
+      version: "2013"
+      domains:
+        - "information_security_policies"
+        - "organization_of_information_security"
+        - "human_resource_security"
+        - "asset_management"
+        - "access_control"
+        - "cryptography"
+        - "physical_and_environmental_security"
+        - "operations_security"
+        - "communications_security"
+        - "system_acquisition_development_maintenance"
+        - "supplier_relationships"
+        - "information_security_incident_management"
+        - "information_security_business_continuity"
+        - "compliance"
+
+# Monitoring and Observability
+monitoring:
+  enabled: true
+  metrics:
+    enabled: true
+    endpoint: "/metrics"
+    interval: "30s"
+  tracing:
+    enabled: true
+    jaeger_endpoint: "${JAEGER_ENDPOINT}"
+    sampling_rate: 0.1
+  logging:
+    enabled: true
+    level: "info"
+    format: "json"
+    output: "stdout"
+
+# Resource Limits
+resource_limits:
+  memory_limit: "2Gi"
+  cpu_limit: "2000m"
+  disk_limit: "10Gi"
+  network_bandwidth: "1Gbps"
+  test_timeout: "2h"
+  max_parallel_suites: 5

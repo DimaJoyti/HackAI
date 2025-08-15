@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="Unit Tests" tests="3" failures="0" errors="0" skipped="0" time="0.100451598" timestamp="2025-08-15T18:07:28+03:00">
+  <testcase name="Security Scanner" classname="Unit Tests" time="8.9887e-05"></testcase>
+  <testcase name="Authentication Validation" classname="Unit Tests" time="0.000590167"></testcase>
+  <testcase name="AI Model Loading" classname="Unit Tests" time="0.100295081"></testcase>
+</testsuite>
+<testsuite name="Security Tests" tests="2" failures="0" errors="0" skipped="0" time="0.150853574" timestamp="2025-08-15T18:07:29+03:00">
+  <testcase name="Prompt Injection Test" classname="Security Tests" time="0.150787224"></testcase>
+  <testcase name="Model Extraction Test" classname="Security Tests" time="5.1125e-05"></testcase>
+</testsuite>
+<testsuite name="Performance Tests" tests="2" failures="1" errors="0" skipped="0" time="0.000139195" timestamp="2025-08-15T18:07:29+03:00">
+  <testcase name="API Load Test" classname="Performance Tests" time="0.000109164"></testcase>
+  <testcase name="AI Inference Performance" classname="Performance Tests" time="2.1512e-05">
+    <failure message="Test failed" type="failure">One or more assertions failed</failure>
+  </testcase>
+</testsuite>
+<testsuite name="Integration Tests" tests="2" failures="0" errors="0" skipped="0" time="0.501548532" timestamp="2025-08-15T18:07:29+03:00">
+  <testcase name="User Registration Workflow" classname="Integration Tests" time="0.501448798"></testcase>
+  <testcase name="Course Completion Workflow" classname="Integration Tests" time="8.7791e-05"></testcase>
+</testsuite>
