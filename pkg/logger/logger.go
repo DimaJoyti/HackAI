@@ -32,8 +32,8 @@ const (
 // Config holds logger configuration
 type Config struct {
 	Level      LogLevel `json:"level"`
-	Format     string   `json:"format"`     // json, text
-	Output     string   `json:"output"`     // stdout, file
+	Format     string   `json:"format"` // json, text
+	Output     string   `json:"output"` // stdout, file
 	FilePath   string   `json:"file_path"`
 	AddSource  bool     `json:"add_source"`
 	TimeFormat string   `json:"time_format"`
@@ -45,7 +45,7 @@ type Fields map[string]interface{}
 // New creates a new logger instance
 func New(config Config) (*Logger, error) {
 	level := parseLevel(config.Level)
-	
+
 	var writer io.Writer
 	switch config.Output {
 	case "file":
@@ -100,7 +100,7 @@ func NewDefault() *Logger {
 		AddSource:  true,
 		TimeFormat: time.RFC3339,
 	}
-	
+
 	logger, _ := New(config)
 	return logger
 }
@@ -128,7 +128,7 @@ func (l *Logger) WithFields(fields Fields) *Logger {
 	for k, v := range fields {
 		args = append(args, k, v)
 	}
-	
+
 	return &Logger{
 		Logger: l.Logger.With(args...),
 		level:  l.level,
@@ -148,7 +148,7 @@ func (l *Logger) WithError(err error) *Logger {
 	if err == nil {
 		return l
 	}
-	
+
 	return &Logger{
 		Logger: l.Logger.With("error", err.Error()),
 		level:  l.level,
@@ -249,10 +249,10 @@ func (l *Logger) LogError(ctx context.Context, err error, msg string, fields Fie
 	if fields == nil {
 		fields = make(Fields)
 	}
-	
+
 	fields["error"] = err.Error()
 	fields["stack_trace"] = getStackTrace()
-	
+
 	l.WithContext(ctx).WithFields(fields).Error(msg)
 }
 
@@ -261,13 +261,13 @@ func (l *Logger) LogSecurityEvent(ctx context.Context, event string, userID, ip 
 	if fields == nil {
 		fields = make(Fields)
 	}
-	
+
 	fields["event_type"] = "security"
 	fields["security_event"] = event
 	fields["user_id"] = userID
 	fields["ip"] = ip
 	fields["timestamp"] = time.Now().UTC()
-	
+
 	l.WithContext(ctx).WithFields(fields).Warn("Security event")
 }
 
@@ -276,13 +276,13 @@ func (l *Logger) LogAuditEvent(ctx context.Context, action, resource string, use
 	if fields == nil {
 		fields = make(Fields)
 	}
-	
+
 	fields["event_type"] = "audit"
 	fields["action"] = action
 	fields["resource"] = resource
 	fields["user_id"] = userID
 	fields["timestamp"] = time.Now().UTC()
-	
+
 	l.WithContext(ctx).WithFields(fields).Info("Audit event")
 }
 
@@ -291,12 +291,12 @@ func (l *Logger) LogPerformance(ctx context.Context, operation string, duration 
 	if fields == nil {
 		fields = make(Fields)
 	}
-	
+
 	fields["event_type"] = "performance"
 	fields["operation"] = operation
 	fields["duration_ms"] = duration.Milliseconds()
 	fields["timestamp"] = time.Now().UTC()
-	
+
 	l.WithContext(ctx).WithFields(fields).Info("Performance metric")
 }
 
@@ -342,7 +342,7 @@ func getStackTrace() string {
 	var pcs [depth]uintptr
 	n := runtime.Callers(3, pcs[:])
 	frames := runtime.CallersFrames(pcs[:n])
-	
+
 	var trace []map[string]interface{}
 	for {
 		frame, more := frames.Next()
@@ -355,7 +355,7 @@ func getStackTrace() string {
 			break
 		}
 	}
-	
+
 	data, _ := json.Marshal(trace)
 	return string(data)
 }

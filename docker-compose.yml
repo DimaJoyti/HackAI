@@ -1,9 +1,9 @@
 version: '3.8'
 
 services:
-  # Database
+  # Database with Vector Extensions
   postgres:
-    image: postgres:15-alpine
+    image: pgvector/pgvector:pg15
     container_name: hackai-postgres
     environment:
       POSTGRES_DB: hackai
@@ -14,7 +14,8 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./deployments/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./deployments/postgres/init.sql:/docker-entrypoint-initdb.d/01-init.sql
+      - ./deployments/postgres/vector-init.sql:/docker-entrypoint-initdb.d/02-vector-init.sql
     networks:
       - hackai-network
     healthcheck:
@@ -22,6 +23,7 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
+    command: postgres -c shared_preload_libraries=vector
 
   # Cache
   redis:
