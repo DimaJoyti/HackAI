@@ -396,13 +396,13 @@ func (ep *EducationalPlatform) StartLearningSession(ctx context.Context, userID,
 	}
 
 	// Get course
-	course, err := ep.courseManager.GetCourse(courseID)
+	course, err := ep.courseManager.GetCourse(ctx, courseID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get course: %w", err)
 	}
 
 	// Get user progress to ensure user exists
-	_, err = ep.progressTracker.GetUserProgress(userID)
+	_, err = ep.progressTracker.GetUserProgress(ctx, userID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get user progress: %w", err)
 	}
@@ -482,15 +482,18 @@ func (ep *EducationalPlatform) CompleteLesson(sessionID, lessonID string, timeSp
 
 	// Update user progress
 	activity := &LearningActivity{
-		Type:      "lesson_completed",
-		ItemID:    lessonID,
-		TimeSpent: timeSpent,
-		Completed: true,
-		Timestamp: time.Now(),
-		Metadata:  make(map[string]interface{}),
+		ID:           uuid.New().String(),
+		UserID:       session.UserID,
+		CourseID:     session.CourseID,
+		ModuleID:     "", // Would be determined from lesson
+		ActivityType: "lesson_completed",
+		Duration:     timeSpent,
+		Completed:    true,
+		Timestamp:    time.Now(),
+		Metadata:     make(map[string]interface{}),
 	}
 
-	err := ep.progressTracker.UpdateProgress(session.UserID, activity)
+	err := ep.progressTracker.TrackActivity(context.Background(), activity)
 	if err != nil {
 		ep.logger.WithError(err).Error("Failed to update user progress")
 	}
@@ -564,16 +567,21 @@ func (ep *EducationalPlatform) CompleteCourse(sessionID, courseID string, finalS
 	}
 
 	// Update user progress
+	finalScorePtr := &finalScore
 	activity := &LearningActivity{
-		Type:      "course_completed",
-		ItemID:    courseID,
-		Score:     finalScore,
-		Completed: true,
-		Timestamp: time.Now(),
-		Metadata:  make(map[string]interface{}),
+		ID:           uuid.New().String(),
+		UserID:       session.UserID,
+		CourseID:     courseID,
+		ModuleID:     "", // Course completion spans all modules
+		ActivityType: "course_completed",
+		Duration:     0, // Course completion doesn't have duration
+		Score:        finalScorePtr,
+		Completed:    true,
+		Timestamp:    time.Now(),
+		Metadata:     make(map[string]interface{}),
 	}
 
-	err := ep.progressTracker.UpdateProgress(session.UserID, activity)
+	err := ep.progressTracker.TrackActivity(context.Background(), activity)
 	if err != nil {
 		ep.logger.WithError(err).Error("Failed to update user progress")
 	}
@@ -605,13 +613,13 @@ func (ep *EducationalPlatform) CompleteCourse(sessionID, courseID string, finalS
 
 // GetLearningRecommendations gets personalized learning recommendations
 func (ep *EducationalPlatform) GetLearningRecommendations(userID string) ([]*LearningRecommendation, error) {
-	return ep.progressTracker.GetLearningRecommendations(userID)
+	return ep.progressTracker.GetRecommendations(context.Background(), userID)
 }
 
 // GetUserDashboard gets user dashboard data
 func (ep *EducationalPlatform) GetUserDashboard(userID string) (*UserDashboard, error) {
 	// Get user progress
-	progress, err := ep.progressTracker.GetUserProgress(userID)
+	progress, err := ep.progressTracker.GetUserProgress(context.Background(), userID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get user progress: %w", err)
 	}
@@ -623,7 +631,7 @@ func (ep *EducationalPlatform) GetUserDashboard(userID string) (*UserDashboard, 
 	}
 
 	// Get recommendations
-	recommendations, err := ep.GetLearningRecommendations(userID)
+	recommendations, err := ep.progressTracker.GetRecommendations(context.Background(), userID)
 	if err != nil {
 		ep.logger.WithError(err).Warn("Failed to get recommendations")
 		recommendations = []*LearningRecommendation{}

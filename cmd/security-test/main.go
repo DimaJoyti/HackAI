@@ -143,24 +143,16 @@ func runSecurityTest(logger testing.Logger, targetURL, testSuitesStr, sessionNam
 
 	// Create security testing framework
 	config := &testing.SecurityTestConfig{
-		Enabled:             true,
-		TestSuites:          testSuites,
-		MaxConcurrentTests:  5,
-		TestTimeout:         timeout,
-		ReportFormat:        "json",
-		OutputDirectory:     outputDir,
-		PenetrationConfig:   testing.DefaultPenetrationConfig(),
-		VulnerabilityConfig: testing.DefaultVulnerabilityConfig(),
-		ComplianceConfig: &testing.ComplianceConfig{
-			Enabled:    true,
-			Standards:  []string{"OWASP", "NIST", "CIS"},
-			Frameworks: []string{"SOC2", "ISO27001", "PCI-DSS"},
-		},
-		FuzzConfig: &testing.FuzzConfig{
-			Enabled:      true,
-			MaxPayloads:  100,
-			PayloadTypes: []string{"random", "boundary", "malformed", "injection"},
-		},
+		EnableVulnerabilityScanning: true,
+		EnablePenetrationTesting:    true,
+		EnableComplianceChecking:    true,
+		EnableThreatModeling:        true,
+		ScanDepth:                   "medium",
+		MaxScanDuration:             timeout,
+		TargetEndpoints:             []string{targetURL},
+		ExcludedPaths:               []string{},
+		AuthenticationTokens:        make(map[string]string),
+		ComplianceFrameworks:        []string{"OWASP", "NIST", "CIS"},
 	}
 
 	framework := testing.NewSecurityTestingFramework(config, logger)
@@ -220,12 +212,14 @@ func runSecurityTest(logger testing.Logger, targetURL, testSuitesStr, sessionNam
 		fmt.Printf("\n[WARN] Critical or high severity findings detected!\n")
 
 		for _, result := range session.TestResults {
-			for _, vuln := range result.Vulnerabilities {
-				if vuln.Severity == "critical" || vuln.Severity == "high" {
-					fmt.Printf("  [%s] %s: %s\n", strings.ToUpper(vuln.Severity), vuln.Type, vuln.Title)
-					fmt.Printf("    Location: %s\n", vuln.Location)
-					fmt.Printf("    Recommendation: %s\n", vuln.Recommendation)
-					fmt.Println()
+			if result.Security != nil && len(result.Security.Vulnerabilities) > 0 {
+				for _, vuln := range result.Security.Vulnerabilities {
+					if vuln.Severity == "critical" || vuln.Severity == "high" {
+						fmt.Printf("  [%s] %s: %s\n", strings.ToUpper(vuln.Severity), vuln.Type, vuln.Title)
+						fmt.Printf("    Location: %s\n", vuln.Location)
+						fmt.Printf("    Remediation: %s\n", vuln.Remediation)
+						fmt.Println()
+					}
 				}
 			}
 		}
@@ -239,10 +233,16 @@ func runSecurityTest(logger testing.Logger, targetURL, testSuitesStr, sessionNam
 func listTestSessions(logger testing.Logger, format string) {
 	// Create framework to access sessions
 	config := &testing.SecurityTestConfig{
-		Enabled:         true,
-		TestSuites:      []string{},
-		TestTimeout:     1 * time.Minute,
-		OutputDirectory: "./security-test-reports",
+		EnableVulnerabilityScanning: true,
+		EnablePenetrationTesting:    true,
+		EnableComplianceChecking:    true,
+		EnableThreatModeling:        true,
+		ScanDepth:                   "medium",
+		MaxScanDuration:             1 * time.Minute,
+		TargetEndpoints:             []string{},
+		ExcludedPaths:               []string{},
+		AuthenticationTokens:        make(map[string]string),
+		ComplianceFrameworks:        []string{},
 	}
 
 	framework := testing.NewSecurityTestingFramework(config, logger)
@@ -291,10 +291,16 @@ func listTestSessions(logger testing.Logger, format string) {
 func showTestReport(logger testing.Logger, sessionID, format string) {
 	// Create framework to access session
 	config := &testing.SecurityTestConfig{
-		Enabled:         true,
-		TestSuites:      []string{},
-		TestTimeout:     1 * time.Minute,
-		OutputDirectory: "./security-test-reports",
+		EnableVulnerabilityScanning: true,
+		EnablePenetrationTesting:    true,
+		EnableComplianceChecking:    true,
+		EnableThreatModeling:        true,
+		ScanDepth:                   "medium",
+		MaxScanDuration:             1 * time.Minute,
+		TargetEndpoints:             []string{},
+		ExcludedPaths:               []string{},
+		AuthenticationTokens:        make(map[string]string),
+		ComplianceFrameworks:        []string{},
 	}
 
 	framework := testing.NewSecurityTestingFramework(config, logger)
@@ -336,16 +342,16 @@ func showTestReport(logger testing.Logger, sessionID, format string) {
 			fmt.Printf("\nTest Results:\n")
 			for _, result := range session.TestResults {
 				status := "✅"
-				if !result.Passed {
+				if result.Status != "passed" {
 					status = "❌"
 				}
 
-				fmt.Printf("  %s %s (%s) - Score: %.1f, Severity: %s\n",
-					status, result.TestName, result.TestType, result.Score, result.Severity)
+				fmt.Printf("  %s %s (%s) - Duration: %v\n",
+					status, result.Name, result.Status, result.Duration)
 
-				if len(result.Vulnerabilities) > 0 {
+				if result.Security != nil && len(result.Security.Vulnerabilities) > 0 {
 					fmt.Printf("    Vulnerabilities:\n")
-					for _, vuln := range result.Vulnerabilities {
+					for _, vuln := range result.Security.Vulnerabilities {
 						fmt.Printf("      - [%s] %s: %s\n",
 							strings.ToUpper(vuln.Severity), vuln.Type, vuln.Title)
 					}
@@ -366,10 +372,16 @@ func showTestReport(logger testing.Logger, sessionID, format string) {
 func showTestStatistics(logger testing.Logger, format string) {
 	// Create framework to access statistics
 	config := &testing.SecurityTestConfig{
-		Enabled:         true,
-		TestSuites:      []string{},
-		TestTimeout:     1 * time.Minute,
-		OutputDirectory: "./security-test-reports",
+		EnableVulnerabilityScanning: true,
+		EnablePenetrationTesting:    true,
+		EnableComplianceChecking:    true,
+		EnableThreatModeling:        true,
+		ScanDepth:                   "medium",
+		MaxScanDuration:             1 * time.Minute,
+		TargetEndpoints:             []string{},
+		ExcludedPaths:               []string{},
+		AuthenticationTokens:        make(map[string]string),
+		ComplianceFrameworks:        []string{},
 	}
 
 	framework := testing.NewSecurityTestingFramework(config, logger)

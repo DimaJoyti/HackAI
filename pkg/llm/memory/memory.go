@@ -3,9 +3,11 @@ package memory
 import (
 	"context"
 	"fmt"
+	"strings"
 	"sync"
 	"time"
 
+	"github.com/dimajoyti/hackai/pkg/logger"
 	"github.com/google/uuid"
 )
 
@@ -149,7 +151,7 @@ func (m *InMemoryVectorMemory) Retrieve(ctx context.Context, query string, limit
 	// In a real implementation, this would use vector similarity
 	var results []Content
 	for _, content := range m.data {
-		if contains(content.Text, query) {
+		if containsText(content.Text, query) {
 			results = append(results, content)
 			if len(results) >= limit {
 				break
@@ -307,7 +309,10 @@ type MemoryManager struct {
 	conversationalMemory ConversationalMemory
 	episodicMemory       EpisodicMemory
 	semanticMemory       SemanticMemory
+	contextManager       ContextManager
+	consolidator         MemoryConsolidator
 	config               MemoryConfig
+	logger               *logger.Logger
 }
 
 // MemoryConfig represents memory configuration
@@ -321,12 +326,51 @@ type MemoryConfig struct {
 }
 
 // NewMemoryManager creates a new memory manager
-func NewMemoryManager(config MemoryConfig) *MemoryManager {
-	return &MemoryManager{
-		vectorMemory:         NewInMemoryVectorMemory(config.VectorMemorySize),
-		conversationalMemory: NewInMemoryConversationalMemory(),
+func NewMemoryManager(config MemoryConfig, logger *logger.Logger) *MemoryManager {
+	// Create memory components
+	vectorMemory := NewInMemoryVectorMemory(config.VectorMemorySize)
+	conversationalMemory := NewInMemoryConversationalMemory()
+	episodicMemory := NewInMemoryEpisodicMemory(1000, logger) // Default size
+	semanticMemory := NewInMemorySemanticMemory(1000, logger) // Default size
+
+	// Create memory manager
+	manager := &MemoryManager{
+		vectorMemory:         vectorMemory,
+		conversationalMemory: conversationalMemory,
+		episodicMemory:       episodicMemory,
+		semanticMemory:       semanticMemory,
 		config:               config,
+		logger:               logger,
 	}
+
+	// Create context manager
+	contextConfig := ContextConfig{
+		MaxContextLength:    4000,
+		CompressionRatio:    0.7,
+		RelevanceThreshold:  0.5,
+		MaxRetrievalItems:   20,
+		ContextTTL:          24 * time.Hour,
+		EnableCompression:   true,
+		EnableSummarization: true,
+		SummaryInterval:     10,
+	}
+	manager.contextManager = NewDefaultContextManager(manager, contextConfig, logger)
+
+	// Create consolidator
+	consolidationConfig := ConsolidationConfig{
+		ConversationThreshold: 10,
+		EpisodeThreshold:      5,
+		FactThreshold:         3,
+		ConsolidationInterval: 1 * time.Hour,
+		RetentionPeriod:       30 * 24 * time.Hour,
+		ArchivePeriod:         90 * 24 * time.Hour,
+		EnableAutoCleanup:     true,
+		EnableDeduplication:   true,
+		MaxMemorySize:         1024 * 1024 * 1024, // 1GB
+	}
+	manager.consolidator = NewDefaultMemoryConsolidator(manager, manager.contextManager, consolidationConfig, logger)
+
+	return manager
 }
 
 // GetVectorMemory returns the vector memory
@@ -339,15 +383,32 @@ func (m *MemoryManager) GetConversationalMemory() ConversationalMemory {
 	return m.conversationalMemory
 }
 
+// GetEpisodicMemory returns the episodic memory
+func (m *MemoryManager) GetEpisodicMemory() EpisodicMemory {
+	return m.episodicMemory
+}
+
+// GetSemanticMemory returns the semantic memory
+func (m *MemoryManager) GetSemanticMemory() SemanticMemory {
+	return m.semanticMemory
+}
+
+// GetContextManager returns the context manager
+func (m *MemoryManager) GetContextManager() ContextManager {
+	return m.contextManager
+}
+
+// GetConsolidator returns the memory consolidator
+func (m *MemoryManager) GetConsolidator() MemoryConsolidator {
+	return m.consolidator
+}
+
 // Helper functions
 
-// contains checks if text contains query (simple implementation)
-func contains(text, query string) bool {
+// containsText checks if text contains query (simple implementation)
+func containsText(text, query string) bool {
 	return len(query) > 0 && len(text) > 0 &&
-		(text == query ||
-			len(text) > len(query) &&
-				(text[:len(query)] == query ||
-					text[len(text)-len(query):] == query))
+		strings.Contains(strings.ToLower(text), strings.ToLower(query))
 }
 
 // cosineSimilarity calculates cosine similarity between two vectors

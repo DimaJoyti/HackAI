@@ -100,7 +100,7 @@ func NewDefaultOrchestrator(config OrchestratorConfig, logger *logger.Logger) *D
 	}
 
 	// Initialize memory manager
-	memoryManager := memory.NewMemoryManager(config.MemoryConfig)
+	memoryManager := memory.NewMemoryManager(config.MemoryConfig, logger)
 
 	return &DefaultOrchestrator{
 		chains:         make(map[string]Chain),
