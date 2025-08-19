@@ -1,0 +1,296 @@
+# LLM Security Proxy - Staging Environment Configuration
+# Production-like settings with enhanced monitoring and testing capabilities
+
+# Server Configuration - Production-like with staging adjustments
+server:
+  port: 8080
+  host: "0.0.0.0"
+  read_timeout: "30s"
+  write_timeout: "30s"
+  idle_timeout: "60s"
+  shutdown_timeout: "30s"
+  tls_enabled: true
+  cert_file: "/etc/ssl/certs/staging.crt"
+  key_file: "/etc/ssl/private/staging.key"
+  cors:
+    enabled: true
+    allowed_origins: ["https://staging.hackai.dev", "https://staging-dashboard.hackai.dev"]
+    allowed_methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+    allowed_headers: ["Content-Type", "Authorization", "X-Provider", "X-Model", "X-Request-ID"]
+    max_age: 3600
+  rate_limit:
+    enabled: true
+    requests_per_minute: 5000
+    burst_size: 500
+
+# Database Configuration - Staging database
+database:
+  host: "${DB_HOST}"
+  port: "${DB_PORT}"
+  name: "hackai_staging"
+  user: "${DB_USER}"
+  password: "${DB_PASSWORD}"
+  ssl_mode: "require"
+  max_open_conns: 20
+  max_idle_conns: 5
+  conn_max_lifetime: "5m"
+  conn_max_idle_time: "2m"
+  migration_path: "./migrations"
+  auto_migrate: true
+
+# Redis Configuration - Staging Redis cluster
+redis:
+  host: "${REDIS_HOST}"
+  port: "${REDIS_PORT}"
+  password: "${REDIS_PASSWORD}"
+  db: 0
+  pool_size: 15
+  min_idle_conns: 5
+  dial_timeout: "5s"
+  read_timeout: "3s"
+  write_timeout: "3s"
+  pool_timeout: "4s"
+  idle_timeout: "5m"
+
+# JWT Configuration - Staging secrets
+jwt:
+  secret: "${JWT_SECRET}"
+  issuer: "hackai-staging"
+  audience: "hackai-staging-users"
+  access_token_duration: "15m"
+  refresh_token_duration: "24h"
+  algorithm: "HS256"
+
+# Security Configuration - Production-like with testing flexibility
+security:
+  enabled: true
+  strict_mode: false  # Allow some flexibility for testing
+  default_threat_score: 0.0
+  block_high_threat_score: true
+  threat_score_threshold: 0.8
+  
+  policy_engine:
+    enabled: true
+    default_action: "allow"
+    evaluation_timeout: "5s"
+    cache_enabled: true
+    cache_ttl: "5m"
+    max_policy_size: "1MB"
+    
+  content_filter:
+    enabled: true
+    max_content_length: 100000
+    scan_timeout: "10s"
+    block_malicious_content: true
+    block_pii: true
+    block_toxic_content: true
+    toxicity_threshold: 0.7
+    
+  rate_limiter:
+    enabled: true
+    strict_mode: false
+    global_requests_per_minute: 50000
+    global_requests_per_hour: 500000
+    global_tokens_per_minute: 5000000
+    global_tokens_per_hour: 50000000
+    user_requests_per_minute: 100
+    user_requests_per_hour: 2000
+    user_requests_per_day: 20000
+    user_tokens_per_minute: 20000
+    user_tokens_per_hour: 200000
+    user_tokens_per_day: 2000000
+    user_cost_per_hour: 200.0
+    user_cost_per_day: 1000.0
+    user_cost_per_month: 5000.0
+    allow_burst: true
+    burst_multiplier: 2.0
+    burst_window_seconds: 60
+
+# Audit Configuration - Comprehensive for staging validation
+audit:
+  enabled: true
+  
+  logger:
+    enabled: true
+    batch_size: 50
+    flush_interval: "15s"
+    max_queue_size: 5000
+    include_request_body: true
+    include_response_body: true
+    mask_sensitive_data: true
+    compress_large_payloads: true
+    max_payload_size: "1MB"
+    retention_days: 30
+    
+  middleware:
+    enabled: true
+    log_successful_requests: true
+    log_failed_requests: true
+    log_blocked_requests: true
+    log_security_violations: true
+    log_policy_decisions: true
+    excluded_endpoints: ["/health", "/metrics"]
+    excluded_providers: []
+    min_threat_score_to_log: 0.0
+    sample_rate: 1.0
+    
+  service:
+    enabled: true
+    retention_period: "30d"
+    cleanup_interval: "12h"
+    archive_old_logs: true
+    archive_threshold: "7d"
+    enable_metrics: true
+    metrics_update_interval: "2m"
+    enable_alerts: true
+
+# Observability Configuration - Enhanced monitoring for staging
+observability:
+  logging:
+    level: "info"
+    format: "json"
+    output: "stdout"
+    file_path: ""
+    add_source: true
+    time_format: "RFC3339"
+    
+  metrics:
+    enabled: true
+    port: 9090
+    path: "/metrics"
+    namespace: "hackai_staging"
+    subsystem: "llm_security_proxy"
+    
+  tracing:
+    enabled: true
+    service_name: "llm-security-proxy-staging"
+    endpoint: "${JAEGER_ENDPOINT}"
+    sample_rate: 0.1  # Sample 10% of requests
+    insecure: false
+    headers:
+      authorization: "${JAEGER_AUTH_TOKEN}"
+
+# AI Provider Configuration - Staging API keys and limits
+ai:
+  providers:
+    openai:
+      enabled: true
+      api_key: "${OPENAI_API_KEY_STAGING}"
+      base_url: "https://api.openai.com/v1"
+      timeout: "30s"
+      max_retries: 3
+      models:
+        - "gpt-3.5-turbo"
+        - "gpt-4"
+        - "gpt-4-turbo"
+    anthropic:
+      enabled: true
+      api_key: "${ANTHROPIC_API_KEY_STAGING}"
+      base_url: "https://api.anthropic.com"
+      timeout: "30s"
+      max_retries: 3
+      models:
+        - "claude-3-sonnet"
+        - "claude-3-opus"
+    azure:
+      enabled: true
+      api_key: "${AZURE_OPENAI_API_KEY_STAGING}"
+      endpoint: "${AZURE_OPENAI_ENDPOINT_STAGING}"
+      api_version: "2023-12-01-preview"
+      timeout: "30s"
+      max_retries: 3
+      
+  defaults:
+    max_tokens: 4096
+    temperature: 0.7
+    top_p: 1.0
+    frequency_penalty: 0.0
+    presence_penalty: 0.0
+    timeout: "30s"
+    
+  cost_tracking:
+    enabled: true
+    currency: "USD"
+    alert_threshold: 500.0
+    daily_limit: 2000.0
+    monthly_limit: 20000.0
+
+# Feature Flags - Most features enabled for testing
+features:
+  enable_real_time_dashboard: true
+  enable_policy_testing: true
+  enable_threat_simulation: true
+  enable_advanced_analytics: true
+  enable_export_functionality: true
+  enable_webhook_notifications: true
+  enable_slack_integration: true
+  enable_email_alerts: true
+
+# Notification Configuration - Staging alerts
+notifications:
+  email:
+    enabled: true
+    smtp_host: "${SMTP_HOST}"
+    smtp_port: 587
+    username: "${SMTP_USERNAME}"
+    password: "${SMTP_PASSWORD}"
+    from_address: "staging-alerts@hackai.dev"
+    tls_enabled: true
+    
+  slack:
+    enabled: true
+    webhook_url: "${SLACK_WEBHOOK_URL_STAGING}"
+    channel: "#staging-alerts"
+    username: "HackAI Staging Bot"
+    
+  webhook:
+    enabled: true
+    url: "${WEBHOOK_URL_STAGING}"
+    timeout: "10s"
+    retry_attempts: 3
+    headers:
+      authorization: "${WEBHOOK_AUTH_TOKEN}"
+
+# Debug Configuration - Limited debugging for staging
+debug:
+  enabled: false
+  pprof_enabled: true  # Enable for performance testing
+  pprof_port: 6060
+  verbose_logging: false
+  log_sql_queries: false
+  disable_auth: false
+  mock_providers: false
+
+# Staging-specific settings
+staging:
+  enable_load_testing: true
+  enable_chaos_engineering: false
+  enable_performance_monitoring: true
+  enable_security_scanning: true
+  data_retention_days: 30
+  backup_frequency: "6h"
+  health_check_interval: "30s"
+  
+# Load Testing Configuration
+load_testing:
+  max_concurrent_requests: 1000
+  test_duration: "10m"
+  ramp_up_time: "2m"
+  target_rps: 100
+  
+# Performance Monitoring
+performance:
+  enable_apm: true
+  apm_service_name: "llm-security-proxy-staging"
+  enable_profiling: true
+  profile_cpu: true
+  profile_memory: true
+  profile_duration: "30s"
+  
+# Security Scanning
+security_scanning:
+  enable_vulnerability_scanning: true
+  scan_frequency: "daily"
+  enable_dependency_scanning: true
+  enable_secret_scanning: true
+  enable_license_scanning: true

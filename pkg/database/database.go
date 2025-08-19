@@ -99,6 +99,19 @@ func (db *DB) Migrate() error {
 		&domain.SystemMetrics{},
 		&domain.DataRetentionPolicy{},
 		&domain.BackupRecord{},
+
+		// LLM Security
+		&domain.LLMRequestLog{},
+		&domain.LLMProvider{},
+		&domain.LLMModel{},
+		&domain.LLMUsageQuota{},
+
+		// Security Policies
+		&domain.SecurityPolicy{},
+		&domain.PolicyViolation{},
+		&domain.PolicyRule{},
+		&domain.PolicyTemplate{},
+		&domain.PolicyExecution{},
 	)
 	if err != nil {
 		return fmt.Errorf("failed to run migrations: %w", err)

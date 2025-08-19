@@ -85,6 +85,11 @@ type SecurityEvent struct {
 	TargetPort int    `json:"target_port"`
 	Protocol   string `json:"protocol"`
 
+	// LLM Request association (for LLM security events)
+	RequestID *string    `json:"request_id,omitempty" gorm:"index"`
+	UserID    *uuid.UUID `json:"user_id,omitempty" gorm:"type:uuid;index"`
+	SessionID *uuid.UUID `json:"session_id,omitempty" gorm:"type:uuid;index"`
+
 	// Detection information
 	DetectedBy    string  `json:"detected_by"` // System/tool that detected the event
 	Confidence    float64 `json:"confidence"`  // Detection confidence (0-1)
@@ -106,8 +111,10 @@ type SecurityEvent struct {
 	UpdatedAt time.Time `json:"updated_at"`
 
 	// Relationships
-	AssignedUser *User `json:"assigned_user,omitempty" gorm:"foreignKey:AssignedTo"`
-	ResolvedUser *User `json:"resolved_user,omitempty" gorm:"foreignKey:ResolvedBy"`
+	User         *User        `json:"user,omitempty" gorm:"foreignKey:UserID"`
+	Session      *UserSession `json:"session,omitempty" gorm:"foreignKey:SessionID"`
+	AssignedUser *User        `json:"assigned_user,omitempty" gorm:"foreignKey:AssignedTo"`
+	ResolvedUser *User        `json:"resolved_user,omitempty" gorm:"foreignKey:ResolvedBy"`
 }
 
 // EventStatus represents the status of a security event
@@ -337,3 +344,4 @@ func (b *BackupRecord) IsCompleted() bool {
 func (b *BackupRecord) IsRunning() bool {
 	return b.Status == BackupStatusRunning || b.Status == BackupStatusPending
 }
+

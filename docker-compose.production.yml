@@ -1,0 +1,308 @@
+# LLM Security Proxy - Production Environment
+# High availability, secure, and scalable production setup
+
+version: '3.8'
+
+services:
+  llm-security-proxy:
+    image: ${DOCKER_REGISTRY}/llm-security-proxy:${VERSION}
+    ports:
+      - "8080:8080"
+    environment:
+      - ENVIRONMENT=production
+      - CONFIG_DIR=/app/configs
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - JWT_SECRET=${JWT_SECRET}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - AZURE_OPENAI_API_KEY=${AZURE_OPENAI_API_KEY}
+      - AZURE_OPENAI_ENDPOINT=${AZURE_OPENAI_ENDPOINT}
+      - JAEGER_ENDPOINT=${JAEGER_ENDPOINT}
+      - JAEGER_AUTH_TOKEN=${JAEGER_AUTH_TOKEN}
+      - SMTP_HOST=${SMTP_HOST}
+      - SMTP_USERNAME=${SMTP_USERNAME}
+      - SMTP_PASSWORD=${SMTP_PASSWORD}
+      - SLACK_WEBHOOK_URL=${SLACK_WEBHOOK_URL}
+      - WEBHOOK_URL=${WEBHOOK_URL}
+      - WEBHOOK_AUTH_TOKEN=${WEBHOOK_AUTH_TOKEN}
+    volumes:
+      - ./configs:/app/configs:ro
+      - production_logs:/app/logs
+      - /etc/ssl/certs:/etc/ssl/certs:ro
+    networks:
+      - hackai-production
+    restart: unless-stopped
+    deploy:
+      replicas: 3
+      update_config:
+        parallelism: 1
+        delay: 30s
+        failure_action: rollback
+        order: start-first
+      rollback_config:
+        parallelism: 1
+        delay: 30s
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 2G
+        reservations:
+          cpus: '1.0'
+          memory: 1G
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "5"
+
+  # External services (managed separately in production)
+  # These are placeholders - actual production would use managed services
+
+  # Load balancer
+  nginx:
+    image: nginx:1.25-alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./configs/nginx/production.conf:/etc/nginx/nginx.conf:ro
+      - ./configs/nginx/ssl/production:/etc/nginx/ssl:ro
+      - production_nginx_logs:/var/log/nginx
+    depends_on:
+      - llm-security-proxy
+    networks:
+      - hackai-production
+    restart: unless-stopped
+    deploy:
+      replicas: 2
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+        reservations:
+          cpus: '0.5'
+          memory: 256M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "5"
+
+  # Monitoring (would typically be external in production)
+  prometheus:
+    image: prom/prometheus:v2.45.0
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./configs/prometheus/production.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_production_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=720h'  # 30 days
+      - '--web.enable-lifecycle'
+      - '--web.enable-admin-api'
+    networks:
+      - hackai-production
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 4G
+        reservations:
+          cpus: '1.0'
+          memory: 2G
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "5"
+
+  grafana:
+    image: grafana/grafana:10.1.0
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_AUTH_ANONYMOUS_ENABLED=false
+      - GF_SECURITY_COOKIE_SECURE=true
+      - GF_SECURITY_STRICT_TRANSPORT_SECURITY=true
+      - GF_SMTP_ENABLED=true
+      - GF_SMTP_HOST=${SMTP_HOST}:587
+      - GF_SMTP_USER=${SMTP_USERNAME}
+      - GF_SMTP_PASSWORD=${SMTP_PASSWORD}
+      - GF_SMTP_FROM_ADDRESS=grafana@hackai.dev
+      - GF_SERVER_ROOT_URL=https://monitoring.hackai.dev
+    volumes:
+      - grafana_production_data:/var/lib/grafana
+      - ./configs/grafana/production:/etc/grafana/provisioning:ro
+    networks:
+      - hackai-production
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "5"
+
+  # Log aggregation
+  loki:
+    image: grafana/loki:2.9.0
+    ports:
+      - "3100:3100"
+    volumes:
+      - ./configs/loki/production.yml:/etc/loki/local-config.yaml:ro
+      - loki_production_data:/loki
+    command: -config.file=/etc/loki/local-config.yaml
+    networks:
+      - hackai-production
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 1G
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "5"
+
+  promtail:
+    image: grafana/promtail:2.9.0
+    volumes:
+      - ./configs/promtail/production.yml:/etc/promtail/config.yml:ro
+      - production_logs:/var/log/app:ro
+      - production_nginx_logs:/var/log/nginx:ro
+      - /var/log:/var/log/host:ro
+    command: -config.file=/etc/promtail/config.yml
+    networks:
+      - hackai-production
+    restart: unless-stopped
+    deploy:
+      mode: global
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "5"
+
+  # Security scanning
+  trivy:
+    image: aquasec/trivy:0.45.0
+    volumes:
+      - trivy_cache:/root/.cache/trivy
+    command: ["server", "--listen", "0.0.0.0:4954"]
+    networks:
+      - hackai-production
+    restart: unless-stopped
+    profiles:
+      - security-scanning
+
+  # Backup service
+  backup:
+    image: postgres:15-alpine
+    environment:
+      - PGPASSWORD=${DB_PASSWORD}
+    volumes:
+      - production_backups:/backups
+      - ./scripts/backup.sh:/backup.sh:ro
+    command: /bin/sh -c "while true; do sleep 3600; /backup.sh; done"
+    networks:
+      - hackai-production
+    restart: unless-stopped
+    profiles:
+      - backup
+
+volumes:
+  prometheus_production_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /data/prometheus
+  grafana_production_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /data/grafana
+  loki_production_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /data/loki
+  production_logs:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /var/log/hackai
+  production_nginx_logs:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /var/log/nginx
+  production_backups:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /backups/hackai
+  trivy_cache:
+    driver: local
+
+networks:
+  hackai-production:
+    driver: overlay
+    attachable: true
+    ipam:
+      config:
+        - subnet: 10.0.0.0/24
+
+# Production deployment configuration
+configs:
+  nginx_config:
+    file: ./configs/nginx/production.conf
+  prometheus_config:
+    file: ./configs/prometheus/production.yml
+
+secrets:
+  db_password:
+    external: true
+  jwt_secret:
+    external: true
+  redis_password:
+    external: true

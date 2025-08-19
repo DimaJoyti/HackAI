@@ -1,0 +1,226 @@
+# LLM Security Proxy - Staging Environment
+# Production-like setup for testing and validation
+
+version: '3.8'
+
+services:
+  llm-security-proxy:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    ports:
+      - "8080:8080"
+      - "6060:6060"  # pprof for performance testing
+    environment:
+      - ENVIRONMENT=staging
+      - CONFIG_DIR=/app/configs
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - JWT_SECRET=${JWT_SECRET}
+      - OPENAI_API_KEY_STAGING=${OPENAI_API_KEY_STAGING}
+      - ANTHROPIC_API_KEY_STAGING=${ANTHROPIC_API_KEY_STAGING}
+      - AZURE_OPENAI_API_KEY_STAGING=${AZURE_OPENAI_API_KEY_STAGING}
+      - AZURE_OPENAI_ENDPOINT_STAGING=${AZURE_OPENAI_ENDPOINT_STAGING}
+      - JAEGER_ENDPOINT=${JAEGER_ENDPOINT}
+      - JAEGER_AUTH_TOKEN=${JAEGER_AUTH_TOKEN}
+      - SMTP_HOST=${SMTP_HOST}
+      - SMTP_USERNAME=${SMTP_USERNAME}
+      - SMTP_PASSWORD=${SMTP_PASSWORD}
+      - SLACK_WEBHOOK_URL_STAGING=${SLACK_WEBHOOK_URL_STAGING}
+      - WEBHOOK_URL_STAGING=${WEBHOOK_URL_STAGING}
+      - WEBHOOK_AUTH_TOKEN=${WEBHOOK_AUTH_TOKEN}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./configs:/app/configs:ro
+      - staging_logs:/app/logs
+      - /etc/ssl/certs:/etc/ssl/certs:ro
+    networks:
+      - hackai-staging
+    restart: unless-stopped
+    deploy:
+      replicas: 2
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_DB=hackai_staging
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_INITDB_ARGS=--auth-host=scram-sha-256
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_staging_data:/var/lib/postgresql/data
+      - ./configs/postgres/staging.conf:/etc/postgresql/postgresql.conf:ro
+    command: postgres -c config_file=/etc/postgresql/postgresql.conf
+    networks:
+      - hackai-staging
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 1G
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d hackai_staging"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_staging_data:/data
+      - ./configs/redis/staging.conf:/usr/local/etc/redis/redis.conf:ro
+    command: redis-server /usr/local/etc/redis/redis.conf --requirepass ${REDIS_PASSWORD}
+    networks:
+      - hackai-staging
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # Load balancer for staging
+  nginx:
+    image: nginx:1.25-alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./configs/nginx/staging.conf:/etc/nginx/nginx.conf:ro
+      - ./configs/nginx/ssl/staging:/etc/nginx/ssl:ro
+      - staging_nginx_logs:/var/log/nginx
+    depends_on:
+      - llm-security-proxy
+    networks:
+      - hackai-staging
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+
+  # Monitoring stack
+  prometheus:
+    image: prom/prometheus:v2.45.0
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./configs/prometheus/staging.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_staging_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=168h'  # 7 days
+      - '--web.enable-lifecycle'
+    networks:
+      - hackai-staging
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:10.1.0
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_AUTH_ANONYMOUS_ENABLED=false
+      - GF_SMTP_ENABLED=true
+      - GF_SMTP_HOST=${SMTP_HOST}:587
+      - GF_SMTP_USER=${SMTP_USERNAME}
+      - GF_SMTP_PASSWORD=${SMTP_PASSWORD}
+      - GF_SMTP_FROM_ADDRESS=grafana-staging@hackai.dev
+    volumes:
+      - grafana_staging_data:/var/lib/grafana
+      - ./configs/grafana/staging:/etc/grafana/provisioning:ro
+    networks:
+      - hackai-staging
+    restart: unless-stopped
+
+  # Log aggregation
+  loki:
+    image: grafana/loki:2.9.0
+    ports:
+      - "3100:3100"
+    volumes:
+      - ./configs/loki/staging.yml:/etc/loki/local-config.yaml:ro
+      - loki_staging_data:/loki
+    command: -config.file=/etc/loki/local-config.yaml
+    networks:
+      - hackai-staging
+    restart: unless-stopped
+
+  promtail:
+    image: grafana/promtail:2.9.0
+    volumes:
+      - ./configs/promtail/staging.yml:/etc/promtail/config.yml:ro
+      - staging_logs:/var/log/app:ro
+      - staging_nginx_logs:/var/log/nginx:ro
+    command: -config.file=/etc/promtail/config.yml
+    networks:
+      - hackai-staging
+    restart: unless-stopped
+
+  # Load testing tool
+  k6:
+    image: grafana/k6:0.46.0
+    volumes:
+      - ./tests/load:/scripts:ro
+    environment:
+      - K6_PROMETHEUS_RW_SERVER_URL=http://prometheus:9090/api/v1/write
+    networks:
+      - hackai-staging
+    profiles:
+      - load-testing
+
+volumes:
+  postgres_staging_data:
+  redis_staging_data:
+  prometheus_staging_data:
+  grafana_staging_data:
+  loki_staging_data:
+  staging_logs:
+  staging_nginx_logs:
+
+networks:
+  hackai-staging:
+    driver: bridge

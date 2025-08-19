@@ -1,19 +1,27 @@
-# 🛡️ HackAI: Advanced AI Security Training Platform
+# 🛡️ HackAI: Advanced AI Security Platform & LLM Security Proxy
 
 [![Go Version](https://img.shields.io/badge/Go-1.21+-blue.svg)](https://golang.org)
 [![Next.js](https://img.shields.io/badge/Next.js-14+-black.svg)](https://nextjs.org)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Security](https://img.shields.io/badge/Security-OWASP%20AI%20Top%2010-red.svg)](https://owasp.org/www-project-ai-security-and-privacy-guide/)
 [![MITRE ATLAS](https://img.shields.io/badge/MITRE-ATLAS-orange.svg)](https://atlas.mitre.org/)
+[![Build Status](https://img.shields.io/badge/Build-Passing-brightgreen.svg)](https://github.com/DimaJoyti/HackAI)
+[![Documentation](https://img.shields.io/badge/Docs-Complete-blue.svg)](docs/)
 
-> **The world's most comprehensive AI security training platform** - Learn, practice, and master AI security through hands-on labs, real-world scenarios, and cutting-edge threat detection.
+> **The world's most comprehensive AI security platform** - Combining advanced security training with enterprise-grade LLM security proxy for complete AI protection.
 
 ## 🌟 Overview
 
-HackAI is a comprehensive AI security training platform that combines theoretical knowledge with practical, hands-on experience. Built for security professionals, AI engineers, and organizations looking to strengthen their AI security posture.
+HackAI is a dual-purpose AI security platform that provides both comprehensive security training and enterprise-grade LLM protection. It combines theoretical knowledge with practical experience while offering production-ready security infrastructure for AI applications.
+
+### 🎯 Dual Platform Architecture
+
+**🎓 Training Platform**: Learn, practice, and master AI security through hands-on labs and real-world scenarios
+**🛡️ Security Proxy**: Enterprise-grade LLM security proxy for protecting production AI applications
 
 ### 🎯 Key Features
 
+#### 🎓 Training Platform Features
 - **🔒 Advanced AI Security Framework**: MITRE ATLAS integration, OWASP AI Top 10 compliance
 - **🧠 Interactive Learning Modules**: 13 comprehensive modules covering all aspects of AI security
 - **🥽 Hands-on Labs**: Real-world scenarios in isolated, safe environments
@@ -21,6 +29,18 @@ HackAI is a comprehensive AI security training platform that combines theoretica
 - **🎓 Certification Program**: Industry-recognized AI security certifications
 - **🔍 Threat Detection Engine**: Advanced prompt injection, model extraction, and adversarial attack detection
 - **📈 Performance Analytics**: Comprehensive learning analytics and progress tracking
+
+#### 🛡️ LLM Security Proxy Features
+- **🚀 Real-time Protection**: Intercept and analyze all LLM requests/responses
+- **🔍 Content Filtering**: Block malicious prompts, PII, toxic content, and prompt injections
+- **📊 Threat Scoring**: AI-powered threat assessment with configurable thresholds
+- **🛡️ Policy Engine**: Flexible rule-based security policies with custom actions
+- **⚡ Rate Limiting**: Advanced rate limiting with token tracking and cost management
+- **📝 Audit Logging**: Complete audit trail for compliance and forensic analysis
+- **🌐 Multi-Provider**: Support for OpenAI, Anthropic, Azure OpenAI, and custom providers
+- **📈 Analytics**: Real-time usage analytics, cost tracking, and security metrics
+- **🔐 Authentication**: JWT-based authentication with role-based access control
+- **🏗️ Enterprise Ready**: High availability, auto-scaling, and production hardening
 
 ## 🚀 Quick Start
 

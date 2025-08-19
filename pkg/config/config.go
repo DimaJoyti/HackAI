@@ -59,11 +59,14 @@ type RedisConfig struct {
 
 // JWTConfig holds JWT configuration
 type JWTConfig struct {
-	Secret          string        `json:"secret"`
-	AccessTokenTTL  time.Duration `json:"access_token_ttl"`
-	RefreshTokenTTL time.Duration `json:"refresh_token_ttl"`
-	Issuer          string        `json:"issuer"`
-	Audience        string        `json:"audience"`
+	Secret               string        `json:"secret"`
+	AccessTokenTTL       time.Duration `json:"access_token_ttl"`
+	RefreshTokenTTL      time.Duration `json:"refresh_token_ttl"`
+	AccessTokenDuration  time.Duration `json:"access_token_duration"`  // Alias for AccessTokenTTL
+	RefreshTokenDuration time.Duration `json:"refresh_token_duration"` // Alias for RefreshTokenTTL
+	Issuer               string        `json:"issuer"`
+	Audience             string        `json:"audience"`
+	Algorithm            string        `json:"algorithm"`
 }
 
 // SecurityConfig holds security configuration

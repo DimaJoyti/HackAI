@@ -1,7 +1,6 @@
 'use client'
 
 import { QueryClient, QueryClientProvider } from 'react-query'
-import { ReactQueryDevtools } from 'react-query/devtools'
 import { ThemeProvider } from 'next-themes'
 import { useState } from 'react'
 import { AuthProvider } from '@/hooks/use-auth'
@@ -42,7 +41,6 @@ export function Providers({ children }: { children: React.ReactNode }) {
           {children}
         </AuthProvider>
       </ThemeProvider>
-      {process.env.NODE_ENV === 'development' && <ReactQueryDevtools />}
     </QueryClientProvider>
   )
 }
