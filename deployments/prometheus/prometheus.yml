@@ -1,10 +1,14 @@
 global:
   scrape_interval: 15s
   evaluation_interval: 15s
+  external_labels:
+    cluster: 'hackai-production'
+    environment: 'production'
 
 rule_files:
-  # - "first_rules.yml"
-  # - "second_rules.yml"
+  - "alert_rules.yml"
+  - "recording_rules.yml"
+  - "security_rules.yml"
 
 scrape_configs:
   # The job name is added as a label `job=<job_name>` to any timeseries scraped from this config.
@@ -79,8 +83,9 @@ alerting:
   alertmanagers:
     - static_configs:
         - targets:
-          # - alertmanager:9093
+          - alertmanager:9093
+      path_prefix: /alertmanager
+      scheme: http
 
 # Load rules once and periodically evaluate them according to the global 'evaluation_interval'.
-rule_files:
-  - "alert_rules.yml"
+# Rules are already defined above in the global section

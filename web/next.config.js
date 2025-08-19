@@ -58,10 +58,11 @@ const nextConfig = {
   // Rewrites for API proxy (development only)
   async rewrites() {
     if (process.env.NODE_ENV === 'development') {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
       return [
         {
           source: '/api/:path*',
-          destination: `${process.env.NEXT_PUBLIC_API_URL}/api/:path*`,
+          destination: `${apiUrl}/api/:path*`,
         },
       ];
     }

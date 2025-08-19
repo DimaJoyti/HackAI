@@ -1,0 +1,267 @@
+version: '3.8'
+
+services:
+  # Database Services
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: hackai_test
+      POSTGRES_USER: hackai
+      POSTGRES_PASSWORD: hackai_test_password
+      POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256"
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./deployments/postgres/init.sql:/docker-entrypoint-initdb.d/01-init.sql
+      - ./deployments/postgres/vector-init.sql:/docker-entrypoint-initdb.d/02-vector-init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hackai -d hackai_test"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - hackai-test
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes --requirepass hackai_test_password
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    networks:
+      - hackai-test
+
+  # Core Services
+  api-gateway:
+    build:
+      context: .
+      dockerfile: deployments/docker/Dockerfile.gateway
+    environment:
+      - ENV=test
+      - DATABASE_URL=postgres://hackai:hackai_test_password@postgres:5432/hackai_test?sslmode=disable
+      - REDIS_URL=redis://:hackai_test_password@redis:6379/0
+      - JWT_SECRET=test_jwt_secret_key_for_testing_only
+      - LOG_LEVEL=debug
+      - METRICS_ENABLED=true
+      - TRACING_ENABLED=true
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - hackai-test
+
+  user-service:
+    build:
+      context: .
+      dockerfile: deployments/docker/Dockerfile.user
+    environment:
+      - ENV=test
+      - DATABASE_URL=postgres://hackai:hackai_test_password@postgres:5432/hackai_test?sslmode=disable
+      - REDIS_URL=redis://:hackai_test_password@redis:6379/1
+      - JWT_SECRET=test_jwt_secret_key_for_testing_only
+      - LOG_LEVEL=debug
+      - METRICS_ENABLED=true
+    ports:
+      - "8081:8081"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - hackai-test
+
+  scanner-service:
+    build:
+      context: .
+      dockerfile: deployments/docker/Dockerfile.scanner
+    environment:
+      - ENV=test
+      - DATABASE_URL=postgres://hackai:hackai_test_password@postgres:5432/hackai_test?sslmode=disable
+      - REDIS_URL=redis://:hackai_test_password@redis:6379/2
+      - LOG_LEVEL=debug
+      - METRICS_ENABLED=true
+      - SCAN_TIMEOUT=300s
+      - MAX_CONCURRENT_SCANS=5
+    ports:
+      - "8082:8082"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8082/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - hackai-test
+
+  threat-service:
+    build:
+      context: .
+      dockerfile: deployments/docker/Dockerfile.threat
+    environment:
+      - ENV=test
+      - DATABASE_URL=postgres://hackai:hackai_test_password@postgres:5432/hackai_test?sslmode=disable
+      - REDIS_URL=redis://:hackai_test_password@redis:6379/3
+      - LOG_LEVEL=debug
+      - METRICS_ENABLED=true
+      - MITRE_API_KEY=test_mitre_key
+      - CVE_API_KEY=test_cve_key
+    ports:
+      - "8083:8083"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8083/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - hackai-test
+
+  # Monitoring Services
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./deployments/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./deployments/prometheus/alert_rules.yml:/etc/prometheus/alert_rules.yml
+      - ./deployments/prometheus/recording_rules.yml:/etc/prometheus/recording_rules.yml
+      - ./deployments/prometheus/security_rules.yml:/etc/prometheus/security_rules.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+      - '--web.enable-admin-api'
+    networks:
+      - hackai-test
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_INSTALL_PLUGINS=grafana-piechart-panel
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./deployments/grafana/dashboards:/etc/grafana/provisioning/dashboards
+      - ./deployments/grafana/datasources:/etc/grafana/provisioning/datasources
+    networks:
+      - hackai-test
+
+  # Exporters for monitoring
+  node-exporter:
+    image: prom/node-exporter:latest
+    ports:
+      - "9100:9100"
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.rootfs=/rootfs'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+    networks:
+      - hackai-test
+
+  postgres-exporter:
+    image: prometheuscommunity/postgres-exporter:latest
+    environment:
+      DATA_SOURCE_NAME: "postgresql://hackai:hackai_test_password@postgres:5432/hackai_test?sslmode=disable"
+    ports:
+      - "9187:9187"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - hackai-test
+
+  redis-exporter:
+    image: oliver006/redis_exporter:latest
+    environment:
+      REDIS_ADDR: "redis://redis:6379"
+      REDIS_PASSWORD: "hackai_test_password"
+    ports:
+      - "9121:9121"
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - hackai-test
+
+  # Load Testing
+  k6:
+    image: grafana/k6:latest
+    volumes:
+      - ./test/performance:/scripts
+    environment:
+      - K6_PROMETHEUS_RW_SERVER_URL=http://prometheus:9090/api/v1/write
+      - K6_PROMETHEUS_RW_TREND_AS_NATIVE_HISTOGRAM=true
+    command: run --out prometheus-rw /scripts/load-test.js
+    depends_on:
+      - api-gateway
+      - prometheus
+    networks:
+      - hackai-test
+
+  # Frontend for testing
+  web:
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8080
+      - NEXT_PUBLIC_WS_URL=ws://localhost:8080
+      - NODE_ENV=test
+    depends_on:
+      - api-gateway
+    networks:
+      - hackai-test
+
+volumes:
+  postgres_data:
+  redis_data:
+  prometheus_data:
+  grafana_data:
+
+networks:
+  hackai-test:
+    driver: bridge

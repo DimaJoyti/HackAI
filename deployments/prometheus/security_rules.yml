@@ -1,0 +1,211 @@
+groups:
+# Security-specific alerts for HackAI
+- name: security.rules
+  rules:
+  - alert: HighThreatDetectionRate
+    expr: rate(hackai_threats_detected_total[5m]) > 10
+    for: 2m
+    labels:
+      severity: critical
+      team: security
+      category: threat_detection
+    annotations:
+      summary: "High threat detection rate"
+      description: "Threat detection rate is {{ $value }} threats per second, which is above normal threshold"
+      runbook_url: "https://docs.hackai.dev/runbooks/high-threat-rate"
+
+  - alert: SecurityScannerDown
+    expr: up{job=~"hackai-scanner.*"} == 0
+    for: 1m
+    labels:
+      severity: critical
+      team: security
+      category: service_availability
+    annotations:
+      summary: "Security scanner service down"
+      description: "Security scanner {{ $labels.instance }} has been down for more than 1 minute"
+      runbook_url: "https://docs.hackai.dev/runbooks/scanner-down"
+
+  - alert: FailedAuthenticationSpike
+    expr: rate(hackai_auth_failures_total[5m]) > 5
+    for: 3m
+    labels:
+      severity: warning
+      team: security
+      category: authentication
+    annotations:
+      summary: "High authentication failure rate"
+      description: "Authentication failure rate is {{ $value }} failures per second from {{ $labels.source_ip }}"
+      runbook_url: "https://docs.hackai.dev/runbooks/auth-failures"
+
+  - alert: SuspiciousUserActivity
+    expr: rate(hackai_suspicious_activity_total[10m]) > 1
+    for: 5m
+    labels:
+      severity: warning
+      team: security
+      category: user_behavior
+    annotations:
+      summary: "Suspicious user activity detected"
+      description: "Suspicious activity rate is {{ $value }} events per second for user {{ $labels.user_id }}"
+
+  - alert: VulnerabilityDatabaseOutdated
+    expr: time() - hackai_vuln_db_last_update_timestamp > 86400
+    for: 0m
+    labels:
+      severity: warning
+      team: security
+      category: data_freshness
+    annotations:
+      summary: "Vulnerability database outdated"
+      description: "Vulnerability database hasn't been updated for more than 24 hours"
+
+  - alert: ThreatIntelligenceFeedDown
+    expr: hackai_threat_intel_feed_status == 0
+    for: 5m
+    labels:
+      severity: warning
+      team: security
+      category: external_feeds
+    annotations:
+      summary: "Threat intelligence feed unavailable"
+      description: "Threat intelligence feed {{ $labels.feed_name }} is unavailable"
+
+  - alert: HighJailbreakAttempts
+    expr: rate(hackai_jailbreak_attempts_total[5m]) > 2
+    for: 3m
+    labels:
+      severity: critical
+      team: security
+      category: ai_security
+    annotations:
+      summary: "High jailbreak attempt rate"
+      description: "Jailbreak attempt rate is {{ $value }} attempts per second"
+      runbook_url: "https://docs.hackai.dev/runbooks/jailbreak-attempts"
+
+  - alert: PromptInjectionDetected
+    expr: rate(hackai_prompt_injection_total[5m]) > 1
+    for: 2m
+    labels:
+      severity: critical
+      team: security
+      category: ai_security
+    annotations:
+      summary: "Prompt injection attacks detected"
+      description: "Prompt injection rate is {{ $value }} attacks per second"
+
+  - alert: RedTeamOperationFailed
+    expr: hackai_red_team_operation_success_rate < 0.8
+    for: 10m
+    labels:
+      severity: warning
+      team: security
+      category: red_team
+    annotations:
+      summary: "Red team operation success rate low"
+      description: "Red team operation success rate is {{ $value | humanizePercentage }}"
+
+  - alert: SecurityMetricsCollectionFailed
+    expr: up{job="hackai-security-metrics"} == 0
+    for: 2m
+    labels:
+      severity: warning
+      team: security
+      category: monitoring
+    annotations:
+      summary: "Security metrics collection failed"
+      description: "Security metrics collection service is down"
+
+# Compliance and Audit Alerts
+- name: compliance.rules
+  rules:
+  - alert: AuditLogIngestionFailed
+    expr: rate(hackai_audit_log_errors_total[5m]) > 0.1
+    for: 5m
+    labels:
+      severity: warning
+      team: compliance
+      category: audit_logging
+    annotations:
+      summary: "Audit log ingestion failures"
+      description: "Audit log ingestion error rate is {{ $value }} errors per second"
+
+  - alert: ComplianceCheckFailed
+    expr: hackai_compliance_check_status == 0
+    for: 0m
+    labels:
+      severity: critical
+      team: compliance
+      category: compliance_monitoring
+    annotations:
+      summary: "Compliance check failed"
+      description: "Compliance check {{ $labels.check_name }} has failed"
+
+  - alert: DataRetentionPolicyViolation
+    expr: hackai_data_retention_violation_total > 0
+    for: 0m
+    labels:
+      severity: warning
+      team: compliance
+      category: data_governance
+    annotations:
+      summary: "Data retention policy violation"
+      description: "{{ $value }} data retention policy violations detected"
+
+  - alert: UnauthorizedDataAccess
+    expr: rate(hackai_unauthorized_access_total[5m]) > 0
+    for: 1m
+    labels:
+      severity: critical
+      team: security
+      category: data_access
+    annotations:
+      summary: "Unauthorized data access detected"
+      description: "{{ $value }} unauthorized data access attempts per second"
+
+# Performance and Capacity Alerts
+- name: performance.rules
+  rules:
+  - alert: ThreatAnalysisQueueBacklog
+    expr: hackai_threat_analysis_queue_size > 1000
+    for: 5m
+    labels:
+      severity: warning
+      team: performance
+      category: queue_management
+    annotations:
+      summary: "Threat analysis queue backlog"
+      description: "Threat analysis queue has {{ $value }} pending items"
+
+  - alert: ScannerResourceExhaustion
+    expr: hackai_scanner_cpu_usage > 90
+    for: 10m
+    labels:
+      severity: warning
+      team: performance
+      category: resource_usage
+    annotations:
+      summary: "Scanner resource exhaustion"
+      description: "Scanner CPU usage is {{ $value }}% for more than 10 minutes"
+
+  - alert: DatabaseConnectionPoolExhausted
+    expr: hackai_db_connection_pool_usage > 95
+    for: 5m
+    labels:
+      severity: critical
+      team: database
+      category: connection_management
+    annotations:
+      summary: "Database connection pool exhausted"
+      description: "Database connection pool usage is {{ $value }}%"
+
+  - alert: ThreatIntelligenceProcessingDelay
+    expr: hackai_threat_intel_processing_delay_seconds > 300
+    for: 5m
+    labels:
+      severity: warning
+      team: performance
+      category: processing_delay
+    annotations:
+      summary: "Threat intelligence processing delay"
+      description: "Threat intelligence processing is delayed by {{ $value }} seconds"

@@ -1,0 +1,258 @@
+groups:
+# Recording rules for HackAI metrics aggregation
+- name: hackai_recording_rules
+  interval: 30s
+  rules:
+  # HTTP Request Rate Rules
+  - record: hackai:http_requests:rate5m
+    expr: rate(http_requests_total[5m])
+    labels:
+      aggregation: "5m_rate"
+
+  - record: hackai:http_requests:rate1h
+    expr: rate(http_requests_total[1h])
+    labels:
+      aggregation: "1h_rate"
+
+  - record: hackai:http_errors:rate5m
+    expr: rate(http_requests_total{status=~"5.."}[5m])
+    labels:
+      aggregation: "5m_error_rate"
+
+  - record: hackai:http_error_ratio:5m
+    expr: |
+      (
+        rate(http_requests_total{status=~"5.."}[5m])
+        /
+        rate(http_requests_total[5m])
+      )
+    labels:
+      aggregation: "5m_error_ratio"
+
+  # Latency Percentiles
+  - record: hackai:http_request_duration:p50_5m
+    expr: histogram_quantile(0.50, rate(http_request_duration_seconds_bucket[5m]))
+    labels:
+      quantile: "0.50"
+      aggregation: "5m"
+
+  - record: hackai:http_request_duration:p95_5m
+    expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m]))
+    labels:
+      quantile: "0.95"
+      aggregation: "5m"
+
+  - record: hackai:http_request_duration:p99_5m
+    expr: histogram_quantile(0.99, rate(http_request_duration_seconds_bucket[5m]))
+    labels:
+      quantile: "0.99"
+      aggregation: "5m"
+
+  # Security Metrics
+  - record: hackai:threats_detected:rate5m
+    expr: rate(hackai_threats_detected_total[5m])
+    labels:
+      aggregation: "5m_rate"
+
+  - record: hackai:threats_detected:rate1h
+    expr: rate(hackai_threats_detected_total[1h])
+    labels:
+      aggregation: "1h_rate"
+
+  - record: hackai:auth_failures:rate5m
+    expr: rate(hackai_auth_failures_total[5m])
+    labels:
+      aggregation: "5m_rate"
+
+  - record: hackai:jailbreak_attempts:rate5m
+    expr: rate(hackai_jailbreak_attempts_total[5m])
+    labels:
+      aggregation: "5m_rate"
+
+  - record: hackai:prompt_injections:rate5m
+    expr: rate(hackai_prompt_injection_total[5m])
+    labels:
+      aggregation: "5m_rate"
+
+  # Service Availability
+  - record: hackai:service_availability:5m
+    expr: avg_over_time(up[5m])
+    labels:
+      aggregation: "5m_avg"
+
+  - record: hackai:service_availability:1h
+    expr: avg_over_time(up[1h])
+    labels:
+      aggregation: "1h_avg"
+
+  # Resource Utilization
+  - record: hackai:cpu_usage:avg5m
+    expr: 100 - (avg by(instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100)
+    labels:
+      aggregation: "5m_avg"
+
+  - record: hackai:memory_usage:avg5m
+    expr: |
+      (
+        (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) 
+        / 
+        node_memory_MemTotal_bytes
+      ) * 100
+    labels:
+      aggregation: "5m_avg"
+
+  - record: hackai:disk_usage:avg5m
+    expr: |
+      (
+        (node_filesystem_size_bytes - node_filesystem_avail_bytes) 
+        / 
+        node_filesystem_size_bytes
+      ) * 100
+    labels:
+      aggregation: "5m_avg"
+
+# Business Metrics Recording Rules
+- name: hackai_business_metrics
+  interval: 60s
+  rules:
+  # Scan Statistics
+  - record: hackai:scans_completed:rate1h
+    expr: rate(hackai_scans_completed_total[1h])
+    labels:
+      aggregation: "1h_rate"
+
+  - record: hackai:scans_success_ratio:1h
+    expr: |
+      (
+        rate(hackai_scans_completed_total{status="success"}[1h])
+        /
+        rate(hackai_scans_completed_total[1h])
+      )
+    labels:
+      aggregation: "1h_success_ratio"
+
+  - record: hackai:vulnerabilities_found:rate1h
+    expr: rate(hackai_vulnerabilities_found_total[1h])
+    labels:
+      aggregation: "1h_rate"
+
+  # User Activity
+  - record: hackai:active_users:5m
+    expr: count by() (hackai_user_last_activity_timestamp > (time() - 300))
+    labels:
+      aggregation: "5m_count"
+
+  - record: hackai:user_sessions:avg1h
+    expr: avg_over_time(hackai_active_sessions[1h])
+    labels:
+      aggregation: "1h_avg"
+
+  # Threat Intelligence
+  - record: hackai:threat_intel_updates:rate1h
+    expr: rate(hackai_threat_intel_updates_total[1h])
+    labels:
+      aggregation: "1h_rate"
+
+  - record: hackai:iocs_processed:rate1h
+    expr: rate(hackai_iocs_processed_total[1h])
+    labels:
+      aggregation: "1h_rate"
+
+# Infrastructure Recording Rules
+- name: hackai_infrastructure_metrics
+  interval: 60s
+  rules:
+  # Database Metrics
+  - record: hackai:postgres_connections:avg5m
+    expr: avg_over_time(postgres_stat_activity_count[5m])
+    labels:
+      aggregation: "5m_avg"
+
+  - record: hackai:postgres_query_duration:p95_5m
+    expr: histogram_quantile(0.95, rate(postgres_query_duration_seconds_bucket[5m]))
+    labels:
+      quantile: "0.95"
+      aggregation: "5m"
+
+  - record: hackai:redis_memory_usage:avg5m
+    expr: avg_over_time(redis_memory_used_bytes[5m])
+    labels:
+      aggregation: "5m_avg"
+
+  - record: hackai:redis_commands:rate5m
+    expr: rate(redis_commands_processed_total[5m])
+    labels:
+      aggregation: "5m_rate"
+
+  # Network Metrics
+  - record: hackai:network_bytes_received:rate5m
+    expr: rate(node_network_receive_bytes_total[5m])
+    labels:
+      aggregation: "5m_rate"
+
+  - record: hackai:network_bytes_transmitted:rate5m
+    expr: rate(node_network_transmit_bytes_total[5m])
+    labels:
+      aggregation: "5m_rate"
+
+  # Container Metrics (if using Kubernetes)
+  - record: hackai:container_cpu_usage:avg5m
+    expr: avg_over_time(container_cpu_usage_seconds_total[5m])
+    labels:
+      aggregation: "5m_avg"
+
+  - record: hackai:container_memory_usage:avg5m
+    expr: avg_over_time(container_memory_usage_bytes[5m])
+    labels:
+      aggregation: "5m_avg"
+
+# SLA and SLI Recording Rules
+- name: hackai_sla_metrics
+  interval: 300s  # 5 minutes
+  rules:
+  # Availability SLI
+  - record: hackai:sli_availability:5m
+    expr: |
+      (
+        sum(rate(http_requests_total{status!~"5.."}[5m]))
+        /
+        sum(rate(http_requests_total[5m]))
+      )
+    labels:
+      sli: "availability"
+      window: "5m"
+
+  # Latency SLI (requests served under 500ms)
+  - record: hackai:sli_latency:5m
+    expr: |
+      (
+        sum(rate(http_request_duration_seconds_bucket{le="0.5"}[5m]))
+        /
+        sum(rate(http_request_duration_seconds_count[5m]))
+      )
+    labels:
+      sli: "latency"
+      window: "5m"
+      threshold: "500ms"
+
+  # Error Budget Burn Rate
+  - record: hackai:error_budget_burn_rate:1h
+    expr: |
+      (
+        1 - hackai:sli_availability:5m
+      ) / 0.001  # Assuming 99.9% SLA (0.1% error budget)
+    labels:
+      sla: "99.9"
+      window: "1h"
+
+  # Security SLI (threats detected and mitigated)
+  - record: hackai:sli_security_response:5m
+    expr: |
+      (
+        rate(hackai_threats_mitigated_total[5m])
+        /
+        rate(hackai_threats_detected_total[5m])
+      )
+    labels:
+      sli: "security_response"
+      window: "5m"

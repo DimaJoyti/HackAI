@@ -5,3 +5,4 @@ bin
 .env
 CLAUDE.md
 POMPT.md
+web/.env.local

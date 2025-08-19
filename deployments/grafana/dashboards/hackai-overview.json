@@ -1,0 +1,318 @@
+{
+  "dashboard": {
+    "id": null,
+    "title": "HackAI Security Platform Overview",
+    "tags": ["hackai", "security", "overview"],
+    "style": "dark",
+    "timezone": "browser",
+    "refresh": "30s",
+    "time": {
+      "from": "now-1h",
+      "to": "now"
+    },
+    "panels": [
+      {
+        "id": 1,
+        "title": "System Health Overview",
+        "type": "stat",
+        "gridPos": {"h": 8, "w": 24, "x": 0, "y": 0},
+        "targets": [
+          {
+            "expr": "hackai:service_availability:5m",
+            "legendFormat": "{{instance}} Availability",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "thresholds"},
+            "thresholds": {
+              "steps": [
+                {"color": "red", "value": 0},
+                {"color": "yellow", "value": 0.95},
+                {"color": "green", "value": 0.99}
+              ]
+            },
+            "unit": "percentunit",
+            "min": 0,
+            "max": 1
+          }
+        }
+      },
+      {
+        "id": 2,
+        "title": "Threat Detection Rate",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8},
+        "targets": [
+          {
+            "expr": "hackai:threats_detected:rate5m",
+            "legendFormat": "Threats/sec",
+            "refId": "A"
+          }
+        ],
+        "yAxes": [
+          {
+            "label": "Threats per second",
+            "min": 0
+          }
+        ],
+        "alert": {
+          "conditions": [
+            {
+              "evaluator": {"params": [10], "type": "gt"},
+              "operator": {"type": "and"},
+              "query": {"params": ["A", "5m", "now"]},
+              "reducer": {"params": [], "type": "avg"},
+              "type": "query"
+            }
+          ],
+          "executionErrorState": "alerting",
+          "for": "2m",
+          "frequency": "10s",
+          "handler": 1,
+          "name": "High Threat Detection Rate",
+          "noDataState": "no_data",
+          "notifications": []
+        }
+      },
+      {
+        "id": 3,
+        "title": "Security Events",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 8},
+        "targets": [
+          {
+            "expr": "hackai:auth_failures:rate5m",
+            "legendFormat": "Auth Failures/sec",
+            "refId": "A"
+          },
+          {
+            "expr": "hackai:jailbreak_attempts:rate5m",
+            "legendFormat": "Jailbreak Attempts/sec",
+            "refId": "B"
+          },
+          {
+            "expr": "hackai:prompt_injections:rate5m",
+            "legendFormat": "Prompt Injections/sec",
+            "refId": "C"
+          }
+        ],
+        "yAxes": [
+          {
+            "label": "Events per second",
+            "min": 0
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "title": "HTTP Request Rate",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 16},
+        "targets": [
+          {
+            "expr": "hackai:http_requests:rate5m",
+            "legendFormat": "{{service}} Requests/sec",
+            "refId": "A"
+          }
+        ],
+        "yAxes": [
+          {
+            "label": "Requests per second",
+            "min": 0
+          }
+        ]
+      },
+      {
+        "id": 5,
+        "title": "HTTP Error Rate",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 16},
+        "targets": [
+          {
+            "expr": "hackai:http_error_ratio:5m",
+            "legendFormat": "{{service}} Error Rate",
+            "refId": "A"
+          }
+        ],
+        "yAxes": [
+          {
+            "label": "Error Rate",
+            "min": 0,
+            "max": 1
+          }
+        ],
+        "thresholds": [
+          {
+            "value": 0.05,
+            "colorMode": "critical",
+            "op": "gt"
+          }
+        ]
+      },
+      {
+        "id": 6,
+        "title": "Response Time Percentiles",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 24, "x": 0, "y": 24},
+        "targets": [
+          {
+            "expr": "hackai:http_request_duration:p50_5m",
+            "legendFormat": "P50",
+            "refId": "A"
+          },
+          {
+            "expr": "hackai:http_request_duration:p95_5m",
+            "legendFormat": "P95",
+            "refId": "B"
+          },
+          {
+            "expr": "hackai:http_request_duration:p99_5m",
+            "legendFormat": "P99",
+            "refId": "C"
+          }
+        ],
+        "yAxes": [
+          {
+            "label": "Response Time (seconds)",
+            "min": 0
+          }
+        ]
+      },
+      {
+        "id": 7,
+        "title": "Resource Utilization",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 32},
+        "targets": [
+          {
+            "expr": "hackai:cpu_usage:avg5m",
+            "legendFormat": "{{instance}} CPU %",
+            "refId": "A"
+          },
+          {
+            "expr": "hackai:memory_usage:avg5m",
+            "legendFormat": "{{instance}} Memory %",
+            "refId": "B"
+          }
+        ],
+        "yAxes": [
+          {
+            "label": "Percentage",
+            "min": 0,
+            "max": 100
+          }
+        ]
+      },
+      {
+        "id": 8,
+        "title": "Database Performance",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 32},
+        "targets": [
+          {
+            "expr": "hackai:postgres_connections:avg5m",
+            "legendFormat": "Active Connections",
+            "refId": "A"
+          },
+          {
+            "expr": "hackai:postgres_query_duration:p95_5m",
+            "legendFormat": "P95 Query Duration",
+            "refId": "B"
+          }
+        ],
+        "yAxes": [
+          {
+            "label": "Connections / Seconds",
+            "min": 0
+          }
+        ]
+      },
+      {
+        "id": 9,
+        "title": "Security Scan Statistics",
+        "type": "stat",
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 40},
+        "targets": [
+          {
+            "expr": "hackai:scans_completed:rate1h",
+            "legendFormat": "Scans/hour",
+            "refId": "A"
+          },
+          {
+            "expr": "hackai:scans_success_ratio:1h",
+            "legendFormat": "Success Rate",
+            "refId": "B"
+          },
+          {
+            "expr": "hackai:vulnerabilities_found:rate1h",
+            "legendFormat": "Vulnerabilities/hour",
+            "refId": "C"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "palette-classic"},
+            "unit": "short"
+          }
+        }
+      },
+      {
+        "id": 10,
+        "title": "Active Users & Sessions",
+        "type": "stat",
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 40},
+        "targets": [
+          {
+            "expr": "hackai:active_users:5m",
+            "legendFormat": "Active Users",
+            "refId": "A"
+          },
+          {
+            "expr": "hackai:user_sessions:avg1h",
+            "legendFormat": "Avg Sessions",
+            "refId": "B"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "palette-classic"},
+            "unit": "short"
+          }
+        }
+      }
+    ],
+    "templating": {
+      "list": [
+        {
+          "name": "instance",
+          "type": "query",
+          "query": "label_values(up, instance)",
+          "refresh": 1,
+          "includeAll": true,
+          "multi": true
+        },
+        {
+          "name": "service",
+          "type": "query",
+          "query": "label_values(up, job)",
+          "refresh": 1,
+          "includeAll": true,
+          "multi": true
+        }
+      ]
+    },
+    "annotations": {
+      "list": [
+        {
+          "name": "Deployments",
+          "datasource": "prometheus",
+          "expr": "changes(prometheus_config_last_reload_success_timestamp[1h]) > 0",
+          "titleFormat": "Config Reload",
+          "textFormat": "Prometheus configuration reloaded"
+        }
+      ]
+    }
+  }
+}
