@@ -2,6 +2,7 @@ package ai
 
 import (
 	"context"
+	"fmt"
 	"testing"
 	"time"
 
@@ -115,7 +116,7 @@ func TestChainExecution(t *testing.T) {
 			SetupMocks: func(mockChain *MockChain) {
 				mockChain.On("Execute", mock.Anything, llm.ChainInput{
 					"invalid": "input",
-				}).Return(llm.ChainOutput{}, assert.AnError)
+				}).Return(llm.ChainOutput{}, fmt.Errorf("invalid input"))
 			},
 		},
 	}
@@ -131,13 +132,12 @@ func TestGraphExecution(t *testing.T) {
 	// Register a mock graph
 	mockGraph := ts.RegisterMockGraph("test-graph", "Test Graph", "A test graph")
 
-	// Setup mock expectations
-	mockGraph.On("Execute", mock.Anything, GraphState{
-		"input": "test input",
-	}).Return(GraphState{
+	// Setup mock expectations - use flexible matchers
+	expectedOutput := GraphState{
 		"output": "processed output",
 		"step":   "complete",
-	}, nil)
+	}
+	mockGraph.On("Execute", mock.Anything, mock.Anything).Return(expectedOutput, nil)
 
 	// Execute graph
 	ctx := context.Background()

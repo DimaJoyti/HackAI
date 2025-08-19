@@ -15,19 +15,88 @@ import (
 
 var graphTracer = otel.Tracer("hackai/ai/graph")
 
+// GraphExecutionContext provides enhanced context for graph execution
+type GraphExecutionContext struct {
+	RequestID     string                 `json:"request_id"`
+	UserID        string                 `json:"user_id"`
+	SessionID     string                 `json:"session_id"`
+	SecurityLevel SecurityLevel          `json:"security_level"`
+	MaxDepth      int                    `json:"max_depth"`
+	Timeout       time.Duration          `json:"timeout"`
+	Metadata      map[string]interface{} `json:"metadata"`
+	StartTime     time.Time              `json:"start_time"`
+}
+
+// GraphExecutionResult provides detailed execution results
+type GraphExecutionResult struct {
+	Success       bool                   `json:"success"`
+	FinalState    GraphState             `json:"final_state"`
+	Error         error                  `json:"error,omitempty"`
+	ExecutionTime time.Duration          `json:"execution_time"`
+	NodesExecuted []string               `json:"nodes_executed"`
+	ExecutionPath []GraphExecutionStep   `json:"execution_path"`
+	Metadata      map[string]interface{} `json:"metadata"`
+}
+
+// GraphExecutionStep represents a single step in graph execution
+type GraphExecutionStep struct {
+	NodeID        string                 `json:"node_id"`
+	NodeType      string                 `json:"node_type"`
+	InputState    GraphState             `json:"input_state"`
+	OutputState   GraphState             `json:"output_state"`
+	ExecutionTime time.Duration          `json:"execution_time"`
+	Error         error                  `json:"error,omitempty"`
+	Timestamp     time.Time              `json:"timestamp"`
+	Metadata      map[string]interface{} `json:"metadata"`
+}
+
+// AdvancedEdgeCondition provides more sophisticated condition evaluation
+type AdvancedEdgeCondition struct {
+	ID          string                                                       `json:"id"`
+	Name        string                                                       `json:"name"`
+	Description string                                                       `json:"description"`
+	Evaluator   func(state GraphState, context GraphExecutionContext) string `json:"-"`
+	Priority    int                                                          `json:"priority"`
+}
+
+// ConditionalBranch represents a conditional branch with multiple conditions
+type ConditionalBranch struct {
+	Conditions  []AdvancedEdgeCondition `json:"conditions"`
+	DefaultEdge string                  `json:"default_edge"`
+}
+
+// EnhancedGraph extends the basic Graph interface with advanced capabilities
+type EnhancedGraph interface {
+	Graph
+	ExecuteWithContext(ctx context.Context, execCtx GraphExecutionContext, initialState GraphState) (*GraphExecutionResult, error)
+	ExecuteAsync(ctx context.Context, execCtx GraphExecutionContext, initialState GraphState) (<-chan *GraphExecutionResult, error)
+	AddAdvancedConditionalEdge(from string, branch ConditionalBranch) error
+	GetExecutionHistory() []GraphExecutionResult
+	ValidateState(state GraphState) error
+}
+
 // StateGraph implements the Graph interface using state machine patterns
 type StateGraph struct {
-	id               string
-	name             string
-	description      string
-	nodes            map[string]GraphNode
-	edges            map[string][]string
-	conditionalEdges map[string]ConditionalEdge
-	entryPoint       string
-	metrics          GraphMetrics
-	logger           *logger.Logger
-	tracer           trace.Tracer
-	mutex            sync.RWMutex
+	id                       string
+	name                     string
+	description              string
+	nodes                    map[string]GraphNode
+	edges                    map[string][]string
+	conditionalEdges         map[string]ConditionalEdge
+	advancedConditionalEdges map[string]ConditionalBranch
+	entryPoint               string
+	metrics                  GraphMetrics
+	executionHistory         []GraphExecutionResult
+	maxHistorySize           int
+	stateValidator           GraphStateValidator
+	logger                   *logger.Logger
+	tracer                   trace.Tracer
+	mutex                    sync.RWMutex
+}
+
+// GraphStateValidator validates graph state
+type GraphStateValidator interface {
+	Validate(state GraphState) error
 }
 
 // ConditionalEdge represents a conditional edge in the graph
@@ -39,14 +108,17 @@ type ConditionalEdge struct {
 // NewStateGraph creates a new state graph
 func NewStateGraph(id, name, description string, logger *logger.Logger) *StateGraph {
 	return &StateGraph{
-		id:               id,
-		name:             name,
-		description:      description,
-		nodes:            make(map[string]GraphNode),
-		edges:            make(map[string][]string),
-		conditionalEdges: make(map[string]ConditionalEdge),
-		logger:           logger,
-		tracer:           graphTracer,
+		id:                       id,
+		name:                     name,
+		description:              description,
+		nodes:                    make(map[string]GraphNode),
+		edges:                    make(map[string][]string),
+		conditionalEdges:         make(map[string]ConditionalEdge),
+		advancedConditionalEdges: make(map[string]ConditionalBranch),
+		executionHistory:         make([]GraphExecutionResult, 0),
+		maxHistorySize:           100, // Default history size
+		logger:                   logger,
+		tracer:                   graphTracer,
 		metrics: GraphMetrics{
 			NodeMetrics:       make(map[string]NodeMetrics),
 			LastExecutionTime: time.Now(),
@@ -459,6 +531,286 @@ func (g *StateGraph) updateExecutionEnd(duration time.Duration, success bool) {
 	}
 
 	g.metrics.LastExecutionTime = time.Now()
+}
+
+// ExecuteWithContext executes the graph with enhanced context and detailed results
+func (g *StateGraph) ExecuteWithContext(ctx context.Context, execCtx GraphExecutionContext, initialState GraphState) (*GraphExecutionResult, error) {
+	ctx, span := g.tracer.Start(ctx, "state_graph.execute_with_context",
+		trace.WithAttributes(
+			attribute.String("graph.id", g.id),
+			attribute.String("graph.name", g.name),
+			attribute.String("request.id", execCtx.RequestID),
+			attribute.String("user.id", execCtx.UserID),
+			attribute.Int("max.depth", execCtx.MaxDepth),
+		),
+	)
+	defer span.End()
+
+	startTime := time.Now()
+	result := &GraphExecutionResult{
+		NodesExecuted: make([]string, 0),
+		ExecutionPath: make([]GraphExecutionStep, 0),
+		Metadata:      make(map[string]interface{}),
+	}
+
+	// Validate initial state
+	if g.stateValidator != nil {
+		if err := g.stateValidator.Validate(initialState); err != nil {
+			result.Success = false
+			result.Error = fmt.Errorf("initial state validation failed: %w", err)
+			result.ExecutionTime = time.Since(startTime)
+			span.RecordError(result.Error)
+			return result, result.Error
+		}
+	}
+
+	// Execute the graph with enhanced tracking
+	finalState, err := g.executeWithTracking(ctx, execCtx, initialState, result)
+	if err != nil {
+		result.Success = false
+		result.Error = err
+		result.FinalState = initialState
+	} else {
+		result.Success = true
+		result.FinalState = finalState
+	}
+
+	result.ExecutionTime = time.Since(startTime)
+
+	// Update metrics
+	g.updateExecutionEnd(result.ExecutionTime, result.Success)
+
+	// Store execution history
+	g.addToHistory(*result)
+
+	span.SetAttributes(
+		attribute.Bool("execution.success", result.Success),
+		attribute.String("execution.duration", result.ExecutionTime.String()),
+		attribute.Int("nodes.executed", len(result.NodesExecuted)),
+	)
+
+	return result, nil
+}
+
+// ExecuteAsync executes the graph asynchronously
+func (g *StateGraph) ExecuteAsync(ctx context.Context, execCtx GraphExecutionContext, initialState GraphState) (<-chan *GraphExecutionResult, error) {
+	resultChan := make(chan *GraphExecutionResult, 1)
+
+	go func() {
+		defer close(resultChan)
+		result, _ := g.ExecuteWithContext(ctx, execCtx, initialState)
+		resultChan <- result
+	}()
+
+	return resultChan, nil
+}
+
+// executeWithTracking executes the graph with detailed tracking
+func (g *StateGraph) executeWithTracking(ctx context.Context, execCtx GraphExecutionContext, state GraphState, result *GraphExecutionResult) (GraphState, error) {
+	if g.entryPoint == "" {
+		return state, fmt.Errorf("no entry point set")
+	}
+
+	currentNodeID := g.entryPoint
+	currentState := state
+	depth := 0
+	maxDepth := execCtx.MaxDepth
+	if maxDepth <= 0 {
+		maxDepth = 100 // Default max depth
+	}
+
+	visited := make(map[string]bool)
+
+	for depth < maxDepth {
+		// Check for cycles
+		if visited[currentNodeID] {
+			g.logger.Warn("Cycle detected in graph execution",
+				"graph_id", g.id,
+				"node_id", currentNodeID,
+				"depth", depth)
+			break
+		}
+		visited[currentNodeID] = true
+
+		// Get current node
+		node, exists := g.nodes[currentNodeID]
+		if !exists {
+			return currentState, fmt.Errorf("node %s not found", currentNodeID)
+		}
+
+		// Execute node with tracking
+		stepStartTime := time.Now()
+		stepResult := GraphExecutionStep{
+			NodeID:     currentNodeID,
+			NodeType:   string(node.Type()),
+			InputState: copyGraphState(currentState),
+			Timestamp:  stepStartTime,
+			Metadata:   make(map[string]interface{}),
+		}
+
+		// Execute the node
+		newState, err := node.Execute(ctx, currentState)
+		stepResult.ExecutionTime = time.Since(stepStartTime)
+		stepResult.OutputState = copyGraphState(newState)
+
+		if err != nil {
+			stepResult.Error = err
+			result.ExecutionPath = append(result.ExecutionPath, stepResult)
+			return currentState, fmt.Errorf("node %s execution failed: %w", currentNodeID, err)
+		}
+
+		// Update tracking
+		result.NodesExecuted = append(result.NodesExecuted, currentNodeID)
+		result.ExecutionPath = append(result.ExecutionPath, stepResult)
+		currentState = newState
+
+		// Determine next node
+		nextNodeID, err := g.getNextNode(currentNodeID, currentState, execCtx)
+		if err != nil {
+			return currentState, err
+		}
+
+		// If no next node, we're done
+		if nextNodeID == "" {
+			break
+		}
+
+		currentNodeID = nextNodeID
+		depth++
+	}
+
+	if depth >= maxDepth {
+		return currentState, fmt.Errorf("maximum execution depth %d reached", maxDepth)
+	}
+
+	return currentState, nil
+}
+
+// getNextNode determines the next node to execute based on edges and conditions
+func (g *StateGraph) getNextNode(currentNodeID string, state GraphState, execCtx GraphExecutionContext) (string, error) {
+	// Check for advanced conditional edges first
+	if branch, exists := g.advancedConditionalEdges[currentNodeID]; exists {
+		return g.evaluateAdvancedConditionalBranch(branch, state, execCtx)
+	}
+
+	// Check for basic conditional edges
+	if condEdge, exists := g.conditionalEdges[currentNodeID]; exists {
+		condition := condEdge.Condition(state)
+		if nextNode, exists := condEdge.Edges[condition]; exists {
+			return nextNode, nil
+		}
+	}
+
+	// Check for regular edges
+	if edges, exists := g.edges[currentNodeID]; exists && len(edges) > 0 {
+		// For now, just take the first edge
+		// In a more sophisticated implementation, this could be configurable
+		return edges[0], nil
+	}
+
+	// No next node found
+	return "", nil
+}
+
+// evaluateAdvancedConditionalBranch evaluates an advanced conditional branch
+func (g *StateGraph) evaluateAdvancedConditionalBranch(branch ConditionalBranch, state GraphState, execCtx GraphExecutionContext) (string, error) {
+	// Sort conditions by priority (higher priority first)
+	conditions := make([]AdvancedEdgeCondition, len(branch.Conditions))
+	copy(conditions, branch.Conditions)
+
+	// Simple bubble sort by priority
+	for i := 0; i < len(conditions)-1; i++ {
+		for j := 0; j < len(conditions)-i-1; j++ {
+			if conditions[j].Priority < conditions[j+1].Priority {
+				conditions[j], conditions[j+1] = conditions[j+1], conditions[j]
+			}
+		}
+	}
+
+	// Evaluate conditions in priority order
+	for _, condition := range conditions {
+		if condition.Evaluator != nil {
+			result := condition.Evaluator(state, execCtx)
+			if result != "" {
+				return result, nil
+			}
+		}
+	}
+
+	// Return default edge if no condition matched
+	return branch.DefaultEdge, nil
+}
+
+// copyGraphState creates a deep copy of graph state
+func copyGraphState(state GraphState) GraphState {
+	if state == nil {
+		return nil
+	}
+
+	copied := make(GraphState)
+	for key, value := range state {
+		// For simplicity, we'll do a shallow copy here
+		// In a production system, you might want deep copying for complex types
+		copied[key] = value
+	}
+	return copied
+}
+
+// addToHistory adds an execution result to the history
+func (g *StateGraph) addToHistory(result GraphExecutionResult) {
+	g.mutex.Lock()
+	defer g.mutex.Unlock()
+
+	g.executionHistory = append(g.executionHistory, result)
+
+	// Maintain history size limit
+	if len(g.executionHistory) > g.maxHistorySize {
+		g.executionHistory = g.executionHistory[1:]
+	}
+}
+
+// AddAdvancedConditionalEdge adds an advanced conditional edge to the graph
+func (g *StateGraph) AddAdvancedConditionalEdge(from string, branch ConditionalBranch) error {
+	g.mutex.Lock()
+	defer g.mutex.Unlock()
+
+	if _, exists := g.nodes[from]; !exists {
+		return fmt.Errorf("source node %s does not exist", from)
+	}
+
+	// Validate that all target nodes exist
+	for range branch.Conditions {
+		// Note: We can't validate the condition result nodes here since they're dynamic
+		// This would need to be done at runtime
+	}
+
+	if branch.DefaultEdge != "" {
+		if _, exists := g.nodes[branch.DefaultEdge]; !exists {
+			return fmt.Errorf("default edge target node %s does not exist", branch.DefaultEdge)
+		}
+	}
+
+	g.advancedConditionalEdges[from] = branch
+	return nil
+}
+
+// GetExecutionHistory returns the execution history
+func (g *StateGraph) GetExecutionHistory() []GraphExecutionResult {
+	g.mutex.RLock()
+	defer g.mutex.RUnlock()
+
+	// Return a copy to prevent external modification
+	history := make([]GraphExecutionResult, len(g.executionHistory))
+	copy(history, g.executionHistory)
+	return history
+}
+
+// ValidateState validates the graph state
+func (g *StateGraph) ValidateState(state GraphState) error {
+	if g.stateValidator != nil {
+		return g.stateValidator.Validate(state)
+	}
+	return nil
 }
 
 // updateNodeMetrics updates metrics for a specific node

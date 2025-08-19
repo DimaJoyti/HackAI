@@ -2,6 +2,7 @@ package ai
 
 import (
 	"context"
+	"fmt"
 	"sync"
 	"testing"
 	"time"
@@ -229,14 +230,14 @@ func NewMockGraph(id, name, description string) *MockGraph {
 		edges:       make(map[string][]string),
 	}
 
-	// Set up default mock expectations
+	// Set up default mock expectations (excluding Execute to allow custom setup)
 	mockGraph.On("Validate").Return(nil)
 	mockGraph.On("GetMetrics").Return(GraphMetrics{}).Maybe()
 	mockGraph.On("Clone").Return(mockGraph).Maybe()
 	mockGraph.On("AddNode", mock.Anything).Return(nil).Maybe()
 	mockGraph.On("AddEdge", mock.Anything, mock.Anything).Return(nil).Maybe()
 	mockGraph.On("SetEntryPoint", mock.Anything).Return(nil).Maybe()
-	mockGraph.On("Execute", mock.Anything, mock.Anything).Return(GraphState{}, nil).Maybe()
+	// Note: Execute expectation should be set up in individual tests
 
 	return mockGraph
 }
@@ -592,4 +593,69 @@ func (ts *TestSuite) AssertStats(expectedExecutions int64) {
 	stats := ts.orchestrator.GetStats()
 	assert.Equal(ts.t, expectedExecutions, stats.TotalExecutions)
 	assert.True(ts.t, stats.UptimeSeconds > 0)
+}
+
+// NewFailingTestChain creates a test chain that always fails
+func NewFailingTestChain(id, name string) Chain {
+	// Create a mock chain that always fails
+	mockChain := NewMockChain(id, name, "A test chain that always fails")
+
+	// Set up the mock to always return an error
+	mockChain.On("Execute", mock.Anything, mock.Anything).Return(
+		llm.ChainOutput{},
+		fmt.Errorf("test chain failure"),
+	)
+
+	return mockChain
+}
+
+// NewTestChain creates a simple test chain
+func NewTestChain(id, name string) Chain {
+	// Create a mock chain that succeeds
+	mockChain := NewMockChain(id, name, "A test chain")
+
+	// Set up the mock to return success
+	mockChain.On("Execute", mock.Anything, mock.Anything).Return(
+		llm.ChainOutput{
+			"result": "test_success",
+			"status": "completed",
+		},
+		nil,
+	)
+
+	return mockChain
+}
+
+// NewTestAgent creates a simple test agent
+func NewTestAgent(id, name, description string, logger *logger.Logger) Agent {
+	// Create a mock agent that succeeds
+	mockAgent := NewMockAgent(id, name, description)
+
+	// Set up the mock to return success
+	mockAgent.On("Execute", mock.Anything, mock.Anything).Return(
+		AgentOutput{
+			Response:   "Agent executed successfully",
+			Success:    true,
+			Confidence: 0.95,
+			Steps: []AgentStep{
+				{
+					StepID:    "test_step",
+					Action:    "test_action",
+					Input:     map[string]interface{}{"test": "input"},
+					Output:    map[string]interface{}{"result": "success"},
+					Success:   true,
+					Duration:  100 * time.Millisecond,
+					Timestamp: time.Now(),
+				},
+			},
+			ToolsUsed: []string{"test_tool"},
+			Duration:  100 * time.Millisecond,
+			Metadata: map[string]interface{}{
+				"test": "metadata",
+			},
+		},
+		nil,
+	)
+
+	return mockAgent
 }
