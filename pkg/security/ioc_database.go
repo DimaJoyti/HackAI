@@ -393,3 +393,18 @@ func (ioc *IOCDatabase) cleanupExpiredIOCs() {
 		ioc.logger.Info("Cleaned up expired IOCs", "count", len(expiredIDs))
 	}
 }
+
+// GetIOC retrieves an IOC by indicator value
+func (ioc *IOCDatabase) GetIOC(ctx context.Context, indicator string) (*ThreatIndicator, error) {
+	ioc.mu.RLock()
+	defer ioc.mu.RUnlock()
+
+	// Search through all indicators
+	for _, threatIndicator := range ioc.indicators {
+		if threatIndicator.Value == indicator {
+			return threatIndicator, nil
+		}
+	}
+
+	return nil, fmt.Errorf("IOC not found: %s", indicator)
+}
