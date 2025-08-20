@@ -30,6 +30,15 @@ HackAI is a dual-purpose AI security platform that provides both comprehensive s
 - **🔍 Threat Detection Engine**: Advanced prompt injection, model extraction, and adversarial attack detection
 - **📈 Performance Analytics**: Comprehensive learning analytics and progress tracking
 
+#### 🤖 OLAMA Integration Features
+
+- **🔒 Privacy-Preserving Testing**: Local AI models for sensitive security analysis
+- **🛡️ Advanced Security Scanner**: Multi-profile vulnerability detection (quick, comprehensive, red team, privacy-focused)
+- **⚔️ Attack Orchestration**: Sophisticated multi-step attack workflows with adaptive strategies
+- **🧠 Learning Capabilities**: AI-powered strategy adaptation based on previous attack results
+- **📊 Threat Intelligence**: Real-time threat pattern recognition and mitigation recommendations
+- **🔗 Seamless Integration**: Native support for OLAMA models alongside cloud providers
+
 #### 🛡️ LLM Security Proxy Features
 - **🚀 Real-time Protection**: Intercept and analyze all LLM requests/responses
 - **🔍 Content Filtering**: Block malicious prompts, PII, toxic content, and prompt injections
@@ -37,7 +46,8 @@ HackAI is a dual-purpose AI security platform that provides both comprehensive s
 - **🛡️ Policy Engine**: Flexible rule-based security policies with custom actions
 - **⚡ Rate Limiting**: Advanced rate limiting with token tracking and cost management
 - **📝 Audit Logging**: Complete audit trail for compliance and forensic analysis
-- **🌐 Multi-Provider**: Support for OpenAI, Anthropic, Azure OpenAI, and custom providers
+- **🌐 Multi-Provider**: Support for OpenAI, Anthropic, Azure OpenAI, **OLAMA**, and custom providers
+- **🤖 Local AI Models**: Privacy-preserving security testing with OLAMA integration
 - **📈 Analytics**: Real-time usage analytics, cost tracking, and security metrics
 - **🔐 Authentication**: JWT-based authentication with role-based access control
 - **🏗️ Enterprise Ready**: High availability, auto-scaling, and production hardening
@@ -51,6 +61,7 @@ HackAI is a dual-purpose AI security platform that provides both comprehensive s
 - **Docker & Docker Compose**
 - **PostgreSQL 13+**
 - **Redis 6+**
+- **OLAMA** (for local AI models) - [Installation Guide](https://ollama.ai)
 
 ### Installation
 
@@ -71,6 +82,26 @@ make dev
 
 # Access the platform
 open http://localhost:3000
+```
+
+### OLAMA Setup (Optional but Recommended)
+
+For privacy-preserving AI security testing with local models:
+
+```bash
+# Install OLAMA
+curl -fsSL https://ollama.ai/install.sh | sh
+
+# Start OLAMA server
+ollama serve
+
+# Pull recommended models
+ollama pull llama2
+ollama pull codellama
+ollama pull mistral
+
+# Verify installation
+curl http://localhost:11434/api/tags
 ```
 
 ### Docker Quick Start

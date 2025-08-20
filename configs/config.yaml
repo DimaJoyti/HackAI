@@ -202,6 +202,20 @@ ai:
       models:
         - "claude-3-sonnet"
         - "claude-3-opus"
+    olama:
+      enabled: true
+      base_url: "http://localhost:11434"
+      timeout: "60s"
+      max_retries: 3
+      models:
+        - "llama2"
+        - "codellama"
+        - "mistral"
+        - "neural-chat"
+        - "starcode"
+      default_model: "llama2"
+      auto_pull: false
+      embedding_model: "llama2"
     azure:
       enabled: false
       api_key: ""
