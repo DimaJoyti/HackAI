@@ -26,6 +26,7 @@ import { cn } from '@/lib/utils'
 const navigation = [
   { name: 'Overview', href: '/dashboard', icon: HomeIcon },
   { name: 'Enhanced Dashboard', href: '/dashboard/enhanced', icon: ChartBarIcon },
+  { name: 'Fraud Detection', href: '/dashboard/fraud', icon: ShieldCheckIcon },
   { name: 'Vulnerability Scans', href: '/dashboard/scans/vulnerability', icon: ShieldCheckIcon },
   { name: 'Network Scans', href: '/dashboard/scans/network', icon: CpuChipIcon },
   { name: 'Analytics', href: '/dashboard/analytics', icon: ChartBarIcon },
