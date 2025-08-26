@@ -1,0 +1,338 @@
+# AI-First Company Configuration
+# This configuration file defines the setup for all AI agents and their interactions
+
+# Global Configuration
+global:
+  environment: "development"  # development, staging, production
+  log_level: "info"
+  enable_tracing: true
+  enable_metrics: true
+  timezone: "UTC"
+
+# Database Configuration
+database:
+  host: "localhost"
+  port: 5432
+  name: "hackai"
+  user: "postgres"
+  password: "${DATABASE_PASSWORD}"
+  ssl_mode: "disable"
+  max_connections: 100
+  connection_timeout: "30s"
+
+# Redis Configuration
+redis:
+  host: "localhost"
+  port: 6379
+  password: "${REDIS_PASSWORD}"
+  database: 0
+  max_connections: 100
+  connection_timeout: "5s"
+
+# Binance API Configuration
+binance:
+  api_key: "${BINANCE_API_KEY}"
+  secret_key: "${BINANCE_SECRET_KEY}"
+  testnet: true  # Set to false for production
+  base_url: "https://testnet.binance.vision"  # Will be overridden if testnet is false
+  timeout: "30s"
+  rate_limit:
+    requests_per_minute: 1200
+    burst_size: 100
+
+# Agent Orchestrator Configuration
+orchestrator:
+  max_concurrent_tasks: 20
+  task_timeout: "10m"
+  worker_pool_size: 10
+  enable_metrics: true
+  enable_tracing: true
+  result_buffer_size: 100
+  collaboration_timeout: "15m"
+
+# Research Agent Configuration
+research_agent:
+  id: "research-001"
+  name: "Market Research Specialist"
+  enabled: true
+  specializations:
+    - "market_analysis"
+    - "technical_analysis"
+    - "fundamental_analysis"
+    - "sentiment_analysis"
+    - "risk_assessment"
+    - "trend_identification"
+  
+  data_sources:
+    binance:
+      enabled: true
+      symbols: ["BTCUSDT", "ETHUSDT", "ADAUSDT", "DOTUSDT", "LINKUSDT"]
+      timeframes: ["1m", "5m", "15m", "1h", "4h", "1d"]
+    
+    news_api:
+      enabled: false  # Requires API key
+      api_key: "${NEWS_API_KEY}"
+      sources: ["coindesk", "cointelegraph", "bloomberg"]
+      update_interval: "5m"
+    
+    economic_data:
+      enabled: false  # Requires API key
+      api_key: "${ECONOMIC_DATA_API_KEY}"
+      indicators: ["inflation", "interest_rates", "gdp"]
+      update_interval: "1h"
+  
+  analysis:
+    update_interval: "1m"
+    cache_duration: "5m"
+    confidence_threshold: 0.7
+    max_analysis_age: "30m"
+
+# Creator Agent Configuration
+creator_agent:
+  id: "creator-001"
+  name: "Content & Strategy Creator"
+  enabled: true
+  specializations:
+    - "content_generation"
+    - "strategy_creation"
+    - "report_generation"
+    - "documentation"
+    - "template_management"
+  
+  strategy_templates:
+    momentum:
+      enabled: true
+      risk_reward_ratio: 3.0
+      stop_loss_percent: 0.02
+      take_profit_percent: 0.06
+    
+    mean_reversion:
+      enabled: true
+      risk_reward_ratio: 1.67
+      stop_loss_percent: 0.03
+      take_profit_percent: 0.05
+    
+    breakout:
+      enabled: true
+      risk_reward_ratio: 3.2
+      stop_loss_percent: 0.025
+      take_profit_percent: 0.08
+  
+  content_generation:
+    max_content_length: 10000
+    template_cache_size: 100
+    auto_save_drafts: true
+
+# Analyst Agent Configuration
+analyst_agent:
+  id: "analyst-001"
+  name: "Data Analysis Specialist"
+  enabled: true
+  specializations:
+    - "data_analysis"
+    - "pattern_recognition"
+    - "predictive_modeling"
+    - "risk_analysis"
+    - "correlation_analysis"
+    - "statistical_analysis"
+  
+  analysis_settings:
+    data_window_size: 1000  # Number of data points for analysis
+    confidence_threshold: 0.75
+    pattern_detection_sensitivity: 0.8
+    correlation_threshold: 0.7
+  
+  risk_metrics:
+    var_confidence_levels: [0.95, 0.99]
+    volatility_window: 252  # Trading days for volatility calculation
+    max_drawdown_window: 1000
+    sharpe_ratio_risk_free_rate: 0.02
+  
+  predictive_models:
+    trend_extrapolation:
+      enabled: true
+      accuracy_threshold: 0.7
+    
+    arima:
+      enabled: false  # Requires additional libraries
+      accuracy_threshold: 0.75
+    
+    lstm:
+      enabled: false  # Requires ML framework
+      accuracy_threshold: 0.8
+
+# Operator Agent Configuration
+operator_agent:
+  id: "operator-001"
+  name: "Trading Operations Specialist"
+  enabled: true
+  specializations:
+    - "order_execution"
+    - "portfolio_management"
+    - "risk_management"
+    - "position_monitoring"
+    - "automated_trading"
+  
+  trading_settings:
+    enabled: true  # Set to false to disable actual trading
+    max_position_size: 0.1  # 10% of portfolio
+    max_daily_trades: 50
+    min_order_size: 10.0  # Minimum order size in USDT
+    max_order_size: 10000.0  # Maximum order size in USDT
+  
+  risk_management:
+    max_daily_loss: 0.05  # 5% daily loss limit
+    stop_loss_percent: 0.02  # 2% stop loss
+    take_profit_percent: 0.06  # 6% take profit
+    position_size_limit: 0.1  # 10% max position size
+    correlation_limit: 0.8  # Maximum correlation between positions
+  
+  portfolio_management:
+    rebalance_frequency: "1h"
+    target_cash_ratio: 0.2  # 20% cash
+    diversification_threshold: 5  # Minimum number of positions
+    performance_review_frequency: "1d"
+
+# Strategist Agent Configuration
+strategist_agent:
+  id: "strategist-001"
+  name: "Strategic Decision Maker"
+  enabled: true
+  specializations:
+    - "strategic_planning"
+    - "decision_making"
+    - "risk_governance"
+    - "compliance_management"
+    - "performance_monitoring"
+    - "strategic_coordination"
+  
+  decision_making:
+    confidence_threshold: 0.8
+    max_decision_time: "5m"
+    require_consensus: false
+    decision_history_size: 1000
+  
+  risk_governance:
+    policy_review_frequency: "1d"
+    risk_limit_check_frequency: "5m"
+    alert_escalation_levels: ["warning", "critical", "emergency"]
+    max_risk_tolerance: "moderate"
+  
+  performance_monitoring:
+    kpi_update_frequency: "1h"
+    benchmark_comparison: true
+    performance_report_frequency: "1d"
+    target_sharpe_ratio: 1.5
+    target_annual_return: 0.12
+
+# Workflow Configuration
+workflows:
+  trading_workflow:
+    enabled: true
+    timeout: "15m"
+    max_retries: 3
+    steps:
+      - name: "market_research"
+        agent: "research"
+        timeout: "3m"
+      - name: "risk_assessment"
+        agent: "analyst"
+        timeout: "2m"
+        depends_on: ["market_research"]
+      - name: "strategy_generation"
+        agent: "creator"
+        timeout: "2m"
+        depends_on: ["market_research", "risk_assessment"]
+      - name: "strategic_decision"
+        agent: "strategist"
+        timeout: "3m"
+        depends_on: ["strategy_generation"]
+      - name: "trade_execution"
+        agent: "operator"
+        timeout: "5m"
+        depends_on: ["strategic_decision"]
+  
+  risk_management_workflow:
+    enabled: true
+    timeout: "10m"
+    frequency: "5m"
+    steps:
+      - name: "risk_analysis"
+        agent: "analyst"
+        timeout: "3m"
+      - name: "risk_governance"
+        agent: "strategist"
+        timeout: "2m"
+        depends_on: ["risk_analysis"]
+      - name: "risk_mitigation"
+        agent: "operator"
+        timeout: "5m"
+        depends_on: ["risk_governance"]
+
+# Monitoring and Alerting
+monitoring:
+  metrics:
+    enabled: true
+    collection_interval: "30s"
+    retention_period: "7d"
+    
+  alerts:
+    enabled: true
+    channels: ["log", "webhook"]  # email, slack, webhook
+    
+    rules:
+      high_risk_alert:
+        condition: "risk_score > 8.0"
+        severity: "critical"
+        cooldown: "5m"
+      
+      trading_loss_alert:
+        condition: "daily_loss > 0.03"  # 3% daily loss
+        severity: "warning"
+        cooldown: "1h"
+      
+      agent_failure_alert:
+        condition: "agent_failure_rate > 0.1"  # 10% failure rate
+        severity: "warning"
+        cooldown: "10m"
+
+# Security Configuration
+security:
+  encryption:
+    enabled: true
+    algorithm: "AES-256-GCM"
+    key_rotation_interval: "30d"
+  
+  api_security:
+    rate_limiting: true
+    request_timeout: "30s"
+    max_request_size: "10MB"
+  
+  audit_logging:
+    enabled: true
+    log_level: "info"
+    retention_period: "90d"
+    include_sensitive_data: false
+
+# Development and Testing
+development:
+  mock_trading: true  # Use mock trading for development
+  test_data_enabled: true
+  debug_mode: false
+  profiling_enabled: false
+  
+  test_scenarios:
+    - name: "bull_market"
+      duration: "1h"
+      price_trend: "up"
+      volatility: "low"
+    
+    - name: "bear_market"
+      duration: "1h"
+      price_trend: "down"
+      volatility: "high"
+    
+    - name: "sideways_market"
+      duration: "30m"
+      price_trend: "sideways"
+      volatility: "medium"

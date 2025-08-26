@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/dimajoyti/hackai/pkg/ai"
@@ -33,7 +32,15 @@ func main() {
 	fmt.Println("📋 Step 1: Setting up OLAMA Provider")
 	provider, err := setupOlamaProvider()
 	if err != nil {
-		log.Fatalf("Failed to setup OLAMA provider: %v", err)
+		fmt.Printf("❌ Failed to setup OLAMA provider: %v\n", err)
+		fmt.Println("\n🔧 To fix this issue:")
+		fmt.Println("   1. Make sure Ollama is running: ollama serve")
+		fmt.Println("   2. Pull the required model: ollama pull llama2")
+		fmt.Println("   3. Or use a different model by updating the config")
+		fmt.Println("\n📚 Available models can be listed with: ollama list")
+		fmt.Println("📦 Browse models at: https://ollama.ai/library")
+		fmt.Println("\n💡 Alternative: Use OpenAI or other providers instead")
+		return
 	}
 	fmt.Println("✅ OLAMA provider configured successfully")
 

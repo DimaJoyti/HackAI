@@ -5,9 +5,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/dimajoyti/hackai/pkg/logger"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/dimajoyti/hackai/pkg/logger"
 )
 
 func createTestLogger() *logger.Logger {
@@ -24,7 +24,10 @@ func createTestLogger() *logger.Logger {
 func TestDashboardManager_CreateDashboard(t *testing.T) {
 	logger := createTestLogger()
 	config := DefaultDashboardConfig()
-	dm := NewDashboardManager(config, logger)
+	dm, err := NewDashboardManager(config, logger)
+	if err != nil {
+		t.Fatalf("Failed to create dashboard manager: %v", err)
+	}
 
 	dashboard := &Dashboard{
 		ID:          "test-dashboard-1",
@@ -40,7 +43,7 @@ func TestDashboardManager_CreateDashboard(t *testing.T) {
 		Metadata:    make(map[string]interface{}),
 	}
 
-	err := dm.CreateDashboard(dashboard)
+	err = dm.CreateDashboard(dashboard)
 	require.NoError(t, err)
 
 	// Verify dashboard was created
@@ -55,7 +58,10 @@ func TestDashboardManager_CreateDashboard(t *testing.T) {
 func TestDashboardManager_AddWidget(t *testing.T) {
 	logger := createTestLogger()
 	config := DefaultDashboardConfig()
-	dm := NewDashboardManager(config, logger)
+	dm, err := NewDashboardManager(config, logger)
+	if err != nil {
+		t.Fatalf("Failed to create dashboard manager: %v", err)
+	}
 
 	// Create dashboard first
 	dashboard := &Dashboard{
@@ -72,7 +78,7 @@ func TestDashboardManager_AddWidget(t *testing.T) {
 		Metadata:    make(map[string]interface{}),
 	}
 
-	err := dm.CreateDashboard(dashboard)
+	err = dm.CreateDashboard(dashboard)
 	require.NoError(t, err)
 
 	// Add widget
@@ -120,7 +126,10 @@ func TestDashboardManager_AddWidget(t *testing.T) {
 func TestDashboardManager_UpdateWidget(t *testing.T) {
 	logger := createTestLogger()
 	config := DefaultDashboardConfig()
-	dm := NewDashboardManager(config, logger)
+	dm, err := NewDashboardManager(config, logger)
+	if err != nil {
+		t.Fatalf("Failed to create dashboard manager: %v", err)
+	}
 
 	// Create dashboard and widget
 	dashboard := &Dashboard{
@@ -137,7 +146,7 @@ func TestDashboardManager_UpdateWidget(t *testing.T) {
 		Metadata:    make(map[string]interface{}),
 	}
 
-	err := dm.CreateDashboard(dashboard)
+	err = dm.CreateDashboard(dashboard)
 	require.NoError(t, err)
 
 	widget := &Widget{
@@ -193,7 +202,10 @@ func TestDashboardManager_UpdateWidget(t *testing.T) {
 func TestDashboardManager_RegisterDataProvider(t *testing.T) {
 	logger := createTestLogger()
 	config := DefaultDashboardConfig()
-	dm := NewDashboardManager(config, logger)
+	dm, err := NewDashboardManager(config, logger)
+	if err != nil {
+		t.Fatalf("Failed to create dashboard manager: %v", err)
+	}
 
 	// Create mock data provider
 	mockProvider := &MockDataProvider{}
@@ -210,7 +222,10 @@ func TestDashboardManager_ExportDashboard(t *testing.T) {
 	logger := createTestLogger()
 	config := DefaultDashboardConfig()
 	config.EnableExport = true
-	dm := NewDashboardManager(config, logger)
+	dm, err := NewDashboardManager(config, logger)
+	if err != nil {
+		t.Fatalf("Failed to create dashboard manager: %v", err)
+	}
 
 	// Create dashboard
 	dashboard := &Dashboard{
@@ -227,7 +242,7 @@ func TestDashboardManager_ExportDashboard(t *testing.T) {
 		Metadata:    make(map[string]interface{}),
 	}
 
-	err := dm.CreateDashboard(dashboard)
+	err = dm.CreateDashboard(dashboard)
 	require.NoError(t, err)
 
 	// Export dashboard
@@ -245,12 +260,15 @@ func TestDashboardManager_Start_Stop(t *testing.T) {
 	config := DefaultDashboardConfig()
 	config.EnableRealTime = false // Disable for testing
 	config.EnableAlerts = false   // Disable for testing
-	dm := NewDashboardManager(config, logger)
+	dm, err := NewDashboardManager(config, logger)
+	if err != nil {
+		t.Fatalf("Failed to create dashboard manager: %v", err)
+	}
 
 	ctx := context.Background()
 
 	// Test start
-	err := dm.Start(ctx)
+	err = dm.Start(ctx)
 	require.NoError(t, err)
 
 	// Test double start (should fail)
@@ -270,7 +288,10 @@ func TestDashboardManager_Start_Stop(t *testing.T) {
 func TestDashboardManager_ListDashboards(t *testing.T) {
 	logger := createTestLogger()
 	config := DefaultDashboardConfig()
-	dm := NewDashboardManager(config, logger)
+	dm, err := NewDashboardManager(config, logger)
+	if err != nil {
+		t.Fatalf("Failed to create dashboard manager: %v", err)
+	}
 
 	// Create multiple dashboards
 	dashboards := []*Dashboard{
@@ -340,12 +361,16 @@ func (m *MockDataProvider) GetMetrics(ctx context.Context, metrics []string) (ma
 
 func (m *MockDataProvider) GetHealthStatus(ctx context.Context) (*HealthStatus, error) {
 	return &HealthStatus{
-		Status:      "healthy",
-		Services:    map[string]string{"test": "healthy"},
-		Metrics:     map[string]float64{"uptime": 100.0},
-		Alerts:      []string{},
-		LastChecked: time.Now(),
-		Metadata:    make(map[string]interface{}),
+		ComponentID:   "test-component",
+		ComponentName: "Test Component",
+		Status:        ComponentStatusUp,
+		LastCheck:     time.Now(),
+		ResponseTime:  10 * time.Millisecond,
+		ErrorCount:    0,
+		SuccessRate:   100.0,
+		Details:       map[string]interface{}{"uptime": 100.0},
+		Dependencies:  []string{},
+		Metadata:      make(map[string]interface{}),
 	}, nil
 }
 

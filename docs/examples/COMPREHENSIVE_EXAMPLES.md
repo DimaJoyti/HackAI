@@ -376,7 +376,10 @@ import (
 
 func main() {
     // Create logger and orchestrator
-    logger, _ := logger.New(logger.Config{Level: logger.LevelInfo, Format: "json", Output: "stdout"})
+    logger, err := logger.New(logger.Config{Level: logger.LevelInfo, Format: "json", Output: "stdout"})
+    if err != nil {
+        log.Fatalf("Failed to initialize logger: %v", err)
+    }
     orchestrator := ai.NewOrchestrator(ai.OrchestratorConfig{
         WorkerPoolSize: 4,
         MaxConcurrentExecutions: 10,

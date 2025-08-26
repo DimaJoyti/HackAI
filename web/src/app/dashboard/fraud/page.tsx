@@ -1,7 +1,7 @@
 'use client'
 
 import { useRequireAuth } from '@/hooks/use-auth'
-import FraudDetectionDashboard from '@/components/dashboard/fraud-detection-dashboard'
+import FraudDetectionDashboardSimple from '@/components/dashboard/fraud-detection-dashboard-simple'
 
 export default function FraudDetectionPage() {
   // Require authentication to access this page
@@ -21,7 +21,7 @@ export default function FraudDetectionPage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <FraudDetectionDashboard />
+      <FraudDetectionDashboardSimple />
     </div>
   )
 }

@@ -118,8 +118,8 @@ type DataProvider interface {
 	ValidateQuery(query string) error
 }
 
-// HealthStatus represents system health status
-type HealthStatus struct {
+// DashboardHealthStatus represents system health status for dashboards
+type DashboardHealthStatus struct {
 	Status      string                 `json:"status"`
 	Services    map[string]string      `json:"services"`
 	Metrics     map[string]float64     `json:"metrics"`
@@ -128,76 +128,24 @@ type HealthStatus struct {
 	Metadata    map[string]interface{} `json:"metadata"`
 }
 
-// AlertManager manages dashboard alerts
-type AlertManager struct {
-	logger       *logger.Logger
-	config       *AlertConfig
-	rules        map[string]*AlertRule
-	activeAlerts map[string]*Alert
-	handlers     []AlertHandler
-	mu           sync.RWMutex
-}
-
-// AlertConfig configuration for alerts
-type AlertConfig struct {
-	EnableAlerts         bool          `json:"enable_alerts"`
-	CheckInterval        time.Duration `json:"check_interval"`
-	MaxAlerts            int           `json:"max_alerts"`
-	AlertRetention       time.Duration `json:"alert_retention"`
-	EnableNotifications  bool          `json:"enable_notifications"`
-	NotificationChannels []string      `json:"notification_channels"`
-}
-
-// AlertRule defines alert rules
-type AlertRule struct {
-	ID          string                 `json:"id"`
-	Name        string                 `json:"name"`
-	Description string                 `json:"description"`
-	Query       string                 `json:"query"`
-	Condition   string                 `json:"condition"`
-	Threshold   float64                `json:"threshold"`
-	Severity    string                 `json:"severity"`
-	Enabled     bool                   `json:"enabled"`
-	Actions     []AlertAction          `json:"actions"`
-	Metadata    map[string]interface{} `json:"metadata"`
-}
-
-// Alert represents an active alert
-type Alert struct {
-	ID          string                 `json:"id"`
-	RuleID      string                 `json:"rule_id"`
-	Name        string                 `json:"name"`
-	Description string                 `json:"description"`
-	Severity    string                 `json:"severity"`
-	Status      string                 `json:"status"`
-	Value       float64                `json:"value"`
-	Threshold   float64                `json:"threshold"`
-	CreatedAt   time.Time              `json:"created_at"`
-	UpdatedAt   time.Time              `json:"updated_at"`
-	ResolvedAt  *time.Time             `json:"resolved_at,omitempty"`
-	Metadata    map[string]interface{} `json:"metadata"`
-}
-
-// AlertAction defines alert actions
-type AlertAction struct {
-	Type       string                 `json:"type"`
-	Target     string                 `json:"target"`
-	Parameters map[string]interface{} `json:"parameters"`
-}
-
-// AlertHandler interface for alert handlers
-type AlertHandler interface {
-	HandleAlert(ctx context.Context, alert *Alert) error
-	GetType() string
-}
-
 // NewDashboardManager creates a new dashboard manager
-func NewDashboardManager(config *DashboardConfig, logger *logger.Logger) *DashboardManager {
+func NewDashboardManager(config *DashboardConfig, logger *logger.Logger) (*DashboardManager, error) {
 	if config == nil {
 		config = DefaultDashboardConfig()
 	}
 
-	alertManager := NewAlertManager(DefaultAlertConfig(), logger)
+	// Create a default monitoring config for the alert manager
+	monitoringConfig := &MonitoringConfig{
+		EnableAlerting:   true,
+		RetentionPeriod:  24 * time.Hour,
+		AlertingInterval: 1 * time.Minute,
+		MaxAlertsHistory: 1000,
+	}
+
+	alertManager, err := NewAlertManager(monitoringConfig, logger)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create alert manager: %w", err)
+	}
 
 	return &DashboardManager{
 		logger:        logger,
@@ -206,7 +154,7 @@ func NewDashboardManager(config *DashboardConfig, logger *logger.Logger) *Dashbo
 		widgets:       make(map[string]*Widget),
 		dataProviders: make(map[string]DataProvider),
 		alertManager:  alertManager,
-	}
+	}, nil
 }
 
 // DefaultDashboardConfig returns default configuration
@@ -235,11 +183,9 @@ func (dm *DashboardManager) Start(ctx context.Context) error {
 
 	dm.logger.Info("Starting dashboard manager")
 
-	// Start alert manager
+	// Initialize alert manager
 	if dm.config.EnableAlerts {
-		if err := dm.alertManager.Start(ctx); err != nil {
-			return fmt.Errorf("failed to start alert manager: %w", err)
-		}
+		dm.logger.Info("Alert manager initialized")
 	}
 
 	// Start real-time updates if enabled
@@ -436,8 +382,8 @@ func (dm *DashboardManager) RegisterDataProvider(name string, provider DataProvi
 }
 
 // GetSystemHealth gets overall system health
-func (dm *DashboardManager) GetSystemHealth(ctx context.Context) (*HealthStatus, error) {
-	health := &HealthStatus{
+func (dm *DashboardManager) GetSystemHealth(ctx context.Context) (*DashboardHealthStatus, error) {
+	health := &DashboardHealthStatus{
 		Status:      "healthy",
 		Services:    make(map[string]string),
 		Metrics:     make(map[string]float64),
@@ -454,20 +400,22 @@ func (dm *DashboardManager) GetSystemHealth(ctx context.Context) (*HealthStatus,
 			health.Status = "degraded"
 			dm.logger.Error("Data provider health check failed", "provider", name, "error", err)
 		} else {
-			health.Services[name] = providerHealth.Status
-			if providerHealth.Status != "healthy" {
+			health.Services[name] = string(providerHealth.Status)
+			if string(providerHealth.Status) != "healthy" {
 				health.Status = "degraded"
 			}
 		}
 	}
 
-	// Get active alerts
+	// Get alert summary
 	if dm.config.EnableAlerts {
-		activeAlerts := dm.alertManager.GetActiveAlerts()
-		for _, alert := range activeAlerts {
-			health.Alerts = append(health.Alerts, alert.Name)
-			if alert.Severity == "critical" {
+		summary, err := dm.alertManager.GetAlertSummary(ctx)
+		if err == nil && summary != nil {
+			health.Alerts = append(health.Alerts, fmt.Sprintf("Total: %d", summary.TotalAlerts))
+			if summary.CriticalAlerts > 0 {
 				health.Status = "critical"
+			} else if summary.WarningAlerts > 0 && health.Status == "healthy" {
+				health.Status = "warning"
 			}
 		}
 	}
@@ -555,70 +503,4 @@ func (dm *DashboardManager) refreshAllWidgets(ctx context.Context) {
 			}
 		}
 	}
-}
-
-// NewAlertManager creates a new alert manager
-func NewAlertManager(config *AlertConfig, logger *logger.Logger) *AlertManager {
-	return &AlertManager{
-		logger:       logger,
-		config:       config,
-		rules:        make(map[string]*AlertRule),
-		activeAlerts: make(map[string]*Alert),
-		handlers:     []AlertHandler{},
-	}
-}
-
-// DefaultAlertConfig returns default alert configuration
-func DefaultAlertConfig() *AlertConfig {
-	return &AlertConfig{
-		EnableAlerts:         true,
-		CheckInterval:        1 * time.Minute,
-		MaxAlerts:            1000,
-		AlertRetention:       24 * time.Hour,
-		EnableNotifications:  true,
-		NotificationChannels: []string{"email", "slack"},
-	}
-}
-
-// Start starts the alert manager
-func (am *AlertManager) Start(ctx context.Context) error {
-	am.logger.Info("Starting alert manager")
-
-	if am.config.EnableAlerts {
-		go am.alertCheckWorker(ctx)
-	}
-
-	return nil
-}
-
-// GetActiveAlerts gets all active alerts
-func (am *AlertManager) GetActiveAlerts() []*Alert {
-	am.mu.RLock()
-	defer am.mu.RUnlock()
-
-	alerts := make([]*Alert, 0, len(am.activeAlerts))
-	for _, alert := range am.activeAlerts {
-		alerts = append(alerts, alert)
-	}
-
-	return alerts
-}
-
-func (am *AlertManager) alertCheckWorker(ctx context.Context) {
-	ticker := time.NewTicker(am.config.CheckInterval)
-	defer ticker.Stop()
-
-	for {
-		select {
-		case <-ctx.Done():
-			return
-		case <-ticker.C:
-			am.checkAlerts(ctx)
-		}
-	}
-}
-
-func (am *AlertManager) checkAlerts(ctx context.Context) {
-	// Placeholder for alert checking logic
-	am.logger.Debug("Checking alerts")
 }

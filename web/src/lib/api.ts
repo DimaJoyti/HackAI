@@ -1,4 +1,5 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios'
+import { clientStorage } from './storage'
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
 
@@ -14,7 +15,7 @@ const api: AxiosInstance = axios.create({
 // Request interceptor to add auth token
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('accessToken')
+    const token = clientStorage.get('accessToken')
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
     }
@@ -37,7 +38,7 @@ api.interceptors.response.use(
       originalRequest._retry = true
 
       try {
-        const refreshToken = localStorage.getItem('refreshToken')
+        const refreshToken = clientStorage.get('refreshToken')
         if (!refreshToken) {
           throw new Error('No refresh token available')
         }
@@ -48,9 +49,9 @@ api.interceptors.response.use(
 
         const { accessToken, refreshToken: newRefreshToken } = response.data
 
-        localStorage.setItem('accessToken', accessToken)
+        clientStorage.set('accessToken', accessToken)
         if (newRefreshToken) {
-          localStorage.setItem('refreshToken', newRefreshToken)
+          clientStorage.set('refreshToken', newRefreshToken)
         }
 
         // Retry the original request with new token
@@ -58,9 +59,11 @@ api.interceptors.response.use(
         return api(originalRequest)
       } catch (refreshError) {
         // Refresh failed, redirect to login
-        localStorage.removeItem('accessToken')
-        localStorage.removeItem('refreshToken')
-        window.location.href = '/auth/login'
+        clientStorage.remove('accessToken')
+        clientStorage.remove('refreshToken')
+        if (typeof window !== 'undefined') {
+          window.location.href = '/auth/login'
+        }
         return Promise.reject(refreshError)
       }
     }
@@ -175,9 +178,13 @@ export const systemAPI = {
 }
 
 // WebSocket connection
-export const createWebSocketConnection = (endpoint: string): WebSocket => {
+export const createWebSocketConnection = (endpoint: string): WebSocket | null => {
+  if (typeof window === 'undefined') {
+    return null
+  }
+  
   const wsUrl = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8080'
-  const token = localStorage.getItem('accessToken')
+  const token = clientStorage.get('accessToken')
   
   const ws = new WebSocket(`${wsUrl}/api/v1/ws/${endpoint}?token=${token}`)
   

@@ -12,30 +12,31 @@ import (
 
 // TestFramework provides comprehensive testing capabilities for the HackAI platform
 type TestFramework struct {
-	logger           *logger.Logger
-	config           *TestConfig
-	suites           map[string]*TestSuite
-	runners          map[string]TestRunner
-	reporters        []TestReporter
-	validators       []Validator
-	securityTester   *SecurityTester
+	logger            *logger.Logger
+	config            *TestConfig
+	suites            map[string]*TestSuite
+	runners           map[string]TestRunner
+	reporters         []TestReporter
+	validators        []Validator
+	securityTester    *SecurityTester
 	performanceTester *PerformanceTester
 	integrationTester *IntegrationTester
-	mu               sync.RWMutex
+	mu                sync.RWMutex
 }
 
 // TestConfig configuration for the testing framework
 type TestConfig struct {
 	EnableParallelExecution  bool          `json:"enable_parallel_execution"`
-	MaxConcurrentTests      int           `json:"max_concurrent_tests"`
-	TestTimeout             time.Duration `json:"test_timeout"`
-	EnableSecurityTesting   bool          `json:"enable_security_testing"`
-	EnablePerformanceTesting bool         `json:"enable_performance_testing"`
-	EnableIntegrationTesting bool         `json:"enable_integration_testing"`
-	EnableCoverageReporting bool          `json:"enable_coverage_reporting"`
-	EnableMutationTesting   bool          `json:"enable_mutation_testing"`
-	ReportFormats           []string      `json:"report_formats"`
-	OutputDirectory         string        `json:"output_directory"`
+	MaxConcurrentTests       int           `json:"max_concurrent_tests"`
+	TestTimeout              time.Duration `json:"test_timeout"`
+	Timeout                  time.Duration `json:"timeout"`
+	EnableSecurityTesting    bool          `json:"enable_security_testing"`
+	EnablePerformanceTesting bool          `json:"enable_performance_testing"`
+	EnableIntegrationTesting bool          `json:"enable_integration_testing"`
+	EnableCoverageReporting  bool          `json:"enable_coverage_reporting"`
+	EnableMutationTesting    bool          `json:"enable_mutation_testing"`
+	ReportFormats            []string      `json:"report_formats"`
+	OutputDirectory          string        `json:"output_directory"`
 }
 
 // TestSuite represents a collection of related tests
@@ -57,67 +58,67 @@ type TestSuite struct {
 
 // Test represents an individual test case
 type Test struct {
-	ID           string                 `json:"id"`
-	Name         string                 `json:"name"`
-	Description  string                 `json:"description"`
-	Type         string                 `json:"type"`
-	Category     string                 `json:"category"`
+	ID           string                   `json:"id"`
+	Name         string                   `json:"name"`
+	Description  string                   `json:"description"`
+	Type         string                   `json:"type"`
+	Category     string                   `json:"category"`
 	TestFunc     func(*TestContext) error `json:"-"`
 	SetupFunc    func(*TestContext) error `json:"-"`
 	TeardownFunc func(*TestContext) error `json:"-"`
-	Timeout      time.Duration          `json:"timeout"`
-	Retries      int                    `json:"retries"`
-	Tags         []string               `json:"tags"`
-	Dependencies []string               `json:"dependencies"`
-	Metadata     map[string]interface{} `json:"metadata"`
-	CreatedAt    time.Time              `json:"created_at"`
+	Timeout      time.Duration            `json:"timeout"`
+	Retries      int                      `json:"retries"`
+	Tags         []string                 `json:"tags"`
+	Dependencies []string                 `json:"dependencies"`
+	Metadata     map[string]interface{}   `json:"metadata"`
+	CreatedAt    time.Time                `json:"created_at"`
 }
 
 // TestContext provides context and utilities for test execution
 type TestContext struct {
-	TestID      string
-	SuiteID     string
-	Logger      *logger.Logger
-	Config      *TestConfig
-	StartTime   time.Time
-	Timeout     time.Duration
-	Data        map[string]interface{}
-	Assertions  *AssertionHelper
-	Mocks       *MockManager
-	Fixtures    *FixtureManager
-	Context     context.Context
-	Cancel      context.CancelFunc
+	TestID     string
+	SuiteID    string
+	Logger     *logger.Logger
+	Config     *TestConfig
+	StartTime  time.Time
+	Timeout    time.Duration
+	Data       map[string]interface{}
+	Assertions *AssertionHelper
+	Mocks      *MockManager
+	Fixtures   *FixtureManager
+	Context    context.Context
+	Cancel     context.CancelFunc
 }
 
 // TestResult represents the result of a test execution
 type TestResult struct {
-	TestID       string                 `json:"test_id"`
-	SuiteID      string                 `json:"suite_id"`
-	Name         string                 `json:"name"`
-	Status       TestStatus             `json:"status"`
-	Duration     time.Duration          `json:"duration"`
-	StartTime    time.Time              `json:"start_time"`
-	EndTime      time.Time              `json:"end_time"`
-	Error        string                 `json:"error,omitempty"`
-	Logs         []string               `json:"logs"`
-	Assertions   []*AssertionResult     `json:"assertions"`
-	Coverage     *CoverageInfo          `json:"coverage,omitempty"`
-	Performance  *PerformanceMetrics    `json:"performance,omitempty"`
-	Security     *SecurityTestResult    `json:"security,omitempty"`
-	Metadata     map[string]interface{} `json:"metadata"`
+	TestID      string                 `json:"test_id"`
+	SuiteID     string                 `json:"suite_id"`
+	Name        string                 `json:"name"`
+	Status      TestStatus             `json:"status"`
+	Duration    time.Duration          `json:"duration"`
+	StartTime   time.Time              `json:"start_time"`
+	EndTime     time.Time              `json:"end_time"`
+	Error       string                 `json:"error,omitempty"`
+	Logs        []string               `json:"logs"`
+	Assertions  []*AssertionResult     `json:"assertions"`
+	Coverage    *CoverageInfo          `json:"coverage,omitempty"`
+	Performance *PerformanceMetrics    `json:"performance,omitempty"`
+	Security    *SecurityTestResult    `json:"security,omitempty"`
+	Metadata    map[string]interface{} `json:"metadata"`
 }
 
 // TestStatus represents the status of a test
 type TestStatus string
 
 const (
-	TestStatusPending  TestStatus = "pending"
-	TestStatusRunning  TestStatus = "running"
-	TestStatusPassed   TestStatus = "passed"
-	TestStatusFailed   TestStatus = "failed"
-	TestStatusSkipped  TestStatus = "skipped"
-	TestStatusTimeout  TestStatus = "timeout"
-	TestStatusError    TestStatus = "error"
+	TestStatusPending TestStatus = "pending"
+	TestStatusRunning TestStatus = "running"
+	TestStatusPassed  TestStatus = "passed"
+	TestStatusFailed  TestStatus = "failed"
+	TestStatusSkipped TestStatus = "skipped"
+	TestStatusTimeout TestStatus = "timeout"
+	TestStatusError   TestStatus = "error"
 )
 
 // TestRunner interface for different test execution strategies
@@ -141,18 +142,18 @@ type Validator interface {
 
 // SuiteResult represents the result of a test suite execution
 type SuiteResult struct {
-	SuiteID      string                 `json:"suite_id"`
-	Name         string                 `json:"name"`
-	Status       TestStatus             `json:"status"`
-	Duration     time.Duration          `json:"duration"`
-	StartTime    time.Time              `json:"start_time"`
-	EndTime      time.Time              `json:"end_time"`
-	TestResults  []*TestResult          `json:"test_results"`
-	Summary      *TestSummary           `json:"summary"`
-	Coverage     *CoverageInfo          `json:"coverage,omitempty"`
-	Performance  *PerformanceMetrics    `json:"performance,omitempty"`
-	Security     *SecurityTestResult    `json:"security,omitempty"`
-	Metadata     map[string]interface{} `json:"metadata"`
+	SuiteID     string                 `json:"suite_id"`
+	Name        string                 `json:"name"`
+	Status      TestStatus             `json:"status"`
+	Duration    time.Duration          `json:"duration"`
+	StartTime   time.Time              `json:"start_time"`
+	EndTime     time.Time              `json:"end_time"`
+	TestResults []*TestResult          `json:"test_results"`
+	Summary     *TestSummary           `json:"summary"`
+	Coverage    *CoverageInfo          `json:"coverage,omitempty"`
+	Performance *PerformanceMetrics    `json:"performance,omitempty"`
+	Security    *SecurityTestResult    `json:"security,omitempty"`
+	Metadata    map[string]interface{} `json:"metadata"`
 }
 
 // TestResults represents the complete test execution results
@@ -173,14 +174,14 @@ type TestResults struct {
 
 // TestSummary provides a summary of test execution
 type TestSummary struct {
-	TotalTests    int           `json:"total_tests"`
-	PassedTests   int           `json:"passed_tests"`
-	FailedTests   int           `json:"failed_tests"`
-	SkippedTests  int           `json:"skipped_tests"`
-	ErrorTests    int           `json:"error_tests"`
-	TimeoutTests  int           `json:"timeout_tests"`
-	SuccessRate   float64       `json:"success_rate"`
-	TotalDuration time.Duration `json:"total_duration"`
+	TotalTests      int           `json:"total_tests"`
+	PassedTests     int           `json:"passed_tests"`
+	FailedTests     int           `json:"failed_tests"`
+	SkippedTests    int           `json:"skipped_tests"`
+	ErrorTests      int           `json:"error_tests"`
+	TimeoutTests    int           `json:"timeout_tests"`
+	SuccessRate     float64       `json:"success_rate"`
+	TotalDuration   time.Duration `json:"total_duration"`
 	AverageDuration time.Duration `json:"average_duration"`
 }
 
@@ -203,15 +204,15 @@ func NewTestFramework(logger *logger.Logger) *TestFramework {
 		runners: make(map[string]TestRunner),
 		config: &TestConfig{
 			EnableParallelExecution:  true,
-			MaxConcurrentTests:      10,
-			TestTimeout:             5 * time.Minute,
-			EnableSecurityTesting:   true,
+			MaxConcurrentTests:       10,
+			TestTimeout:              5 * time.Minute,
+			EnableSecurityTesting:    true,
 			EnablePerformanceTesting: true,
 			EnableIntegrationTesting: true,
-			EnableCoverageReporting: true,
-			EnableMutationTesting:   false,
-			ReportFormats:           []string{"json", "html", "junit"},
-			OutputDirectory:         "./test-results",
+			EnableCoverageReporting:  true,
+			EnableMutationTesting:    false,
+			ReportFormats:            []string{"json", "html", "junit"},
+			OutputDirectory:          "./test-results",
 		},
 	}
 
@@ -447,9 +448,9 @@ func (tf *TestFramework) calculateSummary(suiteResults []*SuiteResult) *TestSumm
 func (tf *TestFramework) generateCoverageReport(suiteResults []*SuiteResult) *CoverageInfo {
 	// Implementation would generate actual coverage report
 	return &CoverageInfo{
-		TotalLines:    1000,
-		CoveredLines:  850,
-		CoverageRate:  85.0,
+		TotalLines:      1000,
+		CoveredLines:    850,
+		CoverageRate:    85.0,
 		PackageCoverage: make(map[string]float64),
 	}
 }

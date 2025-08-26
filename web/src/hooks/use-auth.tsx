@@ -3,6 +3,7 @@
 import { useState, useEffect, createContext, useContext, ReactNode } from 'react'
 import { useRouter } from 'next/navigation'
 import { api } from '@/lib/api'
+import { clientStorage } from '@/lib/storage'
 
 interface User {
   id: string
@@ -52,7 +53,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const checkAuth = async () => {
     try {
-      const token = localStorage.getItem('accessToken')
+      const token = clientStorage.get('accessToken')
       if (!token) {
         setIsLoading(false)
         return
@@ -62,8 +63,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(response.data.user)
     } catch (error) {
       // Token is invalid, remove it
-      localStorage.removeItem('accessToken')
-      localStorage.removeItem('refreshToken')
+      clientStorage.remove('accessToken')
+      clientStorage.remove('refreshToken')
     } finally {
       setIsLoading(false)
     }
@@ -81,9 +82,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const { user, accessToken, refreshToken } = response.data
 
       // Store tokens
-      localStorage.setItem('accessToken', accessToken)
+      clientStorage.set('accessToken', accessToken)
       if (refreshToken) {
-        localStorage.setItem('refreshToken', refreshToken)
+        clientStorage.set('refreshToken', refreshToken)
       }
 
       setUser(user)
@@ -101,9 +102,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const { user, accessToken, refreshToken } = response.data
 
       // Store tokens
-      localStorage.setItem('accessToken', accessToken)
+      clientStorage.set('accessToken', accessToken)
       if (refreshToken) {
-        localStorage.setItem('refreshToken', refreshToken)
+        clientStorage.set('refreshToken', refreshToken)
       }
 
       setUser(user)
@@ -121,8 +122,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Ignore logout errors
     } finally {
       // Clear local storage
-      localStorage.removeItem('accessToken')
-      localStorage.removeItem('refreshToken')
+      clientStorage.remove('accessToken')
+      clientStorage.remove('refreshToken')
       setUser(null)
       router.push('/auth/login')
     }
@@ -130,7 +131,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const refreshToken = async () => {
     try {
-      const refreshToken = localStorage.getItem('refreshToken')
+      const refreshToken = clientStorage.get('refreshToken')
       if (!refreshToken) {
         throw new Error('No refresh token available')
       }
@@ -141,14 +142,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       const { accessToken, refreshToken: newRefreshToken } = response.data
 
-      localStorage.setItem('accessToken', accessToken)
+      clientStorage.set('accessToken', accessToken)
       if (newRefreshToken) {
-        localStorage.setItem('refreshToken', newRefreshToken)
+        clientStorage.set('refreshToken', newRefreshToken)
       }
     } catch (error) {
       // Refresh failed, redirect to login
-      localStorage.removeItem('accessToken')
-      localStorage.removeItem('refreshToken')
+      clientStorage.remove('accessToken')
+      clientStorage.remove('refreshToken')
       setUser(null)
       router.push('/auth/login')
       throw error

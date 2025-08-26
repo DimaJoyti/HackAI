@@ -34,7 +34,7 @@ type FraudDetectionResponse struct {
 	Reasons           []string               `json:"reasons"`
 	ModelPredictions  []ModelPrediction      `json:"model_predictions"`
 	FeatureImportance map[string]float64     `json:"feature_importance"`
-	ProcessingTime    string                 `json:"processing_time"`
+	ProcessingTime    int64                  `json:"processing_time"`
 	Metadata          map[string]interface{} `json:"metadata"`
 	Timestamp         time.Time              `json:"timestamp"`
 }
@@ -45,11 +45,11 @@ type ModelPrediction struct {
 	ModelName   string             `json:"model_name"`
 	Prediction  float64            `json:"prediction"`
 	Confidence  float64            `json:"confidence"`
-	ProcessTime string             `json:"process_time"`
+	ProcessTime int64              `json:"process_time"`
 	Features    map[string]float64 `json:"features"`
 }
 
-func runFraudDetectionDemo() {
+func main() {
 	fmt.Println("🛡️  HackAI Fraud Detection Demo")
 	fmt.Println("================================")
 
@@ -166,7 +166,7 @@ func runFraudDetectionDemo() {
 		fmt.Printf("   🎯 Confidence: %.3f\n", response.Confidence)
 		fmt.Printf("   ⚠️  Risk Level: %s\n", response.RiskLevel)
 		fmt.Printf("   🚦 Decision: %s\n", response.Decision)
-		fmt.Printf("   ⏱️  Processing Time: %s\n", response.ProcessingTime)
+		fmt.Printf("   ⏱️  Processing Time: %dms\n", response.ProcessingTime)
 		fmt.Printf("   🤖 Models Used: %d\n", len(response.ModelPredictions))
 
 		if len(response.Reasons) > 0 {
