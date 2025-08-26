@@ -147,17 +147,7 @@ type RiskAssessmentResult struct {
 	Metadata             map[string]interface{} `json:"metadata"`
 }
 
-// RiskFactor represents a risk factor
-type RiskFactor struct {
-	ID          string                 `json:"id"`
-	Name        string                 `json:"name"`
-	Description string                 `json:"description"`
-	Category    string                 `json:"category"`
-	Impact      float64                `json:"impact"`
-	Likelihood  float64                `json:"likelihood"`
-	RiskScore   float64                `json:"risk_score"`
-	Metadata    map[string]interface{} `json:"metadata"`
-}
+// RiskFactor is defined in autonomous_types.go
 
 // TrendAnalysis represents trend analysis of security metrics
 type TrendAnalysis struct {

@@ -15,11 +15,11 @@ func NewAssessmentScheduler(logger *logger.Logger) *AssessmentScheduler {
 		logger:    logger,
 		schedules: make(map[string]*AssessmentSchedule),
 		config: &SchedulerConfig{
-			EnableScheduling:    true,
-			CheckInterval:       1 * time.Minute,
-			MaxConcurrentRuns:   3,
-			DefaultRetries:      3,
-			DefaultRetryDelay:   5 * time.Minute,
+			EnableScheduling:  true,
+			CheckInterval:     1 * time.Minute,
+			MaxConcurrentRuns: 3,
+			DefaultRetries:    3,
+			DefaultRetryDelay: 5 * time.Minute,
 		},
 	}
 }
@@ -95,7 +95,7 @@ func (cc *ComplianceChecker) checkFrameworkCompliance(framework *ComplianceFrame
 func (cc *ComplianceChecker) evaluateControl(control *ComplianceControl, target *AssessmentTarget) string {
 	// Simulate compliance evaluation
 	// In a real implementation, this would perform actual compliance checks
-	
+
 	switch control.Category {
 	case "access_control":
 		if target.Credentials != nil {
@@ -230,10 +230,11 @@ func (ra *RiskAnalyzer) AnalyzeRisk(ctx context.Context, target *AssessmentTarge
 			ID:          uuid.New().String(),
 			Name:        finding.Title,
 			Description: finding.Description,
-			Category:    finding.Category,
+			Category:    ra.mapCategoryToRiskCategory(finding.Category),
+			Probability: ra.calculateLikelihood(finding) / 10.0, // Convert to 0-1 scale
 			Impact:      finding.CVSS,
-			Likelihood:  ra.calculateLikelihood(finding),
-			RiskScore:   finding.CVSS,
+			Severity:    ra.mapSeverityToRiskSeverity(finding.Severity),
+			Metadata:    make(map[string]interface{}),
 		}
 		result.RiskFactors = append(result.RiskFactors, riskFactor)
 	}
@@ -267,6 +268,42 @@ func (ra *RiskAnalyzer) calculateLikelihood(finding *SecurityFinding) float64 {
 		return 4.0
 	default:
 		return 5.0
+	}
+}
+
+// mapCategoryToRiskCategory maps finding category to RiskCategory
+func (ra *RiskAnalyzer) mapCategoryToRiskCategory(category string) RiskCategory {
+	switch category {
+	case "injection", "authentication", "authorization", "cryptography":
+		return RiskCategoryTechnical
+	case "configuration", "deployment":
+		return RiskCategoryOperational
+	case "monitoring", "logging":
+		return RiskCategoryDetection
+	case "compliance", "privacy":
+		return RiskCategoryLegal
+	case "reputation", "brand":
+		return RiskCategoryReputational
+	case "financial", "business":
+		return RiskCategoryFinancial
+	default:
+		return RiskCategoryTechnical
+	}
+}
+
+// mapSeverityToRiskSeverity maps finding severity to RiskSeverity
+func (ra *RiskAnalyzer) mapSeverityToRiskSeverity(severity string) RiskSeverity {
+	switch severity {
+	case "critical":
+		return RiskSeverityCritical
+	case "high":
+		return RiskSeverityHigh
+	case "medium":
+		return RiskSeverityMedium
+	case "low":
+		return RiskSeverityLow
+	default:
+		return RiskSeverityMedium
 	}
 }
 
@@ -304,7 +341,7 @@ func (ra *RiskAnalyzer) assessBusinessImpact(critical, high int) string {
 func (ra *RiskAnalyzer) assessTechnicalImpact(findings []*SecurityFinding) string {
 	hasInjection := false
 	hasDataExposure := false
-	
+
 	for _, finding := range findings {
 		switch finding.Category {
 		case "injection":
@@ -326,7 +363,7 @@ func (ra *RiskAnalyzer) assessTechnicalImpact(findings []*SecurityFinding) strin
 // generateMitigationStrategies generates mitigation strategies
 func (ra *RiskAnalyzer) generateMitigationStrategies(findings []*SecurityFinding) []string {
 	strategies := make(map[string]bool)
-	
+
 	for _, finding := range findings {
 		for _, rec := range finding.Recommendations {
 			strategies[rec] = true
@@ -356,8 +393,8 @@ func (ra *RiskAnalyzer) loadDefaultRiskModels() {
 			Description: "Common Vulnerability Scoring System v3.1",
 			Algorithm:   "cvss",
 			Parameters: map[string]interface{}{
-				"base_score_weight":        0.6,
-				"temporal_score_weight":    0.2,
+				"base_score_weight":          0.6,
+				"temporal_score_weight":      0.2,
 				"environmental_score_weight": 0.2,
 			},
 			Weights: map[string]float64{

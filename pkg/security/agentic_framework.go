@@ -64,8 +64,8 @@ type ThreatPattern struct {
 	CreatedAt   time.Time `json:"created_at"`
 }
 
-// ActiveThreat represents an active security threat
-type ActiveThreat struct {
+// AgenticActiveThreat represents an active security threat in agentic framework
+type AgenticActiveThreat struct {
 	ID              string                 `json:"id"`
 	Type            string                 `json:"type"`
 	Severity        string                 `json:"severity"`

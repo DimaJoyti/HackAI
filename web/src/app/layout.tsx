@@ -1,10 +1,43 @@
 import type { Metadata, Viewport } from 'next'
-import { Inter } from 'next/font/google'
+import { Inter, Orbitron, Rajdhani, Share_Tech_Mono, Audiowide, Exo_2 } from 'next/font/google'
 import './globals.css'
 import { Providers } from '@/components/providers'
 import { Toaster } from 'react-hot-toast'
 
-const inter = Inter({ subsets: ['latin'] })
+// Primary font
+const inter = Inter({
+  subsets: ['latin'],
+  variable: '--font-inter',
+})
+
+// Cyberpunk fonts
+const orbitron = Orbitron({
+  subsets: ['latin'],
+  variable: '--font-orbitron',
+})
+
+const rajdhani = Rajdhani({
+  subsets: ['latin'],
+  weight: ['300', '400', '500', '600', '700'],
+  variable: '--font-rajdhani',
+})
+
+const shareTechMono = Share_Tech_Mono({
+  subsets: ['latin'],
+  weight: ['400'],
+  variable: '--font-share-tech-mono',
+})
+
+const audiowide = Audiowide({
+  subsets: ['latin'],
+  weight: ['400'],
+  variable: '--font-audiowide',
+})
+
+const exo2 = Exo_2({
+  subsets: ['latin'],
+  variable: '--font-exo-2',
+})
 
 export const metadata: Metadata = {
   title: 'HackAI - Educational Cybersecurity AI Platform',
@@ -46,7 +79,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.className} antialiased`}>
+      <body className={`${inter.variable} ${orbitron.variable} ${rajdhani.variable} ${shareTechMono.variable} ${audiowide.variable} ${exo2.variable} font-sans antialiased`}>
         <Providers>
           {children}
           <Toaster

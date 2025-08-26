@@ -8,46 +8,71 @@ import (
 
 	"github.com/dimajoyti/hackai/pkg/compliance"
 	"github.com/dimajoyti/hackai/pkg/logger"
-	"github.com/dimajoyti/hackai/pkg/risk"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 )
 
 var integrationTracer = otel.Tracer("hackai/security/integration")
 
+// TradingRiskManager manages trading risk assessment
+type TradingRiskManager struct {
+	config *RiskConfig
+	logger *logger.Logger
+}
+
+// RiskConfig holds risk management configuration
+type RiskConfig struct {
+	MaxDailyLoss       float64            `json:"max_daily_loss"`
+	MaxPositionSize    float64            `json:"max_position_size"`
+	MaxPortfolioRisk   float64            `json:"max_portfolio_risk"`
+	VaRConfidenceLevel float64            `json:"var_confidence_level"`
+	StressTestEnabled  bool               `json:"stress_test_enabled"`
+	RealTimeMonitoring bool               `json:"real_time_monitoring"`
+	AlertThresholds    map[string]float64 `json:"alert_thresholds"`
+	RiskLimitOverrides map[string]float64 `json:"risk_limit_overrides"`
+}
+
+// TradingRiskAssessmentResult represents trading risk assessment results
+type TradingRiskAssessmentResult struct {
+	OverallRiskScore float64                `json:"overall_risk_score"`
+	RiskFactors      map[string]float64     `json:"risk_factors"`
+	Recommendations  []string               `json:"recommendations"`
+	Metadata         map[string]interface{} `json:"metadata"`
+}
+
 // SecurityIntegrationService integrates all security components
 type SecurityIntegrationService struct {
 	tradingSecurityManager *TradingSecurityManager
-	riskManager           *risk.TradingRiskManager
-	complianceFramework   *compliance.RegulatoryFramework
-	threatDetector        *SecurityThreatDetector
-	incidentManager       *IncidentManager
-	securityMetrics       *SecurityMetrics
-	config                *SecurityIntegrationConfig
-	logger                *logger.Logger
-	mutex                 sync.RWMutex
+	riskManager            *TradingRiskManager
+	complianceFramework    *compliance.RegulatoryFramework
+	threatDetector         *SecurityThreatDetector
+	incidentManager        *IncidentManager
+	securityMetrics        *SecurityMetrics
+	config                 *SecurityIntegrationConfig
+	logger                 *logger.Logger
+	mutex                  sync.RWMutex
 }
 
 // SecurityIntegrationConfig holds integration configuration
 type SecurityIntegrationConfig struct {
-	EnableRealTimeMonitoring bool              `json:"enable_real_time_monitoring"`
-	EnableThreatDetection    bool              `json:"enable_threat_detection"`
-	EnableIncidentResponse   bool              `json:"enable_incident_response"`
+	EnableRealTimeMonitoring bool               `json:"enable_real_time_monitoring"`
+	EnableThreatDetection    bool               `json:"enable_threat_detection"`
+	EnableIncidentResponse   bool               `json:"enable_incident_response"`
 	AlertThresholds          map[string]float64 `json:"alert_thresholds"`
-	AutoResponseEnabled      bool              `json:"auto_response_enabled"`
-	SecurityLevel            string            `json:"security_level"`
-	ComplianceMode           string            `json:"compliance_mode"`
-	AuditLevel               string            `json:"audit_level"`
+	AutoResponseEnabled      bool               `json:"auto_response_enabled"`
+	SecurityLevel            string             `json:"security_level"`
+	ComplianceMode           string             `json:"compliance_mode"`
+	AuditLevel               string             `json:"audit_level"`
 }
 
 // SecurityThreatDetector detects security threats
 type SecurityThreatDetector struct {
-	threatRules     map[string]*ThreatRule
-	detectedThreats []*DetectedThreat
+	threatRules      map[string]*ThreatRule
+	detectedThreats  []*DetectedThreat
 	behaviorAnalyzer *BehaviorAnalyzer
-	anomalyDetector *AnomalyDetector
-	logger          *logger.Logger
-	mutex           sync.RWMutex
+	anomalyDetector  *AnomalyDetector
+	logger           *logger.Logger
+	mutex            sync.RWMutex
 }
 
 // IncidentManager manages security incidents
@@ -60,17 +85,16 @@ type IncidentManager struct {
 	mutex           sync.RWMutex
 }
 
-
 // ThreatRule defines a threat detection rule
 type ThreatRule struct {
-	ID          string                 `json:"id"`
-	Name        string                 `json:"name"`
-	Type        string                 `json:"type"`
-	Severity    string                 `json:"severity"`
-	Condition   string                 `json:"condition"`
-	Action      string                 `json:"action"`
-	Enabled     bool                   `json:"enabled"`
-	Metadata    map[string]interface{} `json:"metadata"`
+	ID        string                 `json:"id"`
+	Name      string                 `json:"name"`
+	Type      string                 `json:"type"`
+	Severity  string                 `json:"severity"`
+	Condition string                 `json:"condition"`
+	Action    string                 `json:"action"`
+	Enabled   bool                   `json:"enabled"`
+	Metadata  map[string]interface{} `json:"metadata"`
 }
 
 // DetectedThreat represents a detected security threat
@@ -100,7 +124,6 @@ type ThreatResponse struct {
 	Metadata    map[string]interface{} `json:"metadata"`
 }
 
-
 // UserBehaviorProfile represents user behavior profile
 type UserBehaviorProfile struct {
 	UserID          string                 `json:"user_id"`
@@ -113,14 +136,14 @@ type UserBehaviorProfile struct {
 
 // BaselineMetrics represents baseline behavior metrics
 type BaselineMetrics struct {
-	UserID          string                 `json:"user_id"`
-	AvgSessionTime  time.Duration          `json:"avg_session_time"`
-	TypicalHours    []int                  `json:"typical_hours"`
-	TypicalDays     []int                  `json:"typical_days"`
-	AvgTradeSize    float64                `json:"avg_trade_size"`
-	TypicalSymbols  []string               `json:"typical_symbols"`
-	LastUpdated     time.Time              `json:"last_updated"`
-	Metadata        map[string]interface{} `json:"metadata"`
+	UserID         string                 `json:"user_id"`
+	AvgSessionTime time.Duration          `json:"avg_session_time"`
+	TypicalHours   []int                  `json:"typical_hours"`
+	TypicalDays    []int                  `json:"typical_days"`
+	AvgTradeSize   float64                `json:"avg_trade_size"`
+	TypicalSymbols []string               `json:"typical_symbols"`
+	LastUpdated    time.Time              `json:"last_updated"`
+	Metadata       map[string]interface{} `json:"metadata"`
 }
 
 // BehaviorAnomaly represents a behavior anomaly
@@ -200,21 +223,21 @@ type ResponseAction struct {
 
 // IncidentResponseTeam represents the incident response team
 type IncidentResponseTeam struct {
-	Members     []*TeamMember          `json:"members"`
-	OnCallSchedule *OnCallSchedule     `json:"on_call_schedule"`
-	Contacts    map[string]string      `json:"contacts"`
-	Metadata    map[string]interface{} `json:"metadata"`
+	Members        []*TeamMember          `json:"members"`
+	OnCallSchedule *OnCallSchedule        `json:"on_call_schedule"`
+	Contacts       map[string]string      `json:"contacts"`
+	Metadata       map[string]interface{} `json:"metadata"`
 }
 
 // TeamMember represents a team member
 type TeamMember struct {
-	ID          string                 `json:"id"`
-	Name        string                 `json:"name"`
-	Role        string                 `json:"role"`
-	Skills      []string               `json:"skills"`
-	Contact     string                 `json:"contact"`
-	Available   bool                   `json:"available"`
-	Metadata    map[string]interface{} `json:"metadata"`
+	ID        string                 `json:"id"`
+	Name      string                 `json:"name"`
+	Role      string                 `json:"role"`
+	Skills    []string               `json:"skills"`
+	Contact   string                 `json:"contact"`
+	Available bool                   `json:"available"`
+	Metadata  map[string]interface{} `json:"metadata"`
 }
 
 // OnCallSchedule represents on-call schedule
@@ -238,15 +261,15 @@ type ResponsePlaybook struct {
 
 // PlaybookStep represents a step in a response playbook
 type PlaybookStep struct {
-	ID          string                 `json:"id"`
-	Name        string                 `json:"name"`
-	Type        string                 `json:"type"`
-	Description string                 `json:"description"`
-	Action      string                 `json:"action"`
-	Automated   bool                   `json:"automated"`
-	Timeout     time.Duration          `json:"timeout"`
-	Dependencies []string              `json:"dependencies"`
-	Metadata    map[string]interface{} `json:"metadata"`
+	ID           string                 `json:"id"`
+	Name         string                 `json:"name"`
+	Type         string                 `json:"type"`
+	Description  string                 `json:"description"`
+	Action       string                 `json:"action"`
+	Automated    bool                   `json:"automated"`
+	Timeout      time.Duration          `json:"timeout"`
+	Dependencies []string               `json:"dependencies"`
+	Metadata     map[string]interface{} `json:"metadata"`
 }
 
 // EscalationRules defines escalation rules for incidents
@@ -258,13 +281,13 @@ type EscalationRules struct {
 
 // EscalationRule represents an escalation rule
 type EscalationRule struct {
-	ID          string                 `json:"id"`
-	Condition   string                 `json:"condition"`
-	Severity    string                 `json:"severity"`
-	TimeLimit   time.Duration          `json:"time_limit"`
-	Escalatees  []string               `json:"escalatees"`
-	Actions     []string               `json:"actions"`
-	Metadata    map[string]interface{} `json:"metadata"`
+	ID         string                 `json:"id"`
+	Condition  string                 `json:"condition"`
+	Severity   string                 `json:"severity"`
+	TimeLimit  time.Duration          `json:"time_limit"`
+	Escalatees []string               `json:"escalatees"`
+	Actions    []string               `json:"actions"`
+	Metadata   map[string]interface{} `json:"metadata"`
 }
 
 // NewSecurityIntegrationService creates a new security integration service
@@ -288,7 +311,7 @@ func NewSecurityIntegrationService(config *SecurityIntegrationConfig, logger *lo
 		return nil, fmt.Errorf("failed to create trading security manager: %w", err)
 	}
 
-	riskConfig := &risk.RiskConfig{
+	riskConfig := &RiskConfig{
 		MaxDailyLoss:       0.05,
 		MaxPositionSize:    0.1,
 		MaxPortfolioRisk:   0.2,
@@ -303,7 +326,7 @@ func NewSecurityIntegrationService(config *SecurityIntegrationConfig, logger *lo
 		RiskLimitOverrides: make(map[string]float64),
 	}
 
-	riskManager := risk.NewTradingRiskManager(riskConfig, logger)
+	riskManager := NewTradingRiskManager(riskConfig, logger)
 
 	complianceConfig := &compliance.ComplianceConfig{
 		Jurisdictions:      []string{"US", "EU", "UK"},
@@ -313,7 +336,7 @@ func NewSecurityIntegrationService(config *SecurityIntegrationConfig, logger *lo
 		AutoReporting:      true,
 		RealTimeMonitoring: true,
 		AlertThresholds: map[string]float64{
-			"violation_count": 5,
+			"violation_count":     5,
 			"critical_violations": 1,
 		},
 		RequiredApprovals: map[string][]string{
@@ -326,13 +349,13 @@ func NewSecurityIntegrationService(config *SecurityIntegrationConfig, logger *lo
 
 	return &SecurityIntegrationService{
 		tradingSecurityManager: tradingSecurityManager,
-		riskManager:           riskManager,
-		complianceFramework:   complianceFramework,
-		threatDetector:        NewSecurityThreatDetector(logger),
-		incidentManager:       NewIncidentManager(logger),
-		securityMetrics:       NewSecurityMetrics(),
-		config:                config,
-		logger:                logger,
+		riskManager:            riskManager,
+		complianceFramework:    complianceFramework,
+		threatDetector:         NewSecurityThreatDetector(logger),
+		incidentManager:        NewIncidentManager(logger),
+		securityMetrics:        NewSecurityMetrics(),
+		config:                 config,
+		logger:                 logger,
 	}, nil
 }
 
@@ -473,33 +496,33 @@ func (sis *SecurityIntegrationService) ValidateSecureTradingRequest(ctx context.
 
 // SecureTradingRequest represents a secure trading request
 type SecureTradingRequest struct {
-	ID        string  `json:"id"`
-	UserID    string  `json:"user_id"`
-	SessionID string  `json:"session_id"`
-	Symbol    string  `json:"symbol"`
-	Action    string  `json:"action"`
-	Quantity  float64 `json:"quantity"`
-	Price     float64 `json:"price"`
-	IPAddress string  `json:"ip_address"`
-	UserAgent string  `json:"user_agent"`
+	ID        string    `json:"id"`
+	UserID    string    `json:"user_id"`
+	SessionID string    `json:"session_id"`
+	Symbol    string    `json:"symbol"`
+	Action    string    `json:"action"`
+	Quantity  float64   `json:"quantity"`
+	Price     float64   `json:"price"`
+	IPAddress string    `json:"ip_address"`
+	UserAgent string    `json:"user_agent"`
 	Timestamp time.Time `json:"timestamp"`
 }
 
 // SecurityValidationResult represents the result of security validation
 type SecurityValidationResult struct {
-	RequestID string                           `json:"request_id"`
-	Valid     bool                             `json:"valid"`
-	Timestamp time.Time                        `json:"timestamp"`
-	Checks    map[string]*SecurityCheckResult  `json:"checks"`
+	RequestID string                          `json:"request_id"`
+	Valid     bool                            `json:"valid"`
+	Timestamp time.Time                       `json:"timestamp"`
+	Checks    map[string]*SecurityCheckResult `json:"checks"`
 }
 
 // SecurityCheckResult represents the result of a security check
 type SecurityCheckResult struct {
-	Name    string                    `json:"name"`
-	Passed  bool                      `json:"passed"`
-	Score   float64                   `json:"score"`
-	Message string                    `json:"message"`
-	Details map[string]*CheckResult   `json:"details"`
+	Name    string                  `json:"name"`
+	Passed  bool                    `json:"passed"`
+	Score   float64                 `json:"score"`
+	Message string                  `json:"message"`
+	Details map[string]*CheckResult `json:"details"`
 }
 
 // updateSecurityMetrics updates security metrics
@@ -544,7 +567,6 @@ func NewSecurityMetrics() *SecurityMetrics {
 	}
 }
 
-
 // AnalyzeThreat analyzes a request for threats
 func (td *SecurityThreatDetector) AnalyzeThreat(ctx context.Context, request *SecureTradingRequest) *SecurityCheckResult {
 	// Simplified threat analysis
@@ -564,4 +586,33 @@ func (td *SecurityThreatDetector) AnalyzeThreat(ctx context.Context, request *Se
 		Message: message,
 		Details: make(map[string]*CheckResult),
 	}
+}
+
+// NewTradingRiskManager creates a new trading risk manager
+func NewTradingRiskManager(config *RiskConfig, logger *logger.Logger) *TradingRiskManager {
+	return &TradingRiskManager{
+		config: config,
+		logger: logger,
+	}
+}
+
+// AssessOverallRisk assesses overall trading risk
+func (trm *TradingRiskManager) AssessOverallRisk(ctx context.Context) (*TradingRiskAssessmentResult, error) {
+	// Simplified risk assessment
+	riskScore := 0.3 // Default moderate risk
+
+	return &TradingRiskAssessmentResult{
+		OverallRiskScore: riskScore,
+		RiskFactors: map[string]float64{
+			"market_risk":      0.2,
+			"liquidity_risk":   0.1,
+			"operational_risk": 0.1,
+		},
+		Recommendations: []string{
+			"Monitor position sizes",
+			"Implement stop-loss orders",
+			"Diversify portfolio",
+		},
+		Metadata: make(map[string]interface{}),
+	}, nil
 }

@@ -441,7 +441,11 @@ func (s *OlamaSecurityScanner) calculateThreatScore(vulnerabilities []OlamaVulne
 	// Normalize score (max 1.0)
 	maxPossibleScore := float64(len(vulnerabilities))
 	if maxPossibleScore > 0 {
-		return min(totalScore/maxPossibleScore, 1.0)
+		score := totalScore / maxPossibleScore
+		if score > 1.0 {
+			return 1.0
+		}
+		return score
 	}
 
 	return 0.0
@@ -579,13 +583,7 @@ type OlamaThreatStatistics struct {
 	ThreatLevelStats   map[OlamaThreatLevel]int       `json:"threat_level_stats"`
 }
 
-// Helper function
-func min(a, b float64) float64 {
-	if a < b {
-		return a
-	}
-	return b
-}
+// Helper function removed - using built-in min function from Go 1.21+
 
 // InMemoryOlamaThreatDatabase provides an in-memory implementation of OlamaThreatDatabase
 type InMemoryOlamaThreatDatabase struct {

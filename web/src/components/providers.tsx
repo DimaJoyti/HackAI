@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from 'react-query'
 import { ThemeProvider } from 'next-themes'
 import { useState } from 'react'
 import { AuthProvider } from '@/hooks/use-auth'
+import { CyberpunkThemeProvider } from '@/components/ui/cyberpunk-theme-provider'
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
@@ -33,13 +34,15 @@ export function Providers({ children }: { children: React.ReactNode }) {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider
         attribute="class"
-        defaultTheme="system"
-        enableSystem
+        defaultTheme="dark"
+        enableSystem={false}
         disableTransitionOnChange
       >
-        <AuthProvider>
-          {children}
-        </AuthProvider>
+        <CyberpunkThemeProvider>
+          <AuthProvider>
+            {children}
+          </AuthProvider>
+        </CyberpunkThemeProvider>
       </ThemeProvider>
     </QueryClientProvider>
   )

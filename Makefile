@@ -292,11 +292,7 @@ k8s-delete: ## Delete Kubernetes resources
 	@echo "Deleting Kubernetes resources..."
 	kubectl delete -f deployments/kubernetes/
 
-k8s-status: ## Show Kubernetes cluster status
-	@echo "Kubernetes cluster status:"
-	kubectl get nodes
-	kubectl get pods -A
-	kubectl get services -A
+# Duplicate k8s-status target removed - see line 168
 
 # Helm targets
 helm-install: ## Install with Helm
@@ -316,21 +312,7 @@ infra-tools: ## Install infrastructure tools
 	@echo "Installing infrastructure tools..."
 	cd infrastructure/terraform && ./install-tools.sh
 
-infra-init: ## Initialize Terraform infrastructure
-	@echo "Initializing Terraform..."
-	cd infrastructure/terraform && make init
-
-infra-plan: ## Plan infrastructure changes
-	@echo "Planning infrastructure changes..."
-	cd infrastructure/terraform && make plan ENV=$(ENV)
-
-infra-apply: ## Apply infrastructure changes
-	@echo "Applying infrastructure changes..."
-	cd infrastructure/terraform && make apply ENV=$(ENV)
-
-infra-destroy: ## Destroy infrastructure
-	@echo "Destroying infrastructure..."
-	cd infrastructure/terraform && make destroy ENV=$(ENV)
+# Duplicate infra-* targets removed - see lines 253-266
 
 infra-status: ## Show infrastructure status
 	@echo "Infrastructure status:"
@@ -382,18 +364,7 @@ docker-down: ## Stop all Docker services
 docker-logs: ## Show Docker logs
 	docker-compose logs -f
 
-# Database targets
-db-migrate: ## Run database migrations
-	@echo "Running database migrations..."
-	go run ./cmd/migrate
-
-db-seed: ## Seed database with test data
-	@echo "Seeding database..."
-	go run ./cmd/seed
-
-db-reset: ## Reset database (drop and recreate)
-	@echo "Resetting database..."
-	go run ./cmd/migrate -reset
+# Duplicate db-* targets removed - see lines 181-198
 
 # Frontend targets
 web-install: ## Install frontend dependencies
@@ -411,17 +382,13 @@ web-test: ## Run frontend tests
 web-lint: ## Lint frontend code
 	cd web && npm run lint
 
-# Linting and formatting
-lint: ## Run Go linters
-	golangci-lint run
+# Duplicate lint target removed - see line 224
 
 fmt: ## Format Go code
 	go fmt ./...
 	goimports -w .
 
-# Security
-security-scan: ## Run security vulnerability scan
-	gosec ./...
+# Duplicate security-scan target removed - see line 212
 
 # Clean targets
 clean: ## Clean build artifacts
@@ -449,14 +416,7 @@ setup: ## Setup development environment
 	cd web && npm install
 	@echo "Development environment setup complete!"
 
-# Production targets
-deploy-staging: ## Deploy to staging environment
-	@echo "Deploying to staging..."
-	# Add staging deployment commands here
-
-deploy-prod: ## Deploy to production environment
-	@echo "Deploying to production..."
-	# Add production deployment commands here
+# Duplicate deploy-* targets removed - see lines 140-148
 
 # Monitoring
 logs: ## Show application logs

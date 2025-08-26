@@ -1,4 +1,4 @@
-# 🚀 AI-First Company: Multi-Agent Trading Platform
+# 🚀 AI-First Company: Multi-Agent Cybersecurity Platform
 
 ## 📋 Overview
 
