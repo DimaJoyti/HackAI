@@ -434,6 +434,48 @@ func (c *RedisHealthChecker) Check(ctx context.Context) ComponentHealth {
 	}
 }
 
+// Publish publishes a message to a Redis channel
+func (r *RedisClient) Publish(ctx context.Context, channel string, message interface{}) error {
+	ctx, span := redisTracer.Start(ctx, "redis_publish")
+	defer span.End()
+
+	span.SetAttributes(
+		attribute.String("channel", channel),
+	)
+
+	var data string
+	switch v := message.(type) {
+	case string:
+		data = v
+	case []byte:
+		data = string(v)
+	default:
+		jsonData, err := json.Marshal(message)
+		if err != nil {
+			span.RecordError(err)
+			return fmt.Errorf("failed to marshal message: %w", err)
+		}
+		data = string(jsonData)
+	}
+
+	result := r.client.Publish(ctx, channel, data)
+	if err := result.Err(); err != nil {
+		span.RecordError(err)
+		return fmt.Errorf("failed to publish message: %w", err)
+	}
+
+	span.SetAttributes(
+		attribute.Int64("subscribers", result.Val()),
+	)
+
+	return nil
+}
+
+// Subscribe subscribes to Redis channels
+func (r *RedisClient) Subscribe(ctx context.Context, channels ...string) *redis.PubSub {
+	return r.client.Subscribe(ctx, channels...)
+}
+
 // Common errors
 var (
 	ErrCacheMiss       = fmt.Errorf("cache miss")

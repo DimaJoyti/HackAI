@@ -183,6 +183,9 @@ type TestSummary struct {
 	SuccessRate     float64       `json:"success_rate"`
 	TotalDuration   time.Duration `json:"total_duration"`
 	AverageDuration time.Duration `json:"average_duration"`
+	TotalTokens     int           `json:"total_tokens"`
+	AverageLatency  time.Duration `json:"average_latency"`
+	AverageScore    float64       `json:"average_score"`
 }
 
 // TestEnvironment captures the test execution environment

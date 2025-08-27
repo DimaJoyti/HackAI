@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/dimajoyti/hackai/pkg/logger"
 	securitytesting "github.com/dimajoyti/hackai/pkg/testing"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -421,22 +422,36 @@ func TestFuzzTester(t *testing.T) {
 }
 
 func TestTestOrchestrator(t *testing.T) {
-	logger := &MockLogger{}
-	config := &securitytesting.SecurityTestConfig{
-		EnableVulnerabilityScanning: true,
-		EnablePenetrationTesting:    true,
-		EnableComplianceChecking:    true,
-		EnableThreatModeling:        true,
-		ScanDepth:                   "medium",
-		MaxScanDuration:             30 * time.Second,
-		TargetEndpoints:             []string{"http://example.com"},
-		ExcludedPaths:               []string{"/health", "/metrics"},
-		AuthenticationTokens:        map[string]string{},
-		ComplianceFrameworks:        []string{"OWASP", "NIST"},
+	// Create a proper logger
+	logger, err := logger.New(logger.Config{
+		Level:  "info",
+		Format: "console",
+	})
+	require.NoError(t, err)
+
+	// Create the correct config type
+	config := &securitytesting.TestOrchestratorConfig{
+		TestEnvironment:         "test",
+		ParallelExecution:       true,
+		MaxConcurrency:          2,
+		GlobalTimeout:           30 * time.Second,
+		EnableAITests:           false,
+		EnableMultiAgent:        false,
+		EnableVectorDB:          false,
+		EnableSecurity:          true,
+		EnablePerformance:       false,
+		EnableIntegration:       false,
+		ReportFormats:           []string{"json"},
+		ReportOutputDir:         "./test-reports",
+		EnableRealTimeReporting: false,
+		StopOnFirstFailure:      false,
+		RetryFailedTests:        false,
+		MaxRetries:              1,
+		CleanupAfterTests:       true,
 	}
 
 	t.Run("Create Test Orchestrator", func(t *testing.T) {
-		orchestrator := securitytesting.NewTestOrchestrator(config, logger)
+		orchestrator := securitytesting.NewTestOrchestrator(logger, config)
 		require.NotNil(t, orchestrator)
 	})
 }
