@@ -122,6 +122,24 @@ func (m *MockUserRepository) GetUserActivity(userID uuid.UUID, limit, offset int
 	return args.Get(0).([]*domain.UserActivity), args.Error(1)
 }
 
+func (m *MockUserRepository) GetByFirebaseUID(firebaseUID string) (*domain.User, error) {
+	args := m.Called(firebaseUID)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*domain.User), args.Error(1)
+}
+
+func (m *MockUserRepository) UpdateFirebaseUID(userID uuid.UUID, firebaseUID string) error {
+	args := m.Called(userID, firebaseUID)
+	return args.Error(0)
+}
+
+func (m *MockUserRepository) ListUsersWithoutFirebaseUID(limit, offset int) ([]*domain.User, error) {
+	args := m.Called(limit, offset)
+	return args.Get(0).([]*domain.User), args.Error(1)
+}
+
 // MockAuditRepository is a mock implementation of domain.AuditRepository
 type MockAuditRepository struct {
 	mock.Mock

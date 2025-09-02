@@ -3,7 +3,6 @@ package firebase
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"firebase.google.com/go/v4"
 	"firebase.google.com/go/v4/auth"
@@ -255,17 +254,18 @@ func (s *Service) RevokeRefreshTokens(ctx context.Context, uid string) error {
 // ListUsers lists users with pagination
 func (s *Service) ListUsers(ctx context.Context, maxResults int, pageToken string) (*ListUsersResponse, error) {
 	iter := s.authClient.Users(ctx, pageToken)
-	iter = iter.PageSize(maxResults)
 
 	var users []*UserResponse
 	var nextPageToken string
+	count := 0
 
-	for {
+	for count < maxResults {
 		user, err := iter.Next()
 		if err != nil {
 			break
 		}
-		users = append(users, s.mapFirebaseUserToResponse(user))
+		users = append(users, s.mapFirebaseUserToResponse(user.UserRecord))
+		count++
 	}
 
 	// Get next page token if available

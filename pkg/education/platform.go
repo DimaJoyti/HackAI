@@ -763,6 +763,199 @@ func (ep *EducationalPlatform) GetCourseModules(ctx context.Context, courseID st
 	return modules, nil
 }
 
+// CourseFilter represents filters for course listing
+type CourseFilter struct {
+	Category    string   `json:"category,omitempty"`
+	Level       string   `json:"level,omitempty"`
+	Language    string   `json:"language,omitempty"`
+	Tags        []string `json:"tags,omitempty"`
+	Duration    string   `json:"duration,omitempty"`
+	SearchQuery string   `json:"search_query,omitempty"`
+}
+
+// LabFilter represents filters for lab listing
+type LabFilter struct {
+	Type        string `json:"type,omitempty"`
+	Difficulty  string `json:"difficulty,omitempty"`
+	Category    string `json:"category,omitempty"`
+	SearchQuery string `json:"search_query,omitempty"`
+}
+
+// AssessmentFilter represents filters for assessment listing
+type AssessmentFilter struct {
+	Type        string `json:"type,omitempty"`
+	Difficulty  string `json:"difficulty,omitempty"`
+	Category    string `json:"category,omitempty"`
+	SearchQuery string `json:"search_query,omitempty"`
+}
+
+// ListCourses retrieves courses with optional filtering
+func (ep *EducationalPlatform) ListCourses(ctx context.Context, filter CourseFilter) ([]*Course, error) {
+	return ep.courseManager.ListCourses(ctx, filter)
+}
+
+// GetCourse retrieves a specific course by ID
+func (ep *EducationalPlatform) GetCourse(ctx context.Context, courseID string) (*Course, error) {
+	return ep.courseManager.GetCourse(ctx, courseID)
+}
+
+// EnrollUser enrolls a user in a course
+func (ep *EducationalPlatform) EnrollUser(ctx context.Context, userID, courseID string) error {
+	return ep.progressTracker.EnrollUser(ctx, userID, courseID)
+}
+
+// GetLearningSession retrieves a learning session by ID
+func (ep *EducationalPlatform) GetLearningSession(ctx context.Context, sessionID string) (*LearningSession, error) {
+	ep.mu.RLock()
+	defer ep.mu.RUnlock()
+
+	session, exists := ep.activeSessions[sessionID]
+	if !exists {
+		return nil, fmt.Errorf("learning session not found: %s", sessionID)
+	}
+
+	return session, nil
+}
+
+// UpdateSessionProgress updates the progress of a learning session
+func (ep *EducationalPlatform) UpdateSessionProgress(ctx context.Context, sessionID string, progress *SessionProgress) error {
+	ep.mu.Lock()
+	defer ep.mu.Unlock()
+
+	session, exists := ep.activeSessions[sessionID]
+	if !exists {
+		return fmt.Errorf("learning session not found: %s", sessionID)
+	}
+
+	session.Progress = progress
+	session.LastActivity = time.Now()
+
+	return nil
+}
+
+// ListLabs retrieves labs with optional filtering
+func (ep *EducationalPlatform) ListLabs(ctx context.Context, filter LabFilter) ([]*Lab, error) {
+	return ep.labManager.ListLabs(ctx, filter)
+}
+
+// GetLab retrieves a specific lab by ID
+func (ep *EducationalPlatform) GetLab(ctx context.Context, labID string) (*Lab, error) {
+	return ep.labManager.GetLab(ctx, labID)
+}
+
+// GetLabSession retrieves a lab session by ID
+func (ep *EducationalPlatform) GetLabSession(ctx context.Context, sessionID string) (*LabSession, error) {
+	return ep.labManager.GetLabSession(ctx, sessionID)
+}
+
+// SubmitLabWork submits lab work for validation
+func (ep *EducationalPlatform) SubmitLabWork(ctx context.Context, sessionID, stepID string, content map[string]interface{}) (*LabSubmission, error) {
+	return ep.labManager.SubmitLabStep(sessionID, stepID, content)
+}
+
+// CompleteLab marks a lab as completed
+func (ep *EducationalPlatform) CompleteLab(ctx context.Context, sessionID string) error {
+	return ep.labManager.CompleteLab(sessionID)
+}
+
+// CompleteLearningSession marks a learning session as completed
+func (ep *EducationalPlatform) CompleteLearningSession(ctx context.Context, sessionID string) error {
+	ep.mu.Lock()
+	defer ep.mu.Unlock()
+
+	session, exists := ep.activeSessions[sessionID]
+	if !exists {
+		return fmt.Errorf("learning session not found: %s", sessionID)
+	}
+
+	session.Status = "completed"
+	session.LastActivity = time.Now()
+
+	// Remove from active sessions
+	delete(ep.activeSessions, sessionID)
+
+	ep.logger.WithField("session_id", sessionID).Info("Learning session completed")
+	return nil
+}
+
+// ListAssessments retrieves assessments with optional filtering
+func (ep *EducationalPlatform) ListAssessments(ctx context.Context, filter AssessmentFilter) ([]*Assessment, error) {
+	return ep.assessmentEngine.ListAssessments(ctx, filter)
+}
+
+// GetAssessment retrieves a specific assessment by ID
+func (ep *EducationalPlatform) GetAssessment(ctx context.Context, assessmentID string) (*Assessment, error) {
+	return ep.assessmentEngine.GetAssessment(ctx, assessmentID)
+}
+
+// GetAssessmentAttempt retrieves an assessment attempt by ID
+func (ep *EducationalPlatform) GetAssessmentAttempt(ctx context.Context, attemptID string) (*AssessmentAttempt, error) {
+	return ep.assessmentEngine.GetAssessmentAttempt(ctx, attemptID)
+}
+
+// SubmitAssessmentResponse submits an assessment response
+func (ep *EducationalPlatform) SubmitAssessmentResponse(ctx context.Context, attemptID string, responses map[string]interface{}) (*AssessmentResult, error) {
+	return ep.assessmentEngine.SubmitResponse(ctx, attemptID, responses)
+}
+
+// CompleteAssessment completes an assessment attempt
+func (ep *EducationalPlatform) CompleteAssessment(ctx context.Context, attemptID string) (*AssessmentAttempt, error) {
+	return ep.assessmentEngine.FinishAssessment(attemptID)
+}
+
+// GetUserProgress retrieves user progress
+func (ep *EducationalPlatform) GetUserProgress(ctx context.Context, userID string) (*UserProgress, error) {
+	return ep.progressTracker.GetUserProgress(ctx, userID)
+}
+
+// GetUserAchievements retrieves user achievements
+func (ep *EducationalPlatform) GetUserAchievements(ctx context.Context, userID string) ([]*Achievement, error) {
+	// This would typically be implemented by the progress tracker or achievement system
+	// For now, return empty achievements
+	return []*Achievement{}, nil
+}
+
+// GetUserCertificates retrieves user certificates
+func (ep *EducationalPlatform) GetUserCertificates(ctx context.Context, userID string) ([]*Certificate, error) {
+	return ep.certificateManager.GetUserCertificates(userID)
+}
+
+// GetRecommendations retrieves learning recommendations for a user
+func (ep *EducationalPlatform) GetRecommendations(ctx context.Context, userID string) ([]*LearningRecommendation, error) {
+	return ep.progressTracker.GetRecommendations(ctx, userID)
+}
+
+// GetUserAnalytics retrieves user analytics
+func (ep *EducationalPlatform) GetUserAnalytics(ctx context.Context, userID string) (*UserAnalytics, error) {
+	// This would typically aggregate analytics from various sources
+	// For now, return basic analytics based on user progress
+	progress, err := ep.progressTracker.GetUserProgress(ctx, userID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get user progress: %w", err)
+	}
+
+	analytics := &UserAnalytics{
+		UserID:           userID,
+		TotalTimeSpent:   progress.TotalTimeSpent,
+		CompletedCourses: progress.CompletedCourses,
+		TotalScore:       progress.TotalScore,
+		LastActive:       progress.LastActive,
+		Metadata:         make(map[string]interface{}),
+	}
+
+	return analytics, nil
+}
+
+// UserAnalytics represents user analytics data
+type UserAnalytics struct {
+	UserID           string                 `json:"user_id"`
+	TotalTimeSpent   time.Duration          `json:"total_time_spent"`
+	CompletedCourses int                    `json:"completed_courses"`
+	TotalScore       float64                `json:"total_score"`
+	LastActive       time.Time              `json:"last_active"`
+	Metadata         map[string]interface{} `json:"metadata"`
+}
+
 // GetModule retrieves a specific module
 func (ep *EducationalPlatform) GetModule(ctx context.Context, moduleID string) (*Module, error) {
 	if moduleID == "" {

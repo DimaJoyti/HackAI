@@ -282,6 +282,61 @@ func (r *MockUserRepository) GetUserActivity(userID uuid.UUID, limit, offset int
 	return r.GetUserActivities(userID, limit, offset)
 }
 
+// GetByFirebaseUID retrieves a user by Firebase UID
+func (r *MockUserRepository) GetByFirebaseUID(firebaseUID string) (*domain.User, error) {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+
+	for _, user := range r.users {
+		if user.FirebaseUID == firebaseUID {
+			return user, nil
+		}
+	}
+	return nil, fmt.Errorf("user not found")
+}
+
+// UpdateFirebaseUID updates a user's Firebase UID
+func (r *MockUserRepository) UpdateFirebaseUID(userID uuid.UUID, firebaseUID string) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	user, exists := r.users[userID]
+	if !exists {
+		return fmt.Errorf("user not found")
+	}
+
+	user.FirebaseUID = firebaseUID
+	user.UpdatedAt = time.Now()
+	r.users[userID] = user
+	return nil
+}
+
+// ListUsersWithoutFirebaseUID retrieves users without Firebase UID
+func (r *MockUserRepository) ListUsersWithoutFirebaseUID(limit, offset int) ([]*domain.User, error) {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+
+	var users []*domain.User
+	count := 0
+	skipped := 0
+
+	for _, user := range r.users {
+		if user.FirebaseUID == "" {
+			if skipped < offset {
+				skipped++
+				continue
+			}
+			if count >= limit {
+				break
+			}
+			users = append(users, user)
+			count++
+		}
+	}
+
+	return users, nil
+}
+
 // MockAuditRepository is a mock implementation of AuditRepository for testing
 type MockAuditRepository struct {
 	logs map[uuid.UUID][]*domain.AuditLog

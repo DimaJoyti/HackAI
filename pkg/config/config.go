@@ -103,9 +103,14 @@ type RateLimitConfig struct {
 
 // ObservabilityConfig holds observability configuration
 type ObservabilityConfig struct {
-	Tracing TracingConfig `json:"tracing"`
-	Metrics MetricsConfig `json:"metrics"`
-	Logging LoggingConfig `json:"logging"`
+	Enabled     bool                         `json:"enabled"`
+	Tracing     TracingConfig                `json:"tracing"`
+	Metrics     MetricsConfig                `json:"metrics"`
+	Logging     LoggingConfig                `json:"logging"`
+	HealthCheck HealthCheckConfig            `json:"health_check"`
+	Profiling   ProfilingConfig              `json:"profiling"`
+	Alerting    ObservabilityAlertingConfig  `json:"alerting"`
+	Dashboard   DashboardConfig              `json:"dashboard"`
 }
 
 // TracingConfig holds tracing configuration
@@ -125,6 +130,7 @@ type MetricsConfig struct {
 
 // LoggingConfig holds logging configuration
 type LoggingConfig struct {
+	Enabled    bool   `json:"enabled"`
 	Level      string `json:"level"`
 	Format     string `json:"format"` // json, text
 	Output     string `json:"output"` // stdout, file
@@ -133,6 +139,34 @@ type LoggingConfig struct {
 	MaxBackups int    `json:"max_backups"`
 	MaxAge     int    `json:"max_age"` // days
 	Compress   bool   `json:"compress"`
+}
+
+// HealthCheckConfig holds health check configuration
+type HealthCheckConfig struct {
+	Enabled  bool   `json:"enabled"`
+	Port     int    `json:"port"`
+	Endpoint string `json:"endpoint"`
+}
+
+// ProfilingConfig holds profiling configuration
+type ProfilingConfig struct {
+	Enabled bool `json:"enabled"`
+	Port    int  `json:"port"`
+}
+
+// ObservabilityAlertingConfig holds alerting configuration for observability
+type ObservabilityAlertingConfig struct {
+	Enabled         bool   `json:"enabled"`
+	WebhookURL      string `json:"webhook_url"`
+	EmailEnabled    bool   `json:"email_enabled"`
+	SlackEnabled    bool   `json:"slack_enabled"`
+	SlackWebhookURL string `json:"slack_webhook_url"`
+}
+
+// DashboardConfig holds dashboard configuration
+type DashboardConfig struct {
+	Enabled bool `json:"enabled"`
+	Port    int  `json:"port"`
 }
 
 // AIConfig holds AI service configuration

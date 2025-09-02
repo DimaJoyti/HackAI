@@ -24,7 +24,7 @@ func (s *Service) syncUserToDatabase(ctx context.Context, firebaseUser *auth.Use
 		DisplayName:       firebaseUser.DisplayName,
 		PhoneNumber:       firebaseUser.PhoneNumber,
 		EmailVerified:     firebaseUser.EmailVerified,
-		Role:              req.Role,
+		Role:              domain.UserRole(req.Role),
 		Organization:      req.Organization,
 		Status:            domain.UserStatusActive,
 		TwoFactorEnabled:  false, // Will be updated based on Firebase MFA status
@@ -81,7 +81,7 @@ func (s *Service) syncUpdatedUserToDatabase(ctx context.Context, firebaseUser *a
 		user.LastName = *req.LastName
 	}
 	if req.Role != nil {
-		user.Role = *req.Role
+		user.Role = domain.UserRole(*req.Role)
 	}
 	if req.Organization != nil {
 		user.Organization = *req.Organization
@@ -157,7 +157,7 @@ func (s *Service) SyncFirebaseUserToDatabase(ctx context.Context, firebaseUID st
 	}
 
 	// Check if user already exists in database
-	existingUser, err := s.userRepo.GetByFirebaseUID(firebaseUID)
+	_, err = s.userRepo.GetByFirebaseUID(firebaseUID)
 	if err == nil {
 		// User exists, update it
 		req := &UpdateUserRequest{
@@ -338,7 +338,7 @@ func (s *Service) GetUserWithFirebaseData(ctx context.Context, userID uuid.UUID)
 		Username:     user.Username,
 		FirstName:    user.FirstName,
 		LastName:     user.LastName,
-		Role:         user.Role,
+		Role:         string(user.Role),
 		Organization: user.Organization,
 		CreatedAt:    user.CreatedAt.Unix(),
 	}

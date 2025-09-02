@@ -101,7 +101,7 @@ func loadObservabilityConfig() *config.ObservabilityConfig {
 			Enabled: getBoolEnv("PROFILING_ENABLED", true),
 			Port:    getEnvInt("PROFILING_PORT", 8093),
 		},
-		Alerting: config.ObservabilityAlertingConfig{
+		Alerting: config.ObservabilityAlertingConfig {
 			Enabled:         getBoolEnv("ALERTING_ENABLED", true),
 			WebhookURL:      getEnv("ALERT_WEBHOOK_URL", ""),
 			EmailEnabled:    getBoolEnv("EMAIL_ALERTS_ENABLED", false),

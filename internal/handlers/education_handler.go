@@ -94,12 +94,10 @@ func (h *EducationHandler) ListCourses(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get courses from platform
-	courses, err := h.platform.ListCourses(ctx, &education.CourseFilter{
-		Category: category,
-		Level:    level,
-		Search:   search,
-		Limit:    limit,
-		Offset:   offset,
+	courses, err := h.platform.ListCourses(ctx, education.CourseFilter{
+		Category:    category,
+		Level:       level,
+		SearchQuery: search,
 	})
 	if err != nil {
 		h.logger.WithError(err).Error("Failed to list courses")
@@ -146,7 +144,7 @@ func (h *EducationHandler) EnrollCourse(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	enrollment, err := h.platform.EnrollUser(ctx, userID, courseID)
+	err := h.platform.EnrollUser(ctx, userID, courseID)
 	if err != nil {
 		h.logger.WithError(err).WithFields(map[string]interface{}{
 			"user_id":   userID,
@@ -158,7 +156,11 @@ func (h *EducationHandler) EnrollCourse(w http.ResponseWriter, r *http.Request) 
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(enrollment)
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"message":   "Successfully enrolled in course",
+		"user_id":   userID,
+		"course_id": courseID,
+	})
 }
 
 // StartLearningSession handles POST /api/education/sessions
@@ -393,7 +395,7 @@ func (h *EducationHandler) ListLabs(w http.ResponseWriter, r *http.Request) {
 	difficulty := r.URL.Query().Get("difficulty")
 	labType := r.URL.Query().Get("type")
 
-	labs, err := h.platform.ListLabs(ctx, &education.LabFilter{
+	labs, err := h.platform.ListLabs(ctx, education.LabFilter{
 		Difficulty: difficulty,
 		Type:       labType,
 	})
@@ -451,7 +453,8 @@ func (h *EducationHandler) SubmitLabWork(w http.ResponseWriter, r *http.Request)
 	sessionID := vars["sessionId"]
 
 	var submission struct {
-		Work     map[string]interface{} `json:"work"`
+		StepID   string                 `json:"step_id"`
+		Content  map[string]interface{} `json:"content"`
 		Comments string                 `json:"comments"`
 	}
 
@@ -460,7 +463,15 @@ func (h *EducationHandler) SubmitLabWork(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	result, err := h.platform.SubmitLabWork(ctx, sessionID, submission.Work, submission.Comments)
+	// Add comments to content if provided
+	if submission.Comments != "" {
+		if submission.Content == nil {
+			submission.Content = make(map[string]interface{})
+		}
+		submission.Content["comments"] = submission.Comments
+	}
+
+	result, err := h.platform.SubmitLabWork(ctx, sessionID, submission.StepID, submission.Content)
 	if err != nil {
 		h.logger.WithError(err).WithField("session_id", sessionID).Error("Failed to submit lab work")
 		http.Error(w, "Failed to submit lab work", http.StatusInternalServerError)
@@ -477,7 +488,7 @@ func (h *EducationHandler) CompleteLab(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	sessionID := vars["sessionId"]
 
-	result, err := h.platform.CompleteLab(ctx, sessionID)
+	err := h.platform.CompleteLab(ctx, sessionID)
 	if err != nil {
 		h.logger.WithError(err).WithField("session_id", sessionID).Error("Failed to complete lab")
 		http.Error(w, "Failed to complete lab", http.StatusInternalServerError)
@@ -485,7 +496,10 @@ func (h *EducationHandler) CompleteLab(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(result)
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"message":    "Lab completed successfully",
+		"session_id": sessionID,
+	})
 }
 
 // CompleteLearningSession handles POST /api/education/sessions/{id}/complete
@@ -513,28 +527,13 @@ func (h *EducationHandler) ListAssessments(w http.ResponseWriter, r *http.Reques
 	difficulty := r.URL.Query().Get("difficulty")
 	category := r.URL.Query().Get("category")
 
-	limitStr := r.URL.Query().Get("limit")
-	limit := 20 // default
-	if limitStr != "" {
-		if l, err := strconv.Atoi(limitStr); err == nil && l > 0 {
-			limit = l
-		}
-	}
+	search := r.URL.Query().Get("search")
 
-	offsetStr := r.URL.Query().Get("offset")
-	offset := 0 // default
-	if offsetStr != "" {
-		if o, err := strconv.Atoi(offsetStr); err == nil && o >= 0 {
-			offset = o
-		}
-	}
-
-	filter := &education.AssessmentFilter{
-		Type:       assessmentType,
-		Difficulty: difficulty,
-		Category:   category,
-		Limit:      limit,
-		Offset:     offset,
+	filter := education.AssessmentFilter{
+		Type:        assessmentType,
+		Difficulty:  difficulty,
+		Category:    category,
+		SearchQuery: search,
 	}
 
 	assessments, err := h.platform.ListAssessments(ctx, filter)
@@ -601,20 +600,20 @@ func (h *EducationHandler) SubmitAssessmentResponse(w http.ResponseWriter, r *ht
 		return
 	}
 
-	// Create QuestionResponse object
-	response := &education.QuestionResponse{
-		QuestionID: requestData.QuestionID,
-		Response:   requestData.Answer,
+	// Create responses map
+	responses := map[string]interface{}{
+		requestData.QuestionID: requestData.Answer,
 	}
 
-	err := h.platform.SubmitAssessmentResponse(ctx, attemptID, response)
+	result, err := h.platform.SubmitAssessmentResponse(ctx, attemptID, responses)
 	if err != nil {
 		h.logger.WithError(err).Error("Failed to submit assessment response")
 		http.Error(w, "Failed to submit response", http.StatusInternalServerError)
 		return
 	}
 
-	w.WriteHeader(http.StatusNoContent)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(result)
 }
 
 // CompleteAssessment handles POST /api/education/assessments/attempts/{attemptId}/complete
@@ -636,10 +635,11 @@ func (h *EducationHandler) CompleteAssessment(w http.ResponseWriter, r *http.Req
 
 // GetUserProgress handles GET /api/education/progress/{userId}
 func (h *EducationHandler) GetUserProgress(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	vars := mux.Vars(r)
 	userID := vars["userId"]
 
-	progress, err := h.platform.GetUserProgress(userID)
+	progress, err := h.platform.GetUserProgress(ctx, userID)
 	if err != nil {
 		h.logger.WithError(err).Error("Failed to get user progress")
 		http.Error(w, "Failed to get progress", http.StatusInternalServerError)
@@ -652,10 +652,11 @@ func (h *EducationHandler) GetUserProgress(w http.ResponseWriter, r *http.Reques
 
 // GetUserAchievements handles GET /api/education/progress/{userId}/achievements
 func (h *EducationHandler) GetUserAchievements(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	vars := mux.Vars(r)
 	userID := vars["userId"]
 
-	achievements, err := h.platform.GetUserAchievements(userID)
+	achievements, err := h.platform.GetUserAchievements(ctx, userID)
 	if err != nil {
 		h.logger.WithError(err).Error("Failed to get user achievements")
 		http.Error(w, "Failed to get achievements", http.StatusInternalServerError)
@@ -671,10 +672,11 @@ func (h *EducationHandler) GetUserAchievements(w http.ResponseWriter, r *http.Re
 
 // GetUserCertificates handles GET /api/education/progress/{userId}/certificates
 func (h *EducationHandler) GetUserCertificates(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	vars := mux.Vars(r)
 	userID := vars["userId"]
 
-	certificates, err := h.platform.GetUserCertificates(userID)
+	certificates, err := h.platform.GetUserCertificates(ctx, userID)
 	if err != nil {
 		h.logger.WithError(err).Error("Failed to get user certificates")
 		http.Error(w, "Failed to get certificates", http.StatusInternalServerError)
@@ -690,10 +692,11 @@ func (h *EducationHandler) GetUserCertificates(w http.ResponseWriter, r *http.Re
 
 // GetRecommendations handles GET /api/education/progress/{userId}/recommendations
 func (h *EducationHandler) GetRecommendations(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	vars := mux.Vars(r)
 	userID := vars["userId"]
 
-	recommendations, err := h.platform.GetRecommendations(userID)
+	recommendations, err := h.platform.GetRecommendations(ctx, userID)
 	if err != nil {
 		h.logger.WithError(err).Error("Failed to get recommendations")
 		http.Error(w, "Failed to get recommendations", http.StatusInternalServerError)
@@ -709,10 +712,11 @@ func (h *EducationHandler) GetRecommendations(w http.ResponseWriter, r *http.Req
 
 // GetUserAnalytics handles GET /api/education/analytics/{userId}
 func (h *EducationHandler) GetUserAnalytics(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	vars := mux.Vars(r)
 	userID := vars["userId"]
 
-	analytics, err := h.platform.GetUserAnalytics(userID)
+	analytics, err := h.platform.GetUserAnalytics(ctx, userID)
 	if err != nil {
 		h.logger.WithError(err).Error("Failed to get user analytics")
 		http.Error(w, "Failed to get analytics", http.StatusInternalServerError)

@@ -198,7 +198,7 @@ func (h *HybridAuthService) authenticateWithCredentials(ctx context.Context, req
 		User:         userResponse,
 		AccessToken:  authResp.AccessToken,
 		RefreshToken: authResp.RefreshToken,
-		ExpiresIn:    authResp.ExpiresIn,
+		ExpiresIn:    3600, // 1 hour default
 		TokenType:    "Bearer",
 	}
 

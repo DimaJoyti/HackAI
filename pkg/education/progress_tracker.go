@@ -264,3 +264,46 @@ func (pt *ProgressTracker) calculateCompletionRate(courseProgress *CourseProgres
 
 	return total / float64(len(courseProgress.ModuleProgress))
 }
+
+// EnrollUser enrolls a user in a course
+func (pt *ProgressTracker) EnrollUser(ctx context.Context, userID, courseID string) error {
+	pt.mu.Lock()
+	defer pt.mu.Unlock()
+
+	// Get or create user progress
+	progress, exists := pt.userProgress[userID]
+	if !exists {
+		progress = &UserProgress{
+			UserID:         userID,
+			CourseProgress: make(map[string]*CourseProgress),
+			CreatedAt:      time.Now(),
+			UpdatedAt:      time.Now(),
+		}
+		pt.userProgress[userID] = progress
+	}
+
+	// Check if already enrolled
+	if _, enrolled := progress.CourseProgress[courseID]; enrolled {
+		return nil // Already enrolled
+	}
+
+	// Create course progress entry
+	courseProgress := &CourseProgress{
+		CourseID:       courseID,
+		ModuleProgress: make(map[string]float64),
+		CompletionRate: 0.0,
+		TimeSpent:      0,
+		Score:          0.0,
+		Status:         "not_started",
+		StartedAt:      time.Now(),
+	}
+
+	progress.CourseProgress[courseID] = courseProgress
+	progress.UpdatedAt = time.Now()
+
+	pt.logger.Info("User enrolled in course",
+		"user_id", userID,
+		"course_id", courseID)
+
+	return nil
+}

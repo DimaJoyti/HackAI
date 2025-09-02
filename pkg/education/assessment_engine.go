@@ -354,8 +354,8 @@ func (ae *AssessmentEngine) StartAssessment(ctx context.Context, assessmentID, u
 	return attempt, nil
 }
 
-// SubmitResponse submits a response to a question
-func (ae *AssessmentEngine) SubmitResponse(attemptID, questionID string, response interface{}) (*QuestionResponse, error) {
+// submitSingleResponse submits a response to a question (internal method)
+func (ae *AssessmentEngine) submitSingleResponse(attemptID, questionID string, response interface{}) (*QuestionResponse, error) {
 	ae.mu.Lock()
 	defer ae.mu.Unlock()
 
@@ -620,6 +620,115 @@ func (ae *AssessmentEngine) generateAnalytics(attempt *AssessmentAttempt) *Attem
 	}
 
 	return analytics
+}
+
+// ListAssessments lists assessments with optional filtering
+func (ae *AssessmentEngine) ListAssessments(ctx context.Context, filter AssessmentFilter) ([]*Assessment, error) {
+	ae.mu.RLock()
+	defer ae.mu.RUnlock()
+
+	var assessments []*Assessment
+	for _, assessment := range ae.assessments {
+		// Apply filters
+		if filter.Type != "" && assessment.Type != filter.Type {
+			continue
+		}
+		if filter.Difficulty != "" && assessment.Difficulty != filter.Difficulty {
+			continue
+		}
+		if filter.Category != "" && assessment.Category != filter.Category {
+			continue
+		}
+		if filter.SearchQuery != "" {
+			// Simple search in title and description
+			if !containsIgnoreCase(assessment.Title, filter.SearchQuery) &&
+			   !containsIgnoreCase(assessment.Description, filter.SearchQuery) {
+				continue
+			}
+		}
+		assessments = append(assessments, assessment)
+	}
+
+	return assessments, nil
+}
+
+// GetAssessment retrieves a specific assessment by ID
+func (ae *AssessmentEngine) GetAssessment(ctx context.Context, assessmentID string) (*Assessment, error) {
+	ae.mu.RLock()
+	defer ae.mu.RUnlock()
+
+	assessment, exists := ae.assessments[assessmentID]
+	if !exists {
+		return nil, fmt.Errorf("assessment not found: %s", assessmentID)
+	}
+
+	return assessment, nil
+}
+
+// GetAssessmentAttempt retrieves an assessment attempt by ID
+func (ae *AssessmentEngine) GetAssessmentAttempt(ctx context.Context, attemptID string) (*AssessmentAttempt, error) {
+	ae.mu.RLock()
+	defer ae.mu.RUnlock()
+
+	attempt, exists := ae.attempts[attemptID]
+	if !exists {
+		return nil, fmt.Errorf("assessment attempt not found: %s", attemptID)
+	}
+
+	return attempt, nil
+}
+
+// SubmitResponse submits responses for an assessment attempt (updated signature)
+func (ae *AssessmentEngine) SubmitResponse(ctx context.Context, attemptID string, responses map[string]interface{}) (*AssessmentResult, error) {
+	ae.mu.Lock()
+	defer ae.mu.Unlock()
+
+	attempt, exists := ae.attempts[attemptID]
+	if !exists {
+		return nil, fmt.Errorf("assessment attempt not found: %s", attemptID)
+	}
+
+	if attempt.Status != "in_progress" {
+		return nil, fmt.Errorf("assessment attempt is not in progress")
+	}
+
+	// Process each response
+	for questionID, response := range responses {
+		_, err := ae.submitSingleResponse(attemptID, questionID, response)
+		if err != nil {
+			return nil, fmt.Errorf("failed to submit response for question %s: %w", questionID, err)
+		}
+	}
+
+	// Complete the attempt
+	completedAttempt, err := ae.FinishAssessment(attempt.ID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to complete assessment: %w", err)
+	}
+
+	// Create assessment result
+	result := &AssessmentResult{
+		AttemptID:   completedAttempt.ID,
+		Score:       completedAttempt.Score,
+		MaxScore:    completedAttempt.MaxScore,
+		Percentage:  completedAttempt.Percentage,
+		Passed:      completedAttempt.Passed,
+		Feedback:    completedAttempt.Feedback,
+		CompletedAt: *completedAttempt.EndTime,
+	}
+
+	return result, nil
+}
+
+// AssessmentResult represents the result of an assessment
+type AssessmentResult struct {
+	AttemptID   string              `json:"attempt_id"`
+	Score       float64             `json:"score"`
+	MaxScore    float64             `json:"max_score"`
+	Percentage  float64             `json:"percentage"`
+	Passed      bool                `json:"passed"`
+	Feedback    *AssessmentFeedback `json:"feedback"`
+	CompletedAt time.Time           `json:"completed_at"`
 }
 
 // calculateCalibrationScore calculates confidence calibration score

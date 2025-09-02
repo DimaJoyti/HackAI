@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"os/signal"
@@ -22,32 +21,24 @@ import (
 
 func main() {
 	// Initialize logger
-	loggerInstance := logger.New(logger.Config{
+	loggerInstance, err := logger.New(logger.Config{
 		Level:  "info",
 		Format: "json",
 	})
+	if err != nil {
+		panic(fmt.Sprintf("Failed to initialize logger: %v", err))
+	}
 
 	loggerInstance.Info("Starting Firebase Auth Service")
 
 	// Load configuration
-	cfg, err := config.Load("configs/config.yaml")
+	cfg, err := config.Load()
 	if err != nil {
 		loggerInstance.WithError(err).Fatal("Failed to load configuration")
 	}
 
 	// Initialize database
-	db, err := database.New(&database.Config{
-		Host:            cfg.Database.Host,
-		Port:            cfg.Database.Port,
-		Name:            cfg.Database.Name,
-		User:            cfg.Database.User,
-		Password:        cfg.Database.Password,
-		SSLMode:         cfg.Database.SSLMode,
-		MaxOpenConns:    cfg.Database.MaxOpenConns,
-		MaxIdleConns:    cfg.Database.MaxIdleConns,
-		ConnMaxLifetime: cfg.Database.ConnMaxLifetime,
-		ConnMaxIdleTime: cfg.Database.ConnMaxIdleTime,
-	})
+	db, err := database.New(&cfg.Database, loggerInstance)
 	if err != nil {
 		loggerInstance.WithError(err).Fatal("Failed to initialize database")
 	}
