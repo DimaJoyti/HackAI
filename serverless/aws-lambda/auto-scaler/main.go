@@ -14,42 +14,42 @@ import (
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/applicationautoscaling"
 	"github.com/aws/aws-sdk-go-v2/service/cloudwatch"
-	"github.com/aws/aws-sdk-go-v2/service/eks"
 	"github.com/aws/aws-sdk-go-v2/service/ecs"
+	"github.com/aws/aws-sdk-go-v2/service/eks"
 )
 
 // AutoScalerEvent represents the event structure for auto-scaling
 type AutoScalerEvent struct {
-	Source      string                 `json:"source"`
-	DetailType  string                 `json:"detail-type"`
-	Detail      map[string]interface{} `json:"detail"`
-	Function    string                 `json:"function"`
-	CloudProvider string               `json:"cloud_provider"`
-	ClusterName string                 `json:"cluster_name"`
-	ServiceName string                 `json:"service_name"`
-	MetricType  string                 `json:"metric_type"`
-	Threshold   float64                `json:"threshold"`
-	Action      string                 `json:"action"` // scale_up, scale_down, optimize
+	Source        string                 `json:"source"`
+	DetailType    string                 `json:"detail-type"`
+	Detail        map[string]interface{} `json:"detail"`
+	Function      string                 `json:"function"`
+	CloudProvider string                 `json:"cloud_provider"`
+	ClusterName   string                 `json:"cluster_name"`
+	ServiceName   string                 `json:"service_name"`
+	MetricType    string                 `json:"metric_type"`
+	Threshold     float64                `json:"threshold"`
+	Action        string                 `json:"action"` // scale_up, scale_down, optimize
 }
 
 // AutoScalerResponse represents the response from auto-scaling operations
 type AutoScalerResponse struct {
-	Success     bool                   `json:"success"`
-	Message     string                 `json:"message"`
-	Action      string                 `json:"action"`
-	Details     map[string]interface{} `json:"details"`
-	Timestamp   time.Time              `json:"timestamp"`
-	Cost        float64                `json:"estimated_cost_impact"`
+	Success   bool                   `json:"success"`
+	Message   string                 `json:"message"`
+	Action    string                 `json:"action"`
+	Details   map[string]interface{} `json:"details"`
+	Timestamp time.Time              `json:"timestamp"`
+	Cost      float64                `json:"estimated_cost_impact"`
 }
 
 // AutoScaler handles multi-cloud auto-scaling operations
 type AutoScaler struct {
-	cloudWatchClient    *cloudwatch.Client
-	autoScalingClient   *applicationautoscaling.Client
-	eksClient          *eks.Client
-	ecsClient          *ecs.Client
-	region             string
-	environment        string
+	cloudWatchClient  *cloudwatch.Client
+	autoScalingClient *applicationautoscaling.Client
+	eksClient         *eks.Client
+	ecsClient         *ecs.Client
+	region            string
+	environment       string
 }
 
 // NewAutoScaler creates a new AutoScaler instance
@@ -62,10 +62,10 @@ func NewAutoScaler(ctx context.Context) (*AutoScaler, error) {
 	return &AutoScaler{
 		cloudWatchClient:  cloudwatch.NewFromConfig(cfg),
 		autoScalingClient: applicationautoscaling.NewFromConfig(cfg),
-		eksClient:        eks.NewFromConfig(cfg),
-		ecsClient:        ecs.NewFromConfig(cfg),
-		region:           os.Getenv("AWS_REGION"),
-		environment:      os.Getenv("ENVIRONMENT"),
+		eksClient:         eks.NewFromConfig(cfg),
+		ecsClient:         ecs.NewFromConfig(cfg),
+		region:            os.Getenv("AWS_REGION"),
+		environment:       os.Getenv("ENVIRONMENT"),
 	}, nil
 }
 
@@ -132,7 +132,7 @@ func (as *AutoScaler) scaleUp(ctx context.Context, event AutoScalerEvent) (AutoS
 	}
 
 	response.Success = true
-	response.Message = fmt.Sprintf("Successfully scaled up %s from %d to %d replicas", 
+	response.Message = fmt.Sprintf("Successfully scaled up %s from %d to %d replicas",
 		event.ServiceName, currentReplicas, targetReplicas)
 	response.Details["previous_replicas"] = currentReplicas
 	response.Details["new_replicas"] = targetReplicas
@@ -163,7 +163,7 @@ func (as *AutoScaler) scaleDown(ctx context.Context, event AutoScalerEvent) (Aut
 	}
 
 	currentReplicas := metrics["current_replicas"].(int)
-	
+
 	// Ensure minimum replicas
 	minReplicas := 1
 	if env := os.Getenv("MIN_REPLICAS"); env != "" {
@@ -192,7 +192,7 @@ func (as *AutoScaler) scaleDown(ctx context.Context, event AutoScalerEvent) (Aut
 	}
 
 	response.Success = true
-	response.Message = fmt.Sprintf("Successfully scaled down %s from %d to %d replicas", 
+	response.Message = fmt.Sprintf("Successfully scaled down %s from %d to %d replicas",
 		event.ServiceName, currentReplicas, targetReplicas)
 	response.Details["previous_replicas"] = currentReplicas
 	response.Details["new_replicas"] = targetReplicas
@@ -224,7 +224,7 @@ func (as *AutoScaler) optimize(ctx context.Context, event AutoScalerEvent) (Auto
 
 	// Analyze and optimize
 	optimizations := as.analyzeOptimizations(metrics)
-	
+
 	response.Success = true
 	response.Message = "Resource optimization analysis completed"
 	response.Details = optimizations
@@ -242,23 +242,23 @@ func (as *AutoScaler) getCurrentMetrics(ctx context.Context, clusterName, servic
 	// Implementation for getting current metrics from CloudWatch
 	// This is a simplified version - in production, you'd query actual metrics
 	return map[string]interface{}{
-		"current_replicas": 3,
-		"cpu_utilization": 75.0,
+		"current_replicas":   3,
+		"cpu_utilization":    75.0,
 		"memory_utilization": 60.0,
-		"request_rate": 100.0,
+		"request_rate":       100.0,
 	}, nil
 }
 
 func (as *AutoScaler) getComprehensiveMetrics(ctx context.Context, clusterName, serviceName string) (map[string]interface{}, error) {
 	// Implementation for getting comprehensive metrics
 	return map[string]interface{}{
-		"current_replicas": 3,
-		"cpu_utilization": 75.0,
+		"current_replicas":   3,
+		"cpu_utilization":    75.0,
 		"memory_utilization": 60.0,
-		"request_rate": 100.0,
-		"response_time": 200.0,
-		"error_rate": 0.1,
-		"cost_per_hour": 5.0,
+		"request_rate":       100.0,
+		"response_time":      200.0,
+		"error_rate":         0.1,
+		"cost_per_hour":      5.0,
 	}, nil
 }
 
@@ -284,10 +284,10 @@ func (as *AutoScaler) calculateCostImpact(currentReplicas, targetReplicas int) f
 
 func (as *AutoScaler) analyzeOptimizations(metrics map[string]interface{}) map[string]interface{} {
 	return map[string]interface{}{
-		"cpu_optimization": "Consider using smaller instance types",
+		"cpu_optimization":    "Consider using smaller instance types",
 		"memory_optimization": "Memory usage is optimal",
-		"cost_optimization": "Switch to spot instances for 60% savings",
-		"estimated_savings": 50.0,
+		"cost_optimization":   "Switch to spot instances for 60% savings",
+		"estimated_savings":   50.0,
 	}
 }
 

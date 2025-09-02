@@ -215,7 +215,7 @@ func TestChainImplementations(t *testing.T) {
 // TestRequestProcessor tests the request processing pipeline
 func TestRequestProcessor(t *testing.T) {
 	// TODO: Request processor tests are temporarily disabled
-	// due to interface changes in the providers package  
+	// due to interface changes in the providers package
 	t.Skip("Request processor tests temporarily disabled - provider interface changes needed")
 }
 
@@ -262,8 +262,8 @@ func (m *MockProvider) Generate(ctx context.Context, request providers.Generatio
 	}
 
 	return providers.GenerationResponse{
-		Content:      response,
-		Model:        m.model.Name,
+		Content: response,
+		Model:   m.model.Name,
 		TokensUsed: providers.TokenUsage{
 			PromptTokens:     10,
 			CompletionTokens: 20,

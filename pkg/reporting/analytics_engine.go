@@ -24,16 +24,16 @@ type AnalyticsEngine struct {
 
 // AnalyticsConfig configuration for analytics engine
 type AnalyticsConfig struct {
-	EnableScheduling     bool          `json:"enable_scheduling"`
-	DefaultRetention     time.Duration `json:"default_retention"`
-	MaxReports           int           `json:"max_reports"`
-	MaxDataPoints        int           `json:"max_data_points"`
-	EnableRealTimeAnalysis bool        `json:"enable_real_time_analysis"`
-	AnalysisInterval     time.Duration `json:"analysis_interval"`
-	EnablePredictive     bool          `json:"enable_predictive"`
-	EnableAnomalyDetection bool        `json:"enable_anomaly_detection"`
-	ExportFormats        []string      `json:"export_formats"`
-	NotificationChannels []string      `json:"notification_channels"`
+	EnableScheduling       bool          `json:"enable_scheduling"`
+	DefaultRetention       time.Duration `json:"default_retention"`
+	MaxReports             int           `json:"max_reports"`
+	MaxDataPoints          int           `json:"max_data_points"`
+	EnableRealTimeAnalysis bool          `json:"enable_real_time_analysis"`
+	AnalysisInterval       time.Duration `json:"analysis_interval"`
+	EnablePredictive       bool          `json:"enable_predictive"`
+	EnableAnomalyDetection bool          `json:"enable_anomaly_detection"`
+	ExportFormats          []string      `json:"export_formats"`
+	NotificationChannels   []string      `json:"notification_channels"`
 }
 
 // ReportManager manages report generation and storage
@@ -47,11 +47,11 @@ type ReportManager struct {
 
 // ReportConfig configuration for report manager
 type ReportConfig struct {
-	MaxReports       int           `json:"max_reports"`
-	DefaultFormat    string        `json:"default_format"`
-	RetentionPeriod  time.Duration `json:"retention_period"`
-	EnableVersioning bool          `json:"enable_versioning"`
-	EnableCompression bool         `json:"enable_compression"`
+	MaxReports        int           `json:"max_reports"`
+	DefaultFormat     string        `json:"default_format"`
+	RetentionPeriod   time.Duration `json:"retention_period"`
+	EnableVersioning  bool          `json:"enable_versioning"`
+	EnableCompression bool          `json:"enable_compression"`
 }
 
 // Report represents a generated report
@@ -77,26 +77,26 @@ type Report struct {
 
 // ReportData contains the actual report data
 type ReportData struct {
-	Summary     *ReportSummary         `json:"summary"`
-	Sections    []*ReportSection       `json:"sections"`
-	Charts      []*ReportChart         `json:"charts"`
-	Tables      []*ReportTable         `json:"tables"`
-	Insights    []*ReportInsight       `json:"insights"`
+	Summary         *ReportSummary          `json:"summary"`
+	Sections        []*ReportSection        `json:"sections"`
+	Charts          []*ReportChart          `json:"charts"`
+	Tables          []*ReportTable          `json:"tables"`
+	Insights        []*ReportInsight        `json:"insights"`
 	Recommendations []*ReportRecommendation `json:"recommendations"`
-	Appendices  []*ReportAppendix      `json:"appendices"`
-	RawData     map[string]interface{} `json:"raw_data"`
+	Appendices      []*ReportAppendix       `json:"appendices"`
+	RawData         map[string]interface{}  `json:"raw_data"`
 }
 
 // ReportMetadata contains report metadata
 type ReportMetadata struct {
-	GenerationTime  time.Duration          `json:"generation_time"`
-	DataSources     []string               `json:"data_sources"`
-	TimeRange       *TimeRange             `json:"time_range"`
-	Filters         map[string]interface{} `json:"filters"`
-	Parameters      map[string]interface{} `json:"parameters"`
-	Quality         *DataQuality           `json:"quality"`
-	Compliance      *ComplianceInfo        `json:"compliance"`
-	Security        *SecurityInfo          `json:"security"`
+	GenerationTime time.Duration          `json:"generation_time"`
+	DataSources    []string               `json:"data_sources"`
+	TimeRange      *TimeRange             `json:"time_range"`
+	Filters        map[string]interface{} `json:"filters"`
+	Parameters     map[string]interface{} `json:"parameters"`
+	Quality        *DataQuality           `json:"quality"`
+	Compliance     *ComplianceInfo        `json:"compliance"`
+	Security       *SecurityInfo          `json:"security"`
 }
 
 // ReportTemplate defines report structure
@@ -121,27 +121,27 @@ type ReportTemplate struct {
 
 // ReportSummary provides executive summary
 type ReportSummary struct {
-	Title           string                 `json:"title"`
-	ExecutiveSummary string                `json:"executive_summary"`
-	KeyFindings     []string               `json:"key_findings"`
-	KeyMetrics      map[string]interface{} `json:"key_metrics"`
-	TrendAnalysis   *TrendAnalysis         `json:"trend_analysis"`
-	RiskAssessment  *RiskAssessment        `json:"risk_assessment"`
-	Recommendations []string               `json:"recommendations"`
-	NextSteps       []string               `json:"next_steps"`
+	Title            string                 `json:"title"`
+	ExecutiveSummary string                 `json:"executive_summary"`
+	KeyFindings      []string               `json:"key_findings"`
+	KeyMetrics       map[string]interface{} `json:"key_metrics"`
+	TrendAnalysis    *TrendAnalysis         `json:"trend_analysis"`
+	RiskAssessment   *RiskAssessment        `json:"risk_assessment"`
+	Recommendations  []string               `json:"recommendations"`
+	NextSteps        []string               `json:"next_steps"`
 }
 
 // ReportSection represents a report section
 type ReportSection struct {
-	ID          string                 `json:"id"`
-	Title       string                 `json:"title"`
-	Content     string                 `json:"content"`
-	Type        string                 `json:"type"`
-	Order       int                    `json:"order"`
-	Data        interface{}            `json:"data"`
-	Charts      []*ReportChart         `json:"charts"`
-	Tables      []*ReportTable         `json:"tables"`
-	Metadata    map[string]interface{} `json:"metadata"`
+	ID       string                 `json:"id"`
+	Title    string                 `json:"title"`
+	Content  string                 `json:"content"`
+	Type     string                 `json:"type"`
+	Order    int                    `json:"order"`
+	Data     interface{}            `json:"data"`
+	Charts   []*ReportChart         `json:"charts"`
+	Tables   []*ReportTable         `json:"tables"`
+	Metadata map[string]interface{} `json:"metadata"`
 }
 
 // ReportChart represents a chart in the report
@@ -182,27 +182,27 @@ type ReportInsight struct {
 
 // ReportRecommendation represents a recommendation
 type ReportRecommendation struct {
-	ID          string                 `json:"id"`
-	Title       string                 `json:"title"`
-	Description string                 `json:"description"`
-	Priority    string                 `json:"priority"`
-	Category    string                 `json:"category"`
-	Impact      string                 `json:"impact"`
-	Effort      string                 `json:"effort"`
-	Timeline    string                 `json:"timeline"`
-	Resources   []string               `json:"resources"`
-	Dependencies []string              `json:"dependencies"`
-	Metadata    map[string]interface{} `json:"metadata"`
+	ID           string                 `json:"id"`
+	Title        string                 `json:"title"`
+	Description  string                 `json:"description"`
+	Priority     string                 `json:"priority"`
+	Category     string                 `json:"category"`
+	Impact       string                 `json:"impact"`
+	Effort       string                 `json:"effort"`
+	Timeline     string                 `json:"timeline"`
+	Resources    []string               `json:"resources"`
+	Dependencies []string               `json:"dependencies"`
+	Metadata     map[string]interface{} `json:"metadata"`
 }
 
 // ReportAppendix represents an appendix
 type ReportAppendix struct {
-	ID          string                 `json:"id"`
-	Title       string                 `json:"title"`
-	Content     string                 `json:"content"`
-	Type        string                 `json:"type"`
-	Data        interface{}            `json:"data"`
-	Metadata    map[string]interface{} `json:"metadata"`
+	ID       string                 `json:"id"`
+	Title    string                 `json:"title"`
+	Content  string                 `json:"content"`
+	Type     string                 `json:"type"`
+	Data     interface{}            `json:"data"`
+	Metadata map[string]interface{} `json:"metadata"`
 }
 
 // TimeRange represents a time range
@@ -241,19 +241,19 @@ type SecurityInfo struct {
 
 // TrendAnalysis represents trend analysis
 type TrendAnalysis struct {
-	Period      string             `json:"period"`
-	Trends      []*Trend           `json:"trends"`
-	Predictions []*Prediction      `json:"predictions"`
-	Seasonality *SeasonalityInfo   `json:"seasonality"`
-	Anomalies   []*AnomalyInfo     `json:"anomalies"`
+	Period      string           `json:"period"`
+	Trends      []*Trend         `json:"trends"`
+	Predictions []*Prediction    `json:"predictions"`
+	Seasonality *SeasonalityInfo `json:"seasonality"`
+	Anomalies   []*AnomalyInfo   `json:"anomalies"`
 }
 
 // Trend represents a trend
 type Trend struct {
-	Metric    string  `json:"metric"`
-	Direction string  `json:"direction"`
-	Change    float64 `json:"change"`
-	Period    string  `json:"period"`
+	Metric     string  `json:"metric"`
+	Direction  string  `json:"direction"`
+	Change     float64 `json:"change"`
+	Period     string  `json:"period"`
 	Confidence float64 `json:"confidence"`
 }
 
@@ -307,12 +307,12 @@ type RiskFactor struct {
 
 // MitigationStrategy represents a mitigation strategy
 type MitigationStrategy struct {
-	Name        string   `json:"name"`
-	Description string   `json:"description"`
-	Priority    string   `json:"priority"`
-	Timeline    string   `json:"timeline"`
-	Resources   []string `json:"resources"`
-	Effectiveness float64 `json:"effectiveness"`
+	Name          string   `json:"name"`
+	Description   string   `json:"description"`
+	Priority      string   `json:"priority"`
+	Timeline      string   `json:"timeline"`
+	Resources     []string `json:"resources"`
+	Effectiveness float64  `json:"effectiveness"`
 }
 
 // Interfaces
@@ -374,16 +374,16 @@ func DefaultAnalyticsConfig() *AnalyticsConfig {
 func (ae *AnalyticsEngine) Start(ctx context.Context) error {
 	ae.mu.Lock()
 	defer ae.mu.Unlock()
-	
+
 	if ae.isRunning {
 		return fmt.Errorf("analytics engine is already running")
 	}
-	
+
 	// Start the report manager
 	if err := ae.reportManager.Start(ctx); err != nil {
 		return fmt.Errorf("failed to start report manager: %w", err)
 	}
-	
+
 	ae.isRunning = true
 	ae.logger.Info("Analytics engine started")
 	return nil
@@ -393,12 +393,12 @@ func (ae *AnalyticsEngine) Start(ctx context.Context) error {
 func (ae *AnalyticsEngine) Stop(ctx context.Context) error {
 	ae.mu.Lock()
 	defer ae.mu.Unlock()
-	
+
 	if !ae.isRunning {
 		// Already stopped, no error
 		return nil
 	}
-	
+
 	ae.isRunning = false
 	ae.logger.Info("Analytics engine stopped")
 	return nil
@@ -408,7 +408,7 @@ func (ae *AnalyticsEngine) Stop(ctx context.Context) error {
 func (ae *AnalyticsEngine) RegisterDataCollector(name string, collector DataCollector) {
 	ae.mu.Lock()
 	defer ae.mu.Unlock()
-	
+
 	ae.dataCollectors[name] = collector
 	ae.logger.Info("Registered data collector", "name", name)
 }
@@ -417,11 +417,11 @@ func (ae *AnalyticsEngine) RegisterDataCollector(name string, collector DataColl
 func (ae *AnalyticsEngine) GenerateReport(ctx context.Context, templateID string, params map[string]interface{}) (*Report, error) {
 	ae.mu.RLock()
 	defer ae.mu.RUnlock()
-	
+
 	if !ae.isRunning {
 		return nil, fmt.Errorf("analytics engine is not running")
 	}
-	
+
 	return ae.reportManager.GenerateReport(ctx, templateID, params)
 }
 
@@ -429,7 +429,7 @@ func (ae *AnalyticsEngine) GenerateReport(ctx context.Context, templateID string
 func (ae *AnalyticsEngine) RegisterDataProcessor(name string, processor DataProcessor) {
 	ae.mu.Lock()
 	defer ae.mu.Unlock()
-	
+
 	ae.processors[name] = processor
 	ae.logger.Info("Registered data processor", "name", name)
 }
@@ -438,7 +438,7 @@ func (ae *AnalyticsEngine) RegisterDataProcessor(name string, processor DataProc
 func (ae *AnalyticsEngine) RegisterReportExporter(name string, exporter ReportExporter) {
 	ae.mu.Lock()
 	defer ae.mu.Unlock()
-	
+
 	ae.exporters[name] = exporter
 	ae.logger.Info("Registered report exporter", "name", name)
 }
@@ -447,16 +447,16 @@ func (ae *AnalyticsEngine) RegisterReportExporter(name string, exporter ReportEx
 func (ae *AnalyticsEngine) ExportReport(ctx context.Context, reportID string, format string) ([]byte, error) {
 	ae.mu.RLock()
 	defer ae.mu.RUnlock()
-	
+
 	if !ae.isRunning {
 		return nil, fmt.Errorf("analytics engine is not running")
 	}
-	
+
 	report, err := ae.reportManager.GetReport(reportID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get report: %w", err)
 	}
-	
+
 	// Try to use registered exporters first
 	for _, exporter := range ae.exporters {
 		formats := exporter.GetSupportedFormats()
@@ -466,12 +466,12 @@ func (ae *AnalyticsEngine) ExportReport(ctx context.Context, reportID string, fo
 			}
 		}
 	}
-	
+
 	// Fallback to simple JSON export
 	if format == "json" {
-		return []byte(fmt.Sprintf(`{"id":"%s","status":"%s","template_id":"%s"}`, 
+		return []byte(fmt.Sprintf(`{"id":"%s","status":"%s","template_id":"%s"}`,
 			report.ID, report.Status, report.TemplateID)), nil
 	}
-	
+
 	return nil, fmt.Errorf("unsupported format: %s", format)
 }

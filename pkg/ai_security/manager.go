@@ -40,11 +40,11 @@ func NewDefaultSecurityManager(config SecurityConfig, logger *logger.Logger) *De
 func (sm *DefaultSecurityManager) initializeDetectors() {
 	// Create mock detectors for demo
 	mockDetector := &MockDetector{logger: sm.logger}
-	
+
 	sm.detectors[AttackTypePromptInjection] = mockDetector
 	sm.detectors[AttackTypeJailbreak] = mockDetector
 	sm.detectors[AttackTypeToxicContent] = mockDetector
-	
+
 	sm.logger.Info("Security detectors initialized", "detector_count", len(sm.detectors))
 }
 
@@ -73,7 +73,7 @@ func (sm *DefaultSecurityManager) AnalyzeInput(ctx context.Context, input string
 			sm.logger.Warn("Detector failed", "attack_type", string(attackType), "error", err)
 			continue
 		}
-		
+
 		// Override the attack type to match the detector
 		detection.Type = attackType
 		detections = append(detections, detection)
@@ -139,7 +139,7 @@ func (sm *DefaultSecurityManager) ProcessRequest(ctx context.Context, input stri
 				result.Allowed = false
 				result.Actions = append(result.Actions, "blocked")
 			}
-			
+
 			// Add other actions based on threat level
 			if detection.Level >= ThreatLevelHigh {
 				result.Actions = append(result.Actions, "alert")
@@ -202,7 +202,7 @@ func (md *MockDetector) Detect(ctx context.Context, input string, secCtx Securit
 
 	// Simple heuristic detection for demo
 	inputLower := strings.ToLower(input)
-	
+
 	// Check for prompt injection patterns
 	if strings.Contains(inputLower, "ignore") && strings.Contains(inputLower, "instruction") {
 		detection.Detected = true
@@ -211,7 +211,7 @@ func (md *MockDetector) Detect(ctx context.Context, input string, secCtx Securit
 		detection.Reason = "Potential prompt injection detected"
 		detection.Indicators = []string{"ignore_instruction_pattern"}
 	}
-	
+
 	// Check for jailbreak patterns
 	if strings.Contains(inputLower, "jailbreak") || strings.Contains(inputLower, "developer mode") || strings.Contains(inputLower, "dan") {
 		detection.Detected = true
@@ -220,7 +220,7 @@ func (md *MockDetector) Detect(ctx context.Context, input string, secCtx Securit
 		detection.Reason = "Jailbreak attempt detected"
 		detection.Indicators = []string{"jailbreak_pattern"}
 	}
-	
+
 	// Check for toxic content patterns
 	if strings.Contains(inputLower, "hate") || strings.Contains(inputLower, "hurt") || strings.Contains(inputLower, "weapon") {
 		detection.Detected = true

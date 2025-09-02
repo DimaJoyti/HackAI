@@ -54,10 +54,10 @@ type MonitoringConfig struct {
 type DashboardData struct {
 	Overview        *SecurityOverview `json:"overview"`
 	ThreatAnalysis  *ThreatAnalysis   `json:"threat_analysis"`
-	ComponentStatus *ComponentStatus  `json:"component_status"`
+	ComponentStatus *MonitoringComponentStatus  `json:"component_status"`
 	PerformanceData *PerformanceData  `json:"performance_data"`
 	RecentEvents    []*SecurityEvent  `json:"recent_events"`
-	AlertSummary    *AlertSummary     `json:"alert_summary"`
+	AlertSummary    *MonitoringAlertSummary     `json:"alert_summary"`
 	TrendData       *TrendData        `json:"trend_data"`
 	LastUpdated     time.Time         `json:"last_updated"`
 }
@@ -81,11 +81,11 @@ type ThreatAnalysis struct {
 	ThreatsBySource   map[string]int64 `json:"threats_by_source"`
 	RiskDistribution  map[string]int64 `json:"risk_distribution"`
 	TopThreats        []*ThreatSummary `json:"top_threats"`
-	ThreatTrends      []*ThreatTrend   `json:"threat_trends"`
+	ThreatTrends      []*MonitoringThreatTrend   `json:"threat_trends"`
 }
 
-// ComponentStatus status of security components
-type ComponentStatus struct {
+// MonitoringComponentStatus status of security components for monitoring
+type MonitoringComponentStatus struct {
 	Components          []*ComponentHealth `json:"components"`
 	OverallHealth       string             `json:"overall_health"`
 	HealthyComponents   int                `json:"healthy_components"`
@@ -103,8 +103,8 @@ type PerformanceData struct {
 	ResourceUtilization   *ResourceUtilization `json:"resource_utilization"`
 }
 
-// AlertSummary summary of alerts
-type AlertSummary struct {
+// MonitoringAlertSummary summary of alerts for monitoring
+type MonitoringAlertSummary struct {
 	ActiveAlerts     int64            `json:"active_alerts"`
 	AlertsByChannel  map[string]int64 `json:"alerts_by_channel"`
 	AlertsBySeverity map[string]int64 `json:"alerts_by_severity"`
@@ -130,7 +130,7 @@ type ThreatSummary struct {
 	TrendChange float64   `json:"trend_change"`
 }
 
-type ThreatTrend struct {
+type MonitoringThreatTrend struct {
 	Type       string       `json:"type"`
 	DataPoints []*DataPoint `json:"data_points"`
 }
@@ -193,10 +193,10 @@ func NewSecurityMonitor(metricsCollector *SecurityMetricsCollector, alertManager
 		dashboardData: &DashboardData{
 			Overview:        &SecurityOverview{},
 			ThreatAnalysis:  &ThreatAnalysis{},
-			ComponentStatus: &ComponentStatus{},
+			ComponentStatus: &MonitoringComponentStatus{},
 			PerformanceData: &PerformanceData{},
 			RecentEvents:    make([]*SecurityEvent, 0),
-			AlertSummary:    &AlertSummary{},
+			AlertSummary:    &MonitoringAlertSummary{},
 			TrendData:       &TrendData{},
 		},
 	}
@@ -397,12 +397,12 @@ func (sm *SecurityMonitor) calculateTopThreats(metrics *SecurityMetrics) []*Thre
 }
 
 // calculateThreatTrends calculates threat trends over time
-func (sm *SecurityMonitor) calculateThreatTrends(metrics *SecurityMetrics) []*ThreatTrend {
-	trends := make([]*ThreatTrend, 0, len(metrics.ThreatsByType))
+func (sm *SecurityMonitor) calculateThreatTrends(metrics *SecurityMetrics) []*MonitoringThreatTrend {
+	trends := make([]*MonitoringThreatTrend, 0, len(metrics.ThreatsByType))
 
 	for threatType := range metrics.ThreatsByType {
 		// In a real implementation, this would use historical data
-		trend := &ThreatTrend{
+		trend := &MonitoringThreatTrend{
 			Type:       threatType,
 			DataPoints: sm.generateSampleTrendData(threatType),
 		}
@@ -413,7 +413,7 @@ func (sm *SecurityMonitor) calculateThreatTrends(metrics *SecurityMetrics) []*Th
 }
 
 // buildComponentStatus builds component status information
-func (sm *SecurityMonitor) buildComponentStatus(componentMetrics map[string]*ComponentMetrics) *ComponentStatus {
+func (sm *SecurityMonitor) buildComponentStatus(componentMetrics map[string]*ComponentMetrics) *MonitoringComponentStatus {
 	components := make([]*ComponentHealth, 0, len(componentMetrics))
 	healthyCount := 0
 
@@ -453,7 +453,7 @@ func (sm *SecurityMonitor) buildComponentStatus(componentMetrics map[string]*Com
 		}
 	}
 
-	return &ComponentStatus{
+	return &MonitoringComponentStatus{
 		Components:          components,
 		OverallHealth:       overallHealth,
 		HealthyComponents:   healthyCount,
@@ -504,9 +504,9 @@ func (sm *SecurityMonitor) generateSampleTrendData(threatType string) []*DataPoi
 	return points
 }
 
-func (sm *SecurityMonitor) buildAlertSummary() *AlertSummary {
+func (sm *SecurityMonitor) buildAlertSummary() *MonitoringAlertSummary {
 	// This would integrate with the actual alert manager
-	return &AlertSummary{
+	return &MonitoringAlertSummary{
 		ActiveAlerts:     0,
 		AlertsByChannel:  make(map[string]int64),
 		AlertsBySeverity: make(map[string]int64),
@@ -767,7 +767,7 @@ func (sm *SecurityMonitor) GetThreatAnalysis() *ThreatAnalysis {
 }
 
 // GetComponentStatus returns component status
-func (sm *SecurityMonitor) GetComponentStatus() *ComponentStatus {
+func (sm *SecurityMonitor) GetComponentStatus() *MonitoringComponentStatus {
 	sm.dataMutex.RLock()
 	defer sm.dataMutex.RUnlock()
 

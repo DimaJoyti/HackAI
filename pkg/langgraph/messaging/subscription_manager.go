@@ -249,7 +249,7 @@ func (sm *SubscriptionManager) Publish(ctx context.Context, message *TopicMessag
 func (sm *SubscriptionManager) deliverToSubscriber(ctx context.Context, message *TopicMessage, subscriberID string) error {
 	// Find subscriber's subscriptions for this topic
 	subscriptions := sm.getSubscriberSubscriptions(subscriberID, message.TopicID)
-	
+
 	for _, subscription := range subscriptions {
 		// Apply filters
 		if sm.config.EnableFiltering && !sm.applySubscriptionFilters(message, subscription.Filters) {
@@ -297,10 +297,10 @@ func (sm *SubscriptionManager) deliverMessage(ctx context.Context, message *Agen
 	sm.logger.Debug("Delivering message to subscriber",
 		"message_id", message.ID,
 		"subscriber_id", message.To[0])
-	
+
 	// Simulate network delay
 	time.Sleep(5 * time.Millisecond)
-	
+
 	return nil
 }
 

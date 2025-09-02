@@ -80,7 +80,7 @@ func (rbac *RBACManager) compareValues(actual interface{}, operator string, expe
 // isWithinTimeWindow checks if current time is within the specified time window
 func (rbac *RBACManager) isWithinTimeWindow(window *TimeWindow) bool {
 	now := time.Now()
-	
+
 	// Check day of week
 	currentDay := now.Weekday().String()
 	dayAllowed := false
@@ -112,29 +112,29 @@ func (rbac *RBACManager) isIPAllowed(allowedIPs []string, clientIP string) bool 
 // getUserPermissions gets all permissions for a user (direct + role-based)
 func (rbac *RBACManager) getUserPermissions(user *User) []string {
 	permissions := make([]string, 0)
-	
+
 	// Add direct permissions
 	permissions = append(permissions, user.Permissions...)
-	
+
 	// Add role-based permissions
 	for _, roleID := range user.Roles {
 		if role, exists := rbac.roles[roleID]; exists && role.IsActive {
 			permissions = append(permissions, role.Permissions...)
-			
+
 			// Add parent role permissions if hierarchy is enabled
 			if rbac.config.EnableRoleHierarchy {
 				permissions = append(permissions, rbac.getParentRolePermissions(role)...)
 			}
 		}
 	}
-	
+
 	return rbac.deduplicatePermissions(permissions)
 }
 
 // getParentRolePermissions recursively gets permissions from parent roles
 func (rbac *RBACManager) getParentRolePermissions(role *Role) []string {
 	permissions := make([]string, 0)
-	
+
 	for _, parentRoleID := range role.ParentRoles {
 		if parentRole, exists := rbac.roles[parentRoleID]; exists && parentRole.IsActive {
 			permissions = append(permissions, parentRole.Permissions...)
@@ -142,7 +142,7 @@ func (rbac *RBACManager) getParentRolePermissions(role *Role) []string {
 			permissions = append(permissions, rbac.getParentRolePermissions(parentRole)...)
 		}
 	}
-	
+
 	return permissions
 }
 
@@ -150,14 +150,14 @@ func (rbac *RBACManager) getParentRolePermissions(role *Role) []string {
 func (rbac *RBACManager) deduplicatePermissions(permissions []string) []string {
 	seen := make(map[string]bool)
 	result := make([]string, 0)
-	
+
 	for _, perm := range permissions {
 		if !seen[perm] {
 			seen[perm] = true
 			result = append(result, perm)
 		}
 	}
-	
+
 	return result
 }
 
@@ -178,10 +178,10 @@ func (rbac *RBACManager) auditAccess(request *AccessRequest, result *AccessResul
 		UserAgent: request.UserAgent,
 		Timestamp: time.Now(),
 		Details: map[string]interface{}{
-			"reason":     result.Reason,
-			"policy_id":  result.PolicyID,
-			"rule_id":    result.RuleID,
-			"context":    request.Context,
+			"reason":    result.Reason,
+			"policy_id": result.PolicyID,
+			"rule_id":   result.RuleID,
+			"context":   request.Context,
 		},
 	}
 
@@ -373,8 +373,8 @@ func (rbac *RBACManager) initializeDefaults() {
 		rbac.CreatePolicy(policy)
 	}
 
-	rbac.logger.Info("Default RBAC entities initialized", 
-		"permissions", len(defaultPermissions), 
+	rbac.logger.Info("Default RBAC entities initialized",
+		"permissions", len(defaultPermissions),
 		"roles", len(defaultRoles),
 		"policies", len(defaultPolicies))
 }

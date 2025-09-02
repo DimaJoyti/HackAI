@@ -362,7 +362,7 @@ func (tsv *TestSuiteValidator) validateSuiteConstraints(suite *TestSuite) error 
 	if suite.Category != "" {
 		for _, test := range suite.Tests {
 			if test.Category != suite.Category {
-				return fmt.Errorf("test %s category (%s) doesn't match suite category (%s)", 
+				return fmt.Errorf("test %s category (%s) doesn't match suite category (%s)",
 					test.Name, test.Category, suite.Category)
 			}
 		}
@@ -549,7 +549,7 @@ func (cv *ComprehensiveValidator) validateCrossSuite(suites []*TestSuite) error 
 			for _, dep := range test.Dependencies {
 				if depSuiteID, exists := allTestIDs[dep]; exists {
 					if depSuiteID != suite.ID {
-						return fmt.Errorf("test %s in suite %s depends on test %s in different suite %s", 
+						return fmt.Errorf("test %s in suite %s depends on test %s in different suite %s",
 							test.ID, suite.ID, dep, depSuiteID)
 					}
 				}

@@ -10,7 +10,7 @@ func NewCircuitBreaker(failureThreshold int, resetTimeout time.Duration) *Circui
 	return &CircuitBreaker{
 		failureThreshold: failureThreshold,
 		resetTimeout:     resetTimeout,
-		state:           CircuitClosed,
+		state:            CircuitClosed,
 	}
 }
 
@@ -97,7 +97,7 @@ func (cb *CircuitBreaker) GetFailures() int {
 func (cb *CircuitBreaker) Reset() {
 	cb.mutex.Lock()
 	defer cb.mutex.Unlock()
-	
+
 	cb.state = CircuitClosed
 	cb.failures = 0
 }
@@ -264,18 +264,18 @@ func (cbs CircuitBreakerStats) TimeUntilReset() time.Duration {
 // AdvancedCircuitBreaker extends the basic circuit breaker with additional features
 type AdvancedCircuitBreaker struct {
 	*CircuitBreaker
-	
+
 	// Advanced features
-	successThreshold int           // Number of successes needed in half-open state
-	successCount     int           // Current success count in half-open state
-	maxRequests      int           // Maximum requests allowed in half-open state
-	requestCount     int           // Current request count in half-open state
-	
+	successThreshold int // Number of successes needed in half-open state
+	successCount     int // Current success count in half-open state
+	maxRequests      int // Maximum requests allowed in half-open state
+	requestCount     int // Current request count in half-open state
+
 	// Metrics
-	totalRequests    int64
-	totalSuccesses   int64
-	totalFailures    int64
-	
+	totalRequests  int64
+	totalSuccesses int64
+	totalFailures  int64
+
 	mutex sync.RWMutex
 }
 
@@ -370,15 +370,15 @@ func (acb *AdvancedCircuitBreaker) GetMetrics() AdvancedCircuitBreakerMetrics {
 	defer acb.mutex.RUnlock()
 
 	return AdvancedCircuitBreakerMetrics{
-		State:            acb.state,
-		TotalRequests:    acb.totalRequests,
-		TotalSuccesses:   acb.totalSuccesses,
-		TotalFailures:    acb.totalFailures,
-		CurrentFailures:  acb.failures,
-		SuccessCount:     acb.successCount,
-		RequestCount:     acb.requestCount,
-		SuccessRate:      float64(acb.totalSuccesses) / float64(acb.totalRequests),
-		FailureRate:      float64(acb.totalFailures) / float64(acb.totalRequests),
+		State:           acb.state,
+		TotalRequests:   acb.totalRequests,
+		TotalSuccesses:  acb.totalSuccesses,
+		TotalFailures:   acb.totalFailures,
+		CurrentFailures: acb.failures,
+		SuccessCount:    acb.successCount,
+		RequestCount:    acb.requestCount,
+		SuccessRate:     float64(acb.totalSuccesses) / float64(acb.totalRequests),
+		FailureRate:     float64(acb.totalFailures) / float64(acb.totalRequests),
 	}
 }
 

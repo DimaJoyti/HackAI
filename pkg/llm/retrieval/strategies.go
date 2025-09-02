@@ -119,7 +119,7 @@ func (ks *KeywordStrategy) Retrieve(ctx context.Context, query RetrievalQuery) (
 
 	// For now, this is a simplified implementation
 	// In a real system, you would use a proper text search engine
-	
+
 	// Extract keywords from text if not provided
 	keywords := query.Keywords
 	if len(keywords) == 0 && query.Text != "" {
@@ -173,7 +173,7 @@ func (fs *FuzzyStrategy) Retrieve(ctx context.Context, query RetrievalQuery) (*R
 
 	// This is a simplified fuzzy search implementation
 	// In practice, you would use proper fuzzy matching algorithms
-	
+
 	documents := []ScoredDocument{}
 
 	return &RetrievalResult{
@@ -205,11 +205,11 @@ func (sr *SimpleReranker) Rerank(ctx context.Context, query string, documents []
 
 	// Simple re-ranking based on content relevance
 	queryWords := strings.Fields(strings.ToLower(query))
-	
+
 	for i := range documents {
 		contentWords := strings.Fields(strings.ToLower(documents[i].Content))
 		relevanceScore := calculateRelevanceScore(queryWords, contentWords)
-		
+
 		// Combine with existing score
 		documents[i].SemanticScore = relevanceScore
 		documents[i].FinalScore = (documents[i].FinalScore + relevanceScore) / 2.0
@@ -236,7 +236,7 @@ func (sr *SimpleReranker) Rerank(ctx context.Context, query string, documents []
 func extractKeywords(text string) []string {
 	// Simple keyword extraction - split by spaces and filter
 	words := strings.Fields(strings.ToLower(text))
-	
+
 	// Filter out common stop words
 	stopWords := map[string]bool{
 		"the": true, "a": true, "an": true, "and": true, "or": true,
@@ -246,7 +246,7 @@ func extractKeywords(text string) []string {
 		"have": true, "has": true, "had": true, "do": true, "does": true,
 		"did": true, "will": true, "would": true, "could": true, "should": true,
 	}
-	
+
 	var keywords []string
 	for _, word := range words {
 		// Remove punctuation and check length
@@ -255,7 +255,7 @@ func extractKeywords(text string) []string {
 			keywords = append(keywords, word)
 		}
 	}
-	
+
 	return keywords
 }
 

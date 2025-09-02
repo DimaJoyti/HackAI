@@ -289,10 +289,10 @@ func (ce *ConsensusEngine) getDefaultConsensusRule(consensusType ConsensusType) 
 // finalizeConsensus finalizes a consensus process
 func (ce *ConsensusEngine) finalizeConsensus(ctx context.Context, proposalID string) error {
 	activeConsensus := ce.activeConsensus[proposalID]
-	
+
 	// Calculate result
 	result := ce.calculateConsensusResult(activeConsensus)
-	
+
 	// Update consensus
 	activeConsensus.Status = ConsensusStatusCompleted
 	activeConsensus.Result = result
@@ -311,7 +311,7 @@ func (ce *ConsensusEngine) finalizeConsensus(ctx context.Context, proposalID str
 func (ce *ConsensusEngine) calculateConsensusResult(activeConsensus *ActiveConsensus) *ConsensusResult {
 	votes := activeConsensus.Votes
 	voteCount := make(map[VoteDecision]int)
-	
+
 	for _, vote := range votes {
 		voteCount[vote.Decision]++
 	}

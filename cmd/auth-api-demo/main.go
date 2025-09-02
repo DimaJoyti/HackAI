@@ -49,14 +49,14 @@ type TokenValidationResponse struct {
 
 // AuthStats represents authentication statistics
 type AuthStats struct {
-	TotalLogins       int64  `json:"total_logins"`
-	ActiveSessions    int64  `json:"active_sessions"`
-	FailedAttempts    int64  `json:"failed_attempts"`
-	TOTPEnabledUsers  int64  `json:"totp_enabled_users"`
-	Last24HLogins     int64  `json:"last_24h_logins"`
-	SecurityEvents    int64  `json:"security_events"`
-	Uptime            string `json:"uptime"`
-	Status            string `json:"status"`
+	TotalLogins      int64  `json:"total_logins"`
+	ActiveSessions   int64  `json:"active_sessions"`
+	FailedAttempts   int64  `json:"failed_attempts"`
+	TOTPEnabledUsers int64  `json:"totp_enabled_users"`
+	Last24HLogins    int64  `json:"last_24h_logins"`
+	SecurityEvents   int64  `json:"security_events"`
+	Uptime           string `json:"uptime"`
+	Status           string `json:"status"`
 }
 
 func main() {
@@ -85,7 +85,7 @@ func main() {
 	// Test health endpoint first
 	fmt.Println("🏥 Testing Health Endpoint")
 	fmt.Println("==========================")
-	
+
 	healthResp, err := http.Get(authURL + "/health")
 	if err != nil {
 		fmt.Printf("❌ Health check failed: %v\n", err)
@@ -187,7 +187,7 @@ func main() {
 			fmt.Printf("   👤 User: %s (%s)\n", response.User.Username, response.User.Role)
 			fmt.Printf("   🎫 Session ID: %s\n", response.SessionID)
 			fmt.Printf("   ⏰ Expires: %s\n", response.ExpiresAt.Format(time.RFC3339))
-			
+
 			if scenario.expectError {
 				fmt.Printf("   ⚠️  Expected failure but authentication succeeded\n")
 			} else {
@@ -227,7 +227,7 @@ func main() {
 		// Test protected endpoint
 		fmt.Println("\n🔒 Testing Protected Endpoint")
 		fmt.Println("==============================")
-		
+
 		err = testProtectedEndpoint(authURL+"/api/v1/auth/profile", validToken, log)
 		if err != nil {
 			fmt.Printf("❌ Protected endpoint test failed: %v\n", err)

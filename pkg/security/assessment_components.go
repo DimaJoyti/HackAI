@@ -271,23 +271,23 @@ func (ra *RiskAnalyzer) calculateLikelihood(finding *SecurityFinding) float64 {
 	}
 }
 
-// mapCategoryToRiskCategory maps finding category to RiskCategory
-func (ra *RiskAnalyzer) mapCategoryToRiskCategory(category string) RiskCategory {
+// mapCategoryToRiskCategory maps finding category to AutonomousRiskCategory
+func (ra *RiskAnalyzer) mapCategoryToRiskCategory(category string) AutonomousRiskCategory {
 	switch category {
 	case "injection", "authentication", "authorization", "cryptography":
-		return RiskCategoryTechnical
+		return AutonomousRiskCategoryTechnical
 	case "configuration", "deployment":
-		return RiskCategoryOperational
+		return AutonomousRiskCategoryOperational
 	case "monitoring", "logging":
-		return RiskCategoryDetection
+		return AutonomousRiskCategoryDetection
 	case "compliance", "privacy":
-		return RiskCategoryLegal
+		return AutonomousRiskCategoryLegal
 	case "reputation", "brand":
-		return RiskCategoryReputational
+		return AutonomousRiskCategoryReputational
 	case "financial", "business":
-		return RiskCategoryFinancial
+		return AutonomousRiskCategoryFinancial
 	default:
-		return RiskCategoryTechnical
+		return AutonomousRiskCategoryTechnical
 	}
 }
 

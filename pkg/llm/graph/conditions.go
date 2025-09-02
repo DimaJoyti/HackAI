@@ -99,8 +99,8 @@ func (c *FieldEqualsCondition) String() string {
 
 // FieldContainsCondition checks if a string field contains a substring
 type FieldContainsCondition struct {
-	fieldName string
-	substring string
+	fieldName       string
+	substring       string
 	caseInsensitive bool
 }
 
@@ -353,7 +353,7 @@ func (c *NotCondition) String() string {
 
 // CustomCondition allows for custom evaluation logic
 type CustomCondition struct {
-	name     string
+	name      string
 	evaluator func(ctx context.Context, state llm.GraphState) (bool, error)
 }
 

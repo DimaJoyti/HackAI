@@ -63,57 +63,57 @@ type Alert struct {
 	Metadata    map[string]interface{} `json:"metadata"`
 }
 
-// AlertRule represents an alerting rule
-type AlertRule struct {
-	ID          string                 `json:"id"`
-	Name        string                 `json:"name"`
-	Description string                 `json:"description"`
-	Query       string                 `json:"query"`
-	Condition   string                 `json:"condition"`
-	Threshold   float64                `json:"threshold"`
-	Duration    time.Duration          `json:"duration"`
-	Severity    AlertSeverity          `json:"severity"`
-	Enabled     bool                   `json:"enabled"`
-	Labels      map[string]string      `json:"labels"`
-	Annotations map[string]string      `json:"annotations"`
-	CreatedAt   time.Time              `json:"created_at"`
-	UpdatedAt   time.Time              `json:"updated_at"`
+// AlertRuleConfig represents an alerting rule configuration
+type AlertRuleConfig struct {
+	ID          string            `json:"id"`
+	Name        string            `json:"name"`
+	Description string            `json:"description"`
+	Query       string            `json:"query"`
+	Condition   string            `json:"condition"`
+	Threshold   float64           `json:"threshold"`
+	Duration    time.Duration     `json:"duration"`
+	Severity    AlertSeverity     `json:"severity"`
+	Enabled     bool              `json:"enabled"`
+	Labels      map[string]string `json:"labels"`
+	Annotations map[string]string `json:"annotations"`
+	CreatedAt   time.Time         `json:"created_at"`
+	UpdatedAt   time.Time         `json:"updated_at"`
 }
 
-// AlertManager manages system alerts and notifications
-type AlertManager struct {
-	config    *AlertManagerConfig
-	logger    *logger.Logger
-	provider  *Provider
-	
+// SystemAlertManager manages system alerts and notifications
+type SystemAlertManager struct {
+	config   *AlertManagerConfig
+	logger   *logger.Logger
+	provider *Provider
+
 	// Alert storage
-	alerts    map[string]*Alert
-	rules     map[string]*AlertRule
-	mu        sync.RWMutex
-	
+	alerts map[string]*Alert
+	rules  map[string]*AlertRuleConfig
+	mu     sync.RWMutex
+
 	// Background processing
-	ctx       context.Context
-	cancel    context.CancelFunc
-	wg        sync.WaitGroup
-	
+	ctx    context.Context
+	cancel context.CancelFunc
+	wg     sync.WaitGroup
+
 	// HTTP client for webhooks
 	httpClient *http.Client
 }
 
-// NewAlertManager creates a new alert manager
-func NewAlertManager(
+// NewSystemAlertManager creates a new system alert manager
+func NewSystemAlertManager(
 	config *AlertManagerConfig,
 	provider *Provider,
 	log *logger.Logger,
-) *AlertManager {
+) *SystemAlertManager {
 	ctx, cancel := context.WithCancel(context.Background())
-	
-	return &AlertManager{
+
+	return &SystemAlertManager{
 		config:     config,
 		logger:     log,
 		provider:   provider,
 		alerts:     make(map[string]*Alert),
-		rules:      make(map[string]*AlertRule),
+		rules:      make(map[string]*AlertRuleConfig),
 		ctx:        ctx,
 		cancel:     cancel,
 		httpClient: &http.Client{Timeout: 30 * time.Second},
@@ -121,42 +121,42 @@ func NewAlertManager(
 }
 
 // Start starts the alert manager
-func (am *AlertManager) Start(ctx context.Context) error {
+func (am *SystemAlertManager) Start(ctx context.Context) error {
 	if !am.config.Enabled {
 		am.logger.Info("Alert manager is disabled")
 		return nil
 	}
-	
+
 	am.logger.Info("Starting alert manager",
 		"evaluation_interval", am.config.EvaluationInterval,
 		"webhook_enabled", am.config.WebhookURL != "",
 		"email_enabled", am.config.EmailEnabled,
 		"slack_enabled", am.config.SlackEnabled,
 	)
-	
+
 	// Initialize default rules
 	am.initializeDefaultRules()
-	
+
 	// Start background workers
 	am.wg.Add(1)
 	go am.evaluateRules()
-	
+
 	return nil
 }
 
 // Stop stops the alert manager
-func (am *AlertManager) Stop() error {
+func (am *SystemAlertManager) Stop() error {
 	am.logger.Info("Stopping alert manager")
-	
+
 	am.cancel()
 	am.wg.Wait()
-	
+
 	return nil
 }
 
 // initializeDefaultRules initializes default alerting rules
-func (am *AlertManager) initializeDefaultRules() {
-	defaultRules := []*AlertRule{
+func (am *SystemAlertManager) initializeDefaultRules() {
+	defaultRules := []*AlertRuleConfig{
 		{
 			ID:          "high_error_rate",
 			Name:        "High Error Rate",
@@ -200,21 +200,21 @@ func (am *AlertManager) initializeDefaultRules() {
 			UpdatedAt:   time.Now(),
 		},
 	}
-	
+
 	for _, rule := range defaultRules {
 		am.rules[rule.ID] = rule
 	}
-	
+
 	am.logger.Info("Initialized default alert rules", "count", len(defaultRules))
 }
 
 // evaluateRules periodically evaluates alerting rules
-func (am *AlertManager) evaluateRules() {
+func (am *SystemAlertManager) evaluateRules() {
 	defer am.wg.Done()
-	
+
 	ticker := time.NewTicker(am.config.EvaluationInterval)
 	defer ticker.Stop()
-	
+
 	for {
 		select {
 		case <-am.ctx.Done():
@@ -226,30 +226,30 @@ func (am *AlertManager) evaluateRules() {
 }
 
 // evaluateAllRules evaluates all enabled alerting rules
-func (am *AlertManager) evaluateAllRules() {
+func (am *SystemAlertManager) evaluateAllRules() {
 	am.mu.RLock()
-	rules := make([]*AlertRule, 0, len(am.rules))
+	rules := make([]*AlertRuleConfig, 0, len(am.rules))
 	for _, rule := range am.rules {
 		if rule.Enabled {
 			rules = append(rules, rule)
 		}
 	}
 	am.mu.RUnlock()
-	
+
 	for _, rule := range rules {
 		am.evaluateRule(rule)
 	}
 }
 
 // evaluateRule evaluates a single alerting rule
-func (am *AlertManager) evaluateRule(rule *AlertRule) {
+func (am *SystemAlertManager) evaluateRule(rule *AlertRuleConfig) {
 	// Simplified rule evaluation - in production this would query actual metrics
 	shouldFire := am.checkRuleCondition(rule)
-	
+
 	am.mu.Lock()
 	existingAlert, exists := am.alerts[rule.ID]
 	am.mu.Unlock()
-	
+
 	if shouldFire && (!exists || existingAlert.Status == AlertStatusResolved) {
 		// Fire new alert
 		alert := &Alert{
@@ -266,27 +266,27 @@ func (am *AlertManager) evaluateRule(rule *AlertRule) {
 			Threshold:   rule.Threshold,
 			Metadata:    make(map[string]interface{}),
 		}
-		
+
 		am.mu.Lock()
 		am.alerts[rule.ID] = alert
 		am.mu.Unlock()
-		
+
 		am.sendAlert(alert)
-		
+
 		am.logger.Warn("Alert fired",
 			"alert_id", alert.ID,
 			"alert_name", alert.Name,
 			"severity", alert.Severity,
 		)
-		
+
 	} else if !shouldFire && exists && existingAlert.Status == AlertStatusFiring {
 		// Resolve existing alert
 		now := time.Now()
 		existingAlert.Status = AlertStatusResolved
 		existingAlert.ResolvedAt = &now
-		
+
 		am.sendAlert(existingAlert)
-		
+
 		am.logger.Info("Alert resolved",
 			"alert_id", existingAlert.ID,
 			"alert_name", existingAlert.Name,
@@ -295,10 +295,10 @@ func (am *AlertManager) evaluateRule(rule *AlertRule) {
 }
 
 // checkRuleCondition checks if a rule condition is met (simplified implementation)
-func (am *AlertManager) checkRuleCondition(rule *AlertRule) bool {
+func (am *SystemAlertManager) checkRuleCondition(rule *AlertRuleConfig) bool {
 	// This is a simplified implementation
 	// In production, this would query actual metrics from Prometheus or other sources
-	
+
 	switch rule.ID {
 	case "high_error_rate":
 		// Simulate error rate check
@@ -315,17 +315,17 @@ func (am *AlertManager) checkRuleCondition(rule *AlertRule) bool {
 }
 
 // sendAlert sends an alert through configured channels
-func (am *AlertManager) sendAlert(alert *Alert) {
+func (am *SystemAlertManager) sendAlert(alert *Alert) {
 	// Send webhook notification
 	if am.config.WebhookURL != "" {
 		go am.sendWebhookAlert(alert)
 	}
-	
+
 	// Send Slack notification
 	if am.config.SlackEnabled && am.config.SlackWebhookURL != "" {
 		go am.sendSlackAlert(alert)
 	}
-	
+
 	// Send email notification
 	if am.config.EmailEnabled {
 		go am.sendEmailAlert(alert)
@@ -333,13 +333,13 @@ func (am *AlertManager) sendAlert(alert *Alert) {
 }
 
 // sendWebhookAlert sends alert via webhook
-func (am *AlertManager) sendWebhookAlert(alert *Alert) {
+func (am *SystemAlertManager) sendWebhookAlert(alert *Alert) {
 	payload, err := json.Marshal(alert)
 	if err != nil {
 		am.logger.Error("Failed to marshal alert for webhook", "error", err)
 		return
 	}
-	
+
 	resp, err := am.httpClient.Post(
 		am.config.WebhookURL,
 		"application/json",
@@ -350,7 +350,7 @@ func (am *AlertManager) sendWebhookAlert(alert *Alert) {
 		return
 	}
 	defer resp.Body.Close()
-	
+
 	if resp.StatusCode >= 200 && resp.StatusCode < 300 {
 		am.logger.Debug("Webhook alert sent successfully", "alert_id", alert.ID)
 	} else {
@@ -359,9 +359,9 @@ func (am *AlertManager) sendWebhookAlert(alert *Alert) {
 }
 
 // sendSlackAlert sends alert to Slack
-func (am *AlertManager) sendSlackAlert(alert *Alert) {
+func (am *SystemAlertManager) sendSlackAlert(alert *Alert) {
 	color := am.getSlackColor(alert.Severity)
-	
+
 	slackPayload := map[string]interface{}{
 		"text": fmt.Sprintf("Alert: %s", alert.Name),
 		"attachments": []map[string]interface{}{
@@ -378,13 +378,13 @@ func (am *AlertManager) sendSlackAlert(alert *Alert) {
 			},
 		},
 	}
-	
+
 	payload, err := json.Marshal(slackPayload)
 	if err != nil {
 		am.logger.Error("Failed to marshal Slack alert", "error", err)
 		return
 	}
-	
+
 	resp, err := am.httpClient.Post(
 		am.config.SlackWebhookURL,
 		"application/json",
@@ -395,18 +395,18 @@ func (am *AlertManager) sendSlackAlert(alert *Alert) {
 		return
 	}
 	defer resp.Body.Close()
-	
+
 	am.logger.Debug("Slack alert sent", "alert_id", alert.ID)
 }
 
 // sendEmailAlert sends alert via email (placeholder implementation)
-func (am *AlertManager) sendEmailAlert(alert *Alert) {
+func (am *SystemAlertManager) sendEmailAlert(alert *Alert) {
 	// This would implement actual email sending using SMTP
 	am.logger.Info("Email alert would be sent", "alert_id", alert.ID, "recipients", am.config.EmailTo)
 }
 
 // getSlackColor returns appropriate color for Slack based on severity
-func (am *AlertManager) getSlackColor(severity AlertSeverity) string {
+func (am *SystemAlertManager) getSlackColor(severity AlertSeverity) string {
 	switch severity {
 	case AlertSeverityCritical:
 		return "danger"
@@ -420,36 +420,36 @@ func (am *AlertManager) getSlackColor(severity AlertSeverity) string {
 }
 
 // GetActiveAlerts returns all active alerts
-func (am *AlertManager) GetActiveAlerts() []*Alert {
+func (am *SystemAlertManager) GetActiveAlerts() []*Alert {
 	am.mu.RLock()
 	defer am.mu.RUnlock()
-	
+
 	alerts := make([]*Alert, 0)
 	for _, alert := range am.alerts {
 		if alert.Status == AlertStatusFiring {
 			alerts = append(alerts, alert)
 		}
 	}
-	
+
 	return alerts
 }
 
 // GetAlertHistory returns alert history
-func (am *AlertManager) GetAlertHistory(limit int) []*Alert {
+func (am *SystemAlertManager) GetAlertHistory(limit int) []*Alert {
 	am.mu.RLock()
 	defer am.mu.RUnlock()
-	
+
 	alerts := make([]*Alert, 0, len(am.alerts))
 	for _, alert := range am.alerts {
 		alerts = append(alerts, alert)
 	}
-	
+
 	// Sort by timestamp (most recent first)
 	// In production, this would be more efficient with proper indexing
-	
+
 	if limit > 0 && limit < len(alerts) {
 		alerts = alerts[:limit]
 	}
-	
+
 	return alerts
 }

@@ -50,7 +50,7 @@ func (mae *MemoryAnalyticsEngine) GetAnalytics(ctx context.Context, timeRange Ti
 func (mae *MemoryAnalyticsEngine) generateAnalytics(ctx context.Context, timeRange TimeRange) (*MemoryAnalytics, error) {
 	// This is a simplified implementation
 	// In a real system, you would query the memory manager for data within the time range
-	
+
 	analytics := &MemoryAnalytics{
 		TimeRange:           timeRange,
 		TotalSessions:       0,
@@ -74,7 +74,7 @@ func (mae *MemoryAnalyticsEngine) generateAnalytics(ctx context.Context, timeRan
 		TotalSize:        stats.AverageSize * stats.TotalMemories,
 		CompressedSize:   int64(float64(stats.AverageSize*stats.TotalMemories) * 0.7), // Estimated
 		CompressionRatio: 0.7,
-		IndexSize:        int64(float64(stats.AverageSize*stats.TotalMemories) * 0.1), // Estimated
+		IndexSize:        int64(float64(stats.AverageSize*stats.TotalMemories) * 0.1),  // Estimated
 		MetadataSize:     int64(float64(stats.AverageSize*stats.TotalMemories) * 0.05), // Estimated
 	}
 
@@ -134,7 +134,7 @@ func (mae *MemoryAnalyticsEngine) analyzeConversationFlow(messages []Message) []
 // analyzeTopics analyzes topics in the conversation
 func (mae *MemoryAnalyticsEngine) analyzeTopics(messages []Message) []Topic {
 	topicFreq := make(map[string]int)
-	
+
 	// Simple keyword-based topic extraction
 	for _, msg := range messages {
 		topics := mae.extractTopics(msg.Content)
@@ -316,7 +316,7 @@ func (mae *MemoryAnalyticsEngine) extractKeywords(topic string) []string {
 func (mae *MemoryAnalyticsEngine) calculateSentiment(content string) float64 {
 	// Simplified sentiment analysis
 	content = strings.ToLower(content)
-	
+
 	positiveWords := []string{"good", "great", "excellent", "amazing", "wonderful", "happy", "love", "like"}
 	negativeWords := []string{"bad", "terrible", "awful", "hate", "dislike", "sad", "angry", "frustrated"}
 

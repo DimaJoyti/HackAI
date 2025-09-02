@@ -24,47 +24,47 @@ type CommunicationHub struct {
 
 // CommunicationChannel represents a communication channel between agents
 type CommunicationChannel struct {
-	ID              string                 `json:"id"`
-	Name            string                 `json:"name"`
-	Type            ChannelType            `json:"type"`
-	Protocol        CommunicationProtocol  `json:"protocol"`
-	Participants    []string               `json:"participants"`
-	Status          ChannelStatus          `json:"status"`
-	Configuration   *ChannelConfig         `json:"configuration"`
-	MessageQueue    []*ChannicationMessage `json:"message_queue"`
-	Statistics      *ChannelStatistics     `json:"statistics"`
-	CreatedAt       time.Time              `json:"created_at"`
-	LastActivity    time.Time              `json:"last_activity"`
-	Metadata        map[string]interface{} `json:"metadata"`
-	mutex           sync.RWMutex
+	ID            string                 `json:"id"`
+	Name          string                 `json:"name"`
+	Type          ChannelType            `json:"type"`
+	Protocol      CommunicationProtocol  `json:"protocol"`
+	Participants  []string               `json:"participants"`
+	Status        ChannelStatus          `json:"status"`
+	Configuration *ChannelConfig         `json:"configuration"`
+	MessageQueue  []*ChannicationMessage `json:"message_queue"`
+	Statistics    *ChannelStatistics     `json:"statistics"`
+	CreatedAt     time.Time              `json:"created_at"`
+	LastActivity  time.Time              `json:"last_activity"`
+	Metadata      map[string]interface{} `json:"metadata"`
+	mutex         sync.RWMutex
 }
 
 // ChannelConfig holds configuration for a communication channel
 type ChannelConfig struct {
-	MaxMessageSize    int                    `json:"max_message_size"`
-	MessageRetention  time.Duration          `json:"message_retention"`
-	Encryption        bool                   `json:"encryption"`
-	Compression       bool                   `json:"compression"`
-	Reliability       ReliabilityLevel       `json:"reliability"`
-	Timeout           time.Duration          `json:"timeout"`
-	RetryPolicy       *RetryPolicy           `json:"retry_policy"`
-	RateLimit         *RateLimit             `json:"rate_limit"`
-	Filters           []MessageFilter        `json:"filters"`
-	Middleware        []string               `json:"middleware"`
-	Metadata          map[string]interface{} `json:"metadata"`
+	MaxMessageSize   int                    `json:"max_message_size"`
+	MessageRetention time.Duration          `json:"message_retention"`
+	Encryption       bool                   `json:"encryption"`
+	Compression      bool                   `json:"compression"`
+	Reliability      ReliabilityLevel       `json:"reliability"`
+	Timeout          time.Duration          `json:"timeout"`
+	RetryPolicy      *RetryPolicy           `json:"retry_policy"`
+	RateLimit        *RateLimit             `json:"rate_limit"`
+	Filters          []MessageFilter        `json:"filters"`
+	Middleware       []string               `json:"middleware"`
+	Metadata         map[string]interface{} `json:"metadata"`
 }
 
 // ChannelStatistics holds statistics for a communication channel
 type ChannelStatistics struct {
-	MessagesSent      int64         `json:"messages_sent"`
-	MessagesReceived  int64         `json:"messages_received"`
-	MessagesDropped   int64         `json:"messages_dropped"`
-	BytesSent         int64         `json:"bytes_sent"`
-	BytesReceived     int64         `json:"bytes_received"`
-	AverageLatency    time.Duration `json:"average_latency"`
-	ErrorCount        int64         `json:"error_count"`
-	LastMessageTime   time.Time     `json:"last_message_time"`
-	ThroughputPerSec  float64       `json:"throughput_per_sec"`
+	MessagesSent     int64         `json:"messages_sent"`
+	MessagesReceived int64         `json:"messages_received"`
+	MessagesDropped  int64         `json:"messages_dropped"`
+	BytesSent        int64         `json:"bytes_sent"`
+	BytesReceived    int64         `json:"bytes_received"`
+	AverageLatency   time.Duration `json:"average_latency"`
+	ErrorCount       int64         `json:"error_count"`
+	LastMessageTime  time.Time     `json:"last_message_time"`
+	ThroughputPerSec float64       `json:"throughput_per_sec"`
 }
 
 // ChannicationMessage represents a message in the communication system
@@ -89,12 +89,12 @@ type ChannicationMessage struct {
 
 // MessageFilter defines message filtering criteria
 type MessageFilter struct {
-	Type      FilterType             `json:"type"`
-	Field     string                 `json:"field"`
-	Operator  FilterOperator         `json:"operator"`
-	Value     interface{}            `json:"value"`
-	Action    FilterAction           `json:"action"`
-	Metadata  map[string]interface{} `json:"metadata"`
+	Type     FilterType             `json:"type"`
+	Field    string                 `json:"field"`
+	Operator FilterOperator         `json:"operator"`
+	Value    interface{}            `json:"value"`
+	Action   FilterAction           `json:"action"`
+	Metadata map[string]interface{} `json:"metadata"`
 }
 
 // RateLimit defines rate limiting for channels

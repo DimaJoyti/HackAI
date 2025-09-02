@@ -21,25 +21,25 @@ type StateMigrationEngine struct {
 
 // MigrationExecution represents an executed migration
 type MigrationExecution struct {
-	ID          string                 `json:"id"`
-	MigrationID string                 `json:"migration_id"`
-	Status      MigrationStatus        `json:"status"`
-	StartedAt   time.Time              `json:"started_at"`
-	CompletedAt *time.Time             `json:"completed_at,omitempty"`
-	Duration    time.Duration          `json:"duration"`
-	Error       string                 `json:"error,omitempty"`
-	AffectedKeys int                   `json:"affected_keys"`
-	Metadata    map[string]interface{} `json:"metadata"`
+	ID           string                 `json:"id"`
+	MigrationID  string                 `json:"migration_id"`
+	Status       MigrationStatus        `json:"status"`
+	StartedAt    time.Time              `json:"started_at"`
+	CompletedAt  *time.Time             `json:"completed_at,omitempty"`
+	Duration     time.Duration          `json:"duration"`
+	Error        string                 `json:"error,omitempty"`
+	AffectedKeys int                    `json:"affected_keys"`
+	Metadata     map[string]interface{} `json:"metadata"`
 }
 
 // MigrationStatus represents the status of a migration
 type MigrationStatus string
 
 const (
-	MigrationStatusPending   MigrationStatus = "pending"
-	MigrationStatusRunning   MigrationStatus = "running"
-	MigrationStatusCompleted MigrationStatus = "completed"
-	MigrationStatusFailed    MigrationStatus = "failed"
+	MigrationStatusPending    MigrationStatus = "pending"
+	MigrationStatusRunning    MigrationStatus = "running"
+	MigrationStatusCompleted  MigrationStatus = "completed"
+	MigrationStatusFailed     MigrationStatus = "failed"
 	MigrationStatusRolledBack MigrationStatus = "rolled_back"
 )
 
@@ -111,7 +111,7 @@ func (sme *StateMigrationEngine) ApplyMigration(ctx context.Context, migration S
 
 	// Apply the migration
 	affectedKeys, err := sme.executeMigration(ctx, &migration)
-	
+
 	execution.AffectedKeys = affectedKeys
 	execution.Duration = time.Since(execution.StartedAt)
 	now := time.Now()
@@ -120,12 +120,12 @@ func (sme *StateMigrationEngine) ApplyMigration(ctx context.Context, migration S
 	if err != nil {
 		execution.Status = MigrationStatusFailed
 		execution.Error = err.Error()
-		
+
 		sme.logger.Error("Migration failed",
 			"migration_id", migration.ID,
 			"execution_id", execution.ID,
 			"error", err)
-		
+
 		return fmt.Errorf("migration failed: %w", err)
 	}
 
@@ -250,7 +250,7 @@ func (sme *StateMigrationEngine) ValidateMigration(migration *StateMigration) er
 	// Check for version conflicts
 	for _, existingMigration := range sme.migrations {
 		if existingMigration.FromVersion == migration.FromVersion &&
-		   existingMigration.ToVersion == migration.ToVersion {
+			existingMigration.ToVersion == migration.ToVersion {
 			return fmt.Errorf("migration from %s to %s already exists",
 				migration.FromVersion, migration.ToVersion)
 		}
@@ -263,7 +263,7 @@ func (sme *StateMigrationEngine) ValidateMigration(migration *StateMigration) er
 func (sme *StateMigrationEngine) executeMigration(ctx context.Context, migration *StateMigration) (int, error) {
 	// This is a simplified implementation
 	// In production, implement proper script execution based on language
-	
+
 	affectedKeys := 0
 
 	// For demonstration, we'll simulate migration execution
@@ -287,12 +287,12 @@ func (sme *StateMigrationEngine) executeMigration(ctx context.Context, migration
 func (sme *StateMigrationEngine) executeAddFieldMigration(ctx context.Context, migration *StateMigration) int {
 	// Simulate adding a field to all matching entries
 	sme.logger.Debug("Executing add field migration", "migration_id", migration.ID)
-	
+
 	// In a real implementation, this would:
 	// 1. Query all matching state entries
 	// 2. Add the new field with default value
 	// 3. Update the entries in the store
-	
+
 	return 100 // Simulated affected keys
 }
 

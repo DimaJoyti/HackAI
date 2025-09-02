@@ -22,53 +22,53 @@ type AssessmentEngine struct {
 
 // AssessmentConfig configuration for assessment engine
 type AssessmentConfig struct {
-	EnableAdaptiveAssessment bool          `json:"enable_adaptive_assessment"`
-	EnableTimedAssessments   bool          `json:"enable_timed_assessments"`
-	EnableRetakes            bool          `json:"enable_retakes"`
-	MaxRetakeAttempts        int           `json:"max_retake_attempts"`
-	PassingScore             float64       `json:"passing_score"`
-	EnablePlagiarismCheck    bool          `json:"enable_plagiarism_check"`
-	EnableProctoring         bool          `json:"enable_proctoring"`
-	RandomizeQuestions       bool          `json:"randomize_questions"`
-	ShowCorrectAnswers       bool          `json:"show_correct_answers"`
-	ImmediateFeedback        bool          `json:"immediate_feedback"`
+	EnableAdaptiveAssessment bool    `json:"enable_adaptive_assessment"`
+	EnableTimedAssessments   bool    `json:"enable_timed_assessments"`
+	EnableRetakes            bool    `json:"enable_retakes"`
+	MaxRetakeAttempts        int     `json:"max_retake_attempts"`
+	PassingScore             float64 `json:"passing_score"`
+	EnablePlagiarismCheck    bool    `json:"enable_plagiarism_check"`
+	EnableProctoring         bool    `json:"enable_proctoring"`
+	RandomizeQuestions       bool    `json:"randomize_questions"`
+	ShowCorrectAnswers       bool    `json:"show_correct_answers"`
+	ImmediateFeedback        bool    `json:"immediate_feedback"`
 }
 
 // Assessment represents an educational assessment
 type Assessment struct {
-	ID              string                 `json:"id"`
-	Title           string                 `json:"title"`
-	Description     string                 `json:"description"`
-	Type            string                 `json:"type"`
-	Category        string                 `json:"category"`
-	Difficulty      string                 `json:"difficulty"`
-	TimeLimit       *time.Duration         `json:"time_limit"`
-	PassingScore    float64                `json:"passing_score"`
-	MaxAttempts     int                    `json:"max_attempts"`
-	Questions       []*Question            `json:"questions"`
-	Instructions    string                 `json:"instructions"`
-	Prerequisites   []string               `json:"prerequisites"`
-	Tags            []string               `json:"tags"`
-	Metadata        map[string]interface{} `json:"metadata"`
-	CreatedAt       time.Time              `json:"created_at"`
-	UpdatedAt       time.Time              `json:"updated_at"`
+	ID            string                 `json:"id"`
+	Title         string                 `json:"title"`
+	Description   string                 `json:"description"`
+	Type          string                 `json:"type"`
+	Category      string                 `json:"category"`
+	Difficulty    string                 `json:"difficulty"`
+	TimeLimit     *time.Duration         `json:"time_limit"`
+	PassingScore  float64                `json:"passing_score"`
+	MaxAttempts   int                    `json:"max_attempts"`
+	Questions     []*Question            `json:"questions"`
+	Instructions  string                 `json:"instructions"`
+	Prerequisites []string               `json:"prerequisites"`
+	Tags          []string               `json:"tags"`
+	Metadata      map[string]interface{} `json:"metadata"`
+	CreatedAt     time.Time              `json:"created_at"`
+	UpdatedAt     time.Time              `json:"updated_at"`
 }
 
 // Question represents an assessment question
 type Question struct {
-	ID              string                 `json:"id"`
-	Type            string                 `json:"type"`
-	Title           string                 `json:"title"`
-	Content         string                 `json:"content"`
-	Points          float64                `json:"points"`
-	Options         []*QuestionOption      `json:"options"`
-	CorrectAnswers  []string               `json:"correct_answers"`
-	Explanation     string                 `json:"explanation"`
-	Hints           []string               `json:"hints"`
-	Tags            []string               `json:"tags"`
-	Difficulty      string                 `json:"difficulty"`
-	EstimatedTime   time.Duration          `json:"estimated_time"`
-	Metadata        map[string]interface{} `json:"metadata"`
+	ID             string                 `json:"id"`
+	Type           string                 `json:"type"`
+	Title          string                 `json:"title"`
+	Content        string                 `json:"content"`
+	Points         float64                `json:"points"`
+	Options        []*QuestionOption      `json:"options"`
+	CorrectAnswers []string               `json:"correct_answers"`
+	Explanation    string                 `json:"explanation"`
+	Hints          []string               `json:"hints"`
+	Tags           []string               `json:"tags"`
+	Difficulty     string                 `json:"difficulty"`
+	EstimatedTime  time.Duration          `json:"estimated_time"`
+	Metadata       map[string]interface{} `json:"metadata"`
 }
 
 // QuestionOption represents a question option
@@ -82,47 +82,47 @@ type QuestionOption struct {
 
 // AssessmentAttempt represents an assessment attempt
 type AssessmentAttempt struct {
-	ID              string                 `json:"id"`
-	AssessmentID    string                 `json:"assessment_id"`
-	UserID          string                 `json:"user_id"`
-	AttemptNumber   int                    `json:"attempt_number"`
-	Status          string                 `json:"status"`
-	StartTime       time.Time              `json:"start_time"`
-	EndTime         *time.Time             `json:"end_time"`
-	TimeSpent       time.Duration          `json:"time_spent"`
-	Responses       []*QuestionResponse    `json:"responses"`
-	Score           float64                `json:"score"`
-	MaxScore        float64                `json:"max_score"`
-	Percentage      float64                `json:"percentage"`
-	Passed          bool                   `json:"passed"`
-	Feedback        *AssessmentFeedback    `json:"feedback"`
-	Analytics       *AttemptAnalytics      `json:"analytics"`
-	Metadata        map[string]interface{} `json:"metadata"`
+	ID            string                 `json:"id"`
+	AssessmentID  string                 `json:"assessment_id"`
+	UserID        string                 `json:"user_id"`
+	AttemptNumber int                    `json:"attempt_number"`
+	Status        string                 `json:"status"`
+	StartTime     time.Time              `json:"start_time"`
+	EndTime       *time.Time             `json:"end_time"`
+	TimeSpent     time.Duration          `json:"time_spent"`
+	Responses     []*QuestionResponse    `json:"responses"`
+	Score         float64                `json:"score"`
+	MaxScore      float64                `json:"max_score"`
+	Percentage    float64                `json:"percentage"`
+	Passed        bool                   `json:"passed"`
+	Feedback      *AssessmentFeedback    `json:"feedback"`
+	Analytics     *AttemptAnalytics      `json:"analytics"`
+	Metadata      map[string]interface{} `json:"metadata"`
 }
 
 // QuestionResponse represents a response to a question
 type QuestionResponse struct {
-	QuestionID      string                 `json:"question_id"`
-	Response        interface{}            `json:"response"`
-	IsCorrect       bool                   `json:"is_correct"`
-	PartialCredit   float64                `json:"partial_credit"`
-	TimeSpent       time.Duration          `json:"time_spent"`
-	Attempts        int                    `json:"attempts"`
-	HintsUsed       []string               `json:"hints_used"`
-	Confidence      float64                `json:"confidence"`
-	Metadata        map[string]interface{} `json:"metadata"`
+	QuestionID    string                 `json:"question_id"`
+	Response      interface{}            `json:"response"`
+	IsCorrect     bool                   `json:"is_correct"`
+	PartialCredit float64                `json:"partial_credit"`
+	TimeSpent     time.Duration          `json:"time_spent"`
+	Attempts      int                    `json:"attempts"`
+	HintsUsed     []string               `json:"hints_used"`
+	Confidence    float64                `json:"confidence"`
+	Metadata      map[string]interface{} `json:"metadata"`
 }
 
 // AssessmentFeedback represents feedback for an assessment attempt
 type AssessmentFeedback struct {
-	OverallFeedback     string                    `json:"overall_feedback"`
-	QuestionFeedback    map[string]string         `json:"question_feedback"`
-	StrengthAreas       []string                  `json:"strength_areas"`
-	ImprovementAreas    []string                  `json:"improvement_areas"`
-	Recommendations     []string                  `json:"recommendations"`
-	NextSteps           []string                  `json:"next_steps"`
-	StudyResources      []*Resource               `json:"study_resources"`
-	Metadata            map[string]interface{}    `json:"metadata"`
+	OverallFeedback  string                 `json:"overall_feedback"`
+	QuestionFeedback map[string]string      `json:"question_feedback"`
+	StrengthAreas    []string               `json:"strength_areas"`
+	ImprovementAreas []string               `json:"improvement_areas"`
+	Recommendations  []string               `json:"recommendations"`
+	NextSteps        []string               `json:"next_steps"`
+	StudyResources   []*Resource            `json:"study_resources"`
+	Metadata         map[string]interface{} `json:"metadata"`
 }
 
 // AttemptAnalytics represents analytics for an assessment attempt
@@ -252,13 +252,13 @@ func (ae *AssessmentEngine) initializeDefaultAssessments() {
 				EstimatedTime:  4 * time.Minute,
 			},
 			{
-				ID:      "q4",
-				Type:    "short_answer",
-				Title:   "Security Controls",
-				Content: "Describe three key security controls that should be implemented to protect AI systems from prompt injection attacks.",
-				Points:  20.0,
-				Explanation: "Key controls include: input validation and sanitization, prompt templates with parameter binding, output filtering, rate limiting, and monitoring/logging.",
-				Difficulty:  "hard",
+				ID:            "q4",
+				Type:          "short_answer",
+				Title:         "Security Controls",
+				Content:       "Describe three key security controls that should be implemented to protect AI systems from prompt injection attacks.",
+				Points:        20.0,
+				Explanation:   "Key controls include: input validation and sanitization, prompt templates with parameter binding, output filtering, rate limiting, and monitoring/logging.",
+				Difficulty:    "hard",
 				EstimatedTime: 8 * time.Minute,
 			},
 		},
@@ -282,23 +282,23 @@ func (ae *AssessmentEngine) initializeDefaultAssessments() {
 		Instructions: "This assessment covers advanced AI security topics. Take your time and provide detailed answers.",
 		Questions: []*Question{
 			{
-				ID:      "adv1",
-				Type:    "scenario",
-				Title:   "Red Team Assessment",
-				Content: "You are conducting a red team assessment of an AI-powered customer service system. Describe your methodology and the key attack vectors you would test.",
-				Points:  25.0,
-				Explanation: "A comprehensive red team assessment should include prompt injection testing, model extraction attempts, adversarial input generation, and social engineering scenarios.",
-				Difficulty: "hard",
+				ID:            "adv1",
+				Type:          "scenario",
+				Title:         "Red Team Assessment",
+				Content:       "You are conducting a red team assessment of an AI-powered customer service system. Describe your methodology and the key attack vectors you would test.",
+				Points:        25.0,
+				Explanation:   "A comprehensive red team assessment should include prompt injection testing, model extraction attempts, adversarial input generation, and social engineering scenarios.",
+				Difficulty:    "hard",
 				EstimatedTime: 15 * time.Minute,
 			},
 			{
-				ID:      "adv2",
-				Type:    "case_study",
-				Title:   "Incident Response",
-				Content: "An AI model in production has been compromised through a data poisoning attack. Outline your incident response plan and remediation steps.",
-				Points:  25.0,
-				Explanation: "Response should include immediate containment, forensic analysis, model retraining with clean data, and implementation of additional monitoring.",
-				Difficulty: "expert",
+				ID:            "adv2",
+				Type:          "case_study",
+				Title:         "Incident Response",
+				Content:       "An AI model in production has been compromised through a data poisoning attack. Outline your incident response plan and remediation steps.",
+				Points:        25.0,
+				Explanation:   "Response should include immediate containment, forensic analysis, model retraining with clean data, and implementation of additional monitoring.",
+				Difficulty:    "expert",
 				EstimatedTime: 20 * time.Minute,
 			},
 		},
@@ -345,9 +345,9 @@ func (ae *AssessmentEngine) StartAssessment(ctx context.Context, assessmentID, u
 	ae.attempts[attempt.ID] = attempt
 
 	ae.logger.WithFields(map[string]interface{}{
-		"attempt_id":    attempt.ID,
-		"assessment_id": assessmentID,
-		"user_id":       userID,
+		"attempt_id":     attempt.ID,
+		"assessment_id":  assessmentID,
+		"user_id":        userID,
 		"attempt_number": attemptNumber,
 	}).Info("Assessment attempt started")
 
@@ -469,7 +469,7 @@ func (ae *AssessmentEngine) evaluateResponse(question *Question, response interf
 		if responseSlice, ok := response.([]string); ok {
 			correctCount := 0
 			totalCorrect := len(question.CorrectAnswers)
-			
+
 			for _, resp := range responseSlice {
 				for _, correct := range question.CorrectAnswers {
 					if resp == correct {
@@ -478,11 +478,11 @@ func (ae *AssessmentEngine) evaluateResponse(question *Question, response interf
 					}
 				}
 			}
-			
+
 			if correctCount == totalCorrect && len(responseSlice) == totalCorrect {
 				return true, 1.0
 			}
-			
+
 			// Partial credit
 			partialCredit := float64(correctCount) / float64(totalCorrect)
 			return false, partialCredit
@@ -591,7 +591,7 @@ func (ae *AssessmentEngine) generateAnalytics(attempt *AssessmentAttempt) *Attem
 
 	analytics.CorrectAnswers = correctCount
 	analytics.IncorrectAnswers = analytics.TotalQuestions - correctCount
-	
+
 	if analytics.TotalQuestions > 0 {
 		analytics.AverageTimePerQ = totalTime / time.Duration(analytics.TotalQuestions)
 	}
@@ -603,7 +603,7 @@ func (ae *AssessmentEngine) generateAnalytics(attempt *AssessmentAttempt) *Attem
 
 	for _, response := range attempt.Responses {
 		totalConfidence += response.Confidence
-		
+
 		if response.Confidence > 0.8 && !response.IsCorrect {
 			overconfident++
 		}

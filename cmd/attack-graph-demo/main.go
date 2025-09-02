@@ -84,16 +84,16 @@ func main() {
 
 	initialState := ai.GraphState{
 		"attack_state": &graphs.AttackState{
-			TargetSystem:     "AI Customer Service Chatbot",
-			AttackType:       "prompt_injection",
-			CurrentStrategy:  "",
-			Attempts:         make([]graphs.AttackAttempt, 0),
+			TargetSystem:      "AI Customer Service Chatbot",
+			AttackType:        "prompt_injection",
+			CurrentStrategy:   "",
+			Attempts:          make([]graphs.AttackAttempt, 0),
 			SuccessfulAttacks: make([]graphs.AttackAttempt, 0),
-			Context:          make(map[string]interface{}),
-			Confidence:       0.0,
-			NextAction:       "",
-			CompletionStatus: "initialized",
-			Metadata:         make(map[string]interface{}),
+			Context:           make(map[string]interface{}),
+			Confidence:        0.0,
+			NextAction:        "",
+			CompletionStatus:  "initialized",
+			Metadata:          make(map[string]interface{}),
 		},
 	}
 
@@ -111,16 +111,16 @@ func main() {
 
 	jailbreakState := ai.GraphState{
 		"attack_state": &graphs.AttackState{
-			TargetSystem:     "Content Moderation AI",
-			AttackType:       "jailbreak",
-			CurrentStrategy:  "",
-			Attempts:         make([]graphs.AttackAttempt, 0),
+			TargetSystem:      "Content Moderation AI",
+			AttackType:        "jailbreak",
+			CurrentStrategy:   "",
+			Attempts:          make([]graphs.AttackAttempt, 0),
 			SuccessfulAttacks: make([]graphs.AttackAttempt, 0),
-			Context:          make(map[string]interface{}),
-			Confidence:       0.0,
-			NextAction:       "",
-			CompletionStatus: "initialized",
-			Metadata:         make(map[string]interface{}),
+			Context:           make(map[string]interface{}),
+			Confidence:        0.0,
+			NextAction:        "",
+			CompletionStatus:  "initialized",
+			Metadata:          make(map[string]interface{}),
 		},
 	}
 
@@ -137,16 +137,16 @@ func main() {
 
 	extractionState := ai.GraphState{
 		"attack_state": &graphs.AttackState{
-			TargetSystem:     "Proprietary Language Model API",
-			AttackType:       "model_extraction",
-			CurrentStrategy:  "",
-			Attempts:         make([]graphs.AttackAttempt, 0),
+			TargetSystem:      "Proprietary Language Model API",
+			AttackType:        "model_extraction",
+			CurrentStrategy:   "",
+			Attempts:          make([]graphs.AttackAttempt, 0),
 			SuccessfulAttacks: make([]graphs.AttackAttempt, 0),
-			Context:          make(map[string]interface{}),
-			Confidence:       0.0,
-			NextAction:       "",
-			CompletionStatus: "initialized",
-			Metadata:         make(map[string]interface{}),
+			Context:           make(map[string]interface{}),
+			Confidence:        0.0,
+			NextAction:        "",
+			CompletionStatus:  "initialized",
+			Metadata:          make(map[string]interface{}),
 		},
 	}
 
@@ -177,12 +177,12 @@ func displayAttackResults(state ai.GraphState) {
 	fmt.Printf("Final Strategy: %s\n", attackState.CurrentStrategy)
 	fmt.Printf("Total Attempts: %d\n", len(attackState.Attempts))
 	fmt.Printf("Successful Attacks: %d\n", len(attackState.SuccessfulAttacks))
-	
+
 	if len(attackState.Attempts) > 0 {
 		successRate := float64(len(attackState.SuccessfulAttacks)) / float64(len(attackState.Attempts)) * 100
 		fmt.Printf("Success Rate: %.1f%%\n", successRate)
 	}
-	
+
 	fmt.Printf("Confidence Score: %.2f\n", attackState.Confidence)
 	fmt.Printf("Completion Status: %s\n", attackState.CompletionStatus)
 

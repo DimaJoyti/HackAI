@@ -68,30 +68,30 @@ type Certificate struct {
 
 // CertificateTemplate represents a certificate template
 type CertificateTemplate struct {
-	ID              string                 `json:"id"`
-	Name            string                 `json:"name"`
-	Type            string                 `json:"type"`
-	Category        string                 `json:"category"`
-	Template        string                 `json:"template"`
+	ID              string                   `json:"id"`
+	Name            string                   `json:"name"`
+	Type            string                   `json:"type"`
+	Category        string                   `json:"category"`
+	Template        string                   `json:"template"`
 	Requirements    *CertificateRequirements `json:"requirements"`
-	Design          *CertificateDesign     `json:"design"`
-	ValidityPeriod  time.Duration          `json:"validity_period"`
-	RenewalRequired bool                   `json:"renewal_required"`
-	Metadata        map[string]interface{} `json:"metadata"`
-	CreatedAt       time.Time              `json:"created_at"`
-	UpdatedAt       time.Time              `json:"updated_at"`
+	Design          *CertificateDesign       `json:"design"`
+	ValidityPeriod  time.Duration            `json:"validity_period"`
+	RenewalRequired bool                     `json:"renewal_required"`
+	Metadata        map[string]interface{}   `json:"metadata"`
+	CreatedAt       time.Time                `json:"created_at"`
+	UpdatedAt       time.Time                `json:"updated_at"`
 }
 
 // CertificateRequirements represents certificate requirements
 type CertificateRequirements struct {
-	CompletedCourses     []string  `json:"completed_courses"`
-	MinimumScore         float64   `json:"minimum_score"`
-	RequiredSkills       []string  `json:"required_skills"`
-	RequiredCompetencies []string  `json:"required_competencies"`
-	ProctoredExam        bool      `json:"proctored_exam"`
-	CapstoneProject      bool      `json:"capstone_project"`
-	ContinuingEducation  bool      `json:"continuing_education"`
-	ExperienceHours      int       `json:"experience_hours"`
+	CompletedCourses     []string `json:"completed_courses"`
+	MinimumScore         float64  `json:"minimum_score"`
+	RequiredSkills       []string `json:"required_skills"`
+	RequiredCompetencies []string `json:"required_competencies"`
+	ProctoredExam        bool     `json:"proctored_exam"`
+	CapstoneProject      bool     `json:"capstone_project"`
+	ContinuingEducation  bool     `json:"continuing_education"`
+	ExperienceHours      int      `json:"experience_hours"`
 }
 
 // CertificateDesign represents certificate design configuration
@@ -108,22 +108,22 @@ type CertificateDesign struct {
 
 // BlockchainVerifier handles blockchain verification
 type BlockchainVerifier struct {
-	enabled    bool
-	networkURL string
+	enabled         bool
+	networkURL      string
 	contractAddress string
-	privateKey string
+	privateKey      string
 }
 
 // SkillBadge represents a skill badge
 type SkillBadge struct {
-	ID          string                 `json:"id"`
-	SkillID     string                 `json:"skill_id"`
-	SkillName   string                 `json:"skill_name"`
-	Level       string                 `json:"level"`
-	BadgeImage  string                 `json:"badge_image"`
-	EarnedDate  time.Time              `json:"earned_date"`
-	Criteria    map[string]interface{} `json:"criteria"`
-	Metadata    map[string]interface{} `json:"metadata"`
+	ID         string                 `json:"id"`
+	SkillID    string                 `json:"skill_id"`
+	SkillName  string                 `json:"skill_name"`
+	Level      string                 `json:"level"`
+	BadgeImage string                 `json:"badge_image"`
+	EarnedDate time.Time              `json:"earned_date"`
+	Criteria   map[string]interface{} `json:"criteria"`
+	Metadata   map[string]interface{} `json:"metadata"`
 }
 
 // MicroCredential represents a micro-credential
@@ -379,7 +379,7 @@ func (cm *CertificateManager) generateVerificationHash(cert *Certificate) string
 		cert.Score,
 		cert.IssuerID,
 	)
-	
+
 	hash := sha256.Sum256([]byte(data))
 	return hex.EncodeToString(hash[:])
 }
@@ -417,9 +417,9 @@ func (cm *CertificateManager) getCourseName(courseID string) string {
 	courseNames := map[string]string{
 		"ai-security-fundamentals": "AI Security Fundamentals",
 		"advanced-ai-security":     "Advanced AI Security",
-		"ai-red-teaming":          "AI Red Teaming",
+		"ai-red-teaming":           "AI Red Teaming",
 	}
-	
+
 	if name, exists := courseNames[courseID]; exists {
 		return name
 	}
@@ -525,7 +525,7 @@ func (bv *BlockchainVerifier) recordCertificate(cert *Certificate) (string, erro
 	if !bv.enabled {
 		return "", fmt.Errorf("blockchain verification not enabled")
 	}
-	
+
 	// Placeholder for blockchain integration
 	txID := fmt.Sprintf("tx_%s", uuid.New().String()[:16])
 	return txID, nil
@@ -536,7 +536,7 @@ func (bv *BlockchainVerifier) verifyCertificate(txID string) bool {
 	if !bv.enabled {
 		return false
 	}
-	
+
 	// Placeholder for blockchain verification
 	return true
 }

@@ -31,13 +31,13 @@ type MultiAgentSystem struct {
 
 // MultiAgentConfig holds configuration for the multi-agent system
 type MultiAgentConfig struct {
-	MaxConcurrentAgents    int           `json:"max_concurrent_agents"`
-	MessageTimeout         time.Duration `json:"message_timeout"`
-	CoordinationTimeout    time.Duration `json:"coordination_timeout"`
-	EnableConflictResolution bool        `json:"enable_conflict_resolution"`
-	EnableWorkflowEngine   bool          `json:"enable_workflow_engine"`
-	EnableLoadBalancing    bool          `json:"enable_load_balancing"`
-	HeartbeatInterval      time.Duration `json:"heartbeat_interval"`
+	MaxConcurrentAgents      int           `json:"max_concurrent_agents"`
+	MessageTimeout           time.Duration `json:"message_timeout"`
+	CoordinationTimeout      time.Duration `json:"coordination_timeout"`
+	EnableConflictResolution bool          `json:"enable_conflict_resolution"`
+	EnableWorkflowEngine     bool          `json:"enable_workflow_engine"`
+	EnableLoadBalancing      bool          `json:"enable_load_balancing"`
+	HeartbeatInterval        time.Duration `json:"heartbeat_interval"`
 }
 
 // Agent interface for multi-agent collaboration
@@ -63,46 +63,46 @@ type AgentInput struct {
 
 // AgentOutput represents output from an agent
 type AgentOutput struct {
-	Success    bool                   `json:"success"`
-	Result     interface{}            `json:"result"`
-	Confidence float64                `json:"confidence"`
-	Duration   time.Duration          `json:"duration"`
+	Success    bool                      `json:"success"`
+	Result     interface{}               `json:"result"`
+	Confidence float64                   `json:"confidence"`
+	Duration   time.Duration             `json:"duration"`
 	Messages   []*messaging.AgentMessage `json:"messages"`
-	Error      string                 `json:"error,omitempty"`
-	Metadata   map[string]interface{} `json:"metadata"`
+	Error      string                    `json:"error,omitempty"`
+	Metadata   map[string]interface{}    `json:"metadata"`
 }
 
 // CollaborativeTask represents a task that requires multiple agents
 type CollaborativeTask struct {
-	ID          string                 `json:"id"`
-	Name        string                 `json:"name"`
-	Description string                 `json:"description"`
-	Type        TaskType               `json:"type"`
-	Objective   string                 `json:"objective"`
-	Subtasks    []*Subtask             `json:"subtasks"`
-	Dependencies map[string][]string   `json:"dependencies"`
-	RequiredAgents []string            `json:"required_agents"`
-	OptionalAgents []string            `json:"optional_agents"`
-	Deadline    *time.Time             `json:"deadline,omitempty"`
-	Priority    Priority               `json:"priority"`
-	Status      TaskStatus             `json:"status"`
-	Metadata    map[string]interface{} `json:"metadata"`
+	ID             string                 `json:"id"`
+	Name           string                 `json:"name"`
+	Description    string                 `json:"description"`
+	Type           TaskType               `json:"type"`
+	Objective      string                 `json:"objective"`
+	Subtasks       []*Subtask             `json:"subtasks"`
+	Dependencies   map[string][]string    `json:"dependencies"`
+	RequiredAgents []string               `json:"required_agents"`
+	OptionalAgents []string               `json:"optional_agents"`
+	Deadline       *time.Time             `json:"deadline,omitempty"`
+	Priority       Priority               `json:"priority"`
+	Status         TaskStatus             `json:"status"`
+	Metadata       map[string]interface{} `json:"metadata"`
 }
 
 // Subtask represents a portion of a collaborative task
 type Subtask struct {
-	ID           string                 `json:"id"`
-	Name         string                 `json:"name"`
-	Description  string                 `json:"description"`
-	AssignedAgent string                `json:"assigned_agent"`
-	Status       TaskStatus             `json:"status"`
-	Input        map[string]interface{} `json:"input"`
-	Output       interface{}            `json:"output,omitempty"`
-	Dependencies []string               `json:"dependencies"`
-	Priority     Priority               `json:"priority"`
-	StartTime    *time.Time             `json:"start_time,omitempty"`
-	EndTime      *time.Time             `json:"end_time,omitempty"`
-	Error        string                 `json:"error,omitempty"`
+	ID            string                 `json:"id"`
+	Name          string                 `json:"name"`
+	Description   string                 `json:"description"`
+	AssignedAgent string                 `json:"assigned_agent"`
+	Status        TaskStatus             `json:"status"`
+	Input         map[string]interface{} `json:"input"`
+	Output        interface{}            `json:"output,omitempty"`
+	Dependencies  []string               `json:"dependencies"`
+	Priority      Priority               `json:"priority"`
+	StartTime     *time.Time             `json:"start_time,omitempty"`
+	EndTime       *time.Time             `json:"end_time,omitempty"`
+	Error         string                 `json:"error,omitempty"`
 }
 
 // TaskType represents different types of collaborative tasks
@@ -134,9 +134,9 @@ const (
 type Priority int
 
 const (
-	PriorityLow    Priority = 1
-	PriorityNormal Priority = 5
-	PriorityHigh   Priority = 8
+	PriorityLow      Priority = 1
+	PriorityNormal   Priority = 5
+	PriorityHigh     Priority = 8
 	PriorityCritical Priority = 10
 )
 
@@ -144,12 +144,12 @@ const (
 type AgentStatus string
 
 const (
-	AgentStatusIdle      AgentStatus = "idle"
-	AgentStatusBusy      AgentStatus = "busy"
-	AgentStatusOffline   AgentStatus = "offline"
-	AgentStatusError     AgentStatus = "error"
-	AgentStatusStarting  AgentStatus = "starting"
-	AgentStatusStopping  AgentStatus = "stopping"
+	AgentStatusIdle     AgentStatus = "idle"
+	AgentStatusBusy     AgentStatus = "busy"
+	AgentStatusOffline  AgentStatus = "offline"
+	AgentStatusError    AgentStatus = "error"
+	AgentStatusStarting AgentStatus = "starting"
+	AgentStatusStopping AgentStatus = "stopping"
 )
 
 // NewMultiAgentSystem creates a new multi-agent system
@@ -265,16 +265,16 @@ func (mas *MultiAgentSystem) ExecuteCollaborativeTask(ctx context.Context, task 
 	duration := time.Since(startTime)
 
 	collaborationResult := &CollaborationResult{
-		TaskID:           task.ID,
-		Success:          true,
-		Result:           finalResult,
-		Duration:         duration,
+		TaskID:              task.ID,
+		Success:             true,
+		Result:              finalResult,
+		Duration:            duration,
 		ParticipatingAgents: assignments,
-		SubtaskResults:   results,
+		SubtaskResults:      results,
 		Metadata: map[string]interface{}{
-			"total_agents":    len(assignments),
-			"total_subtasks":  len(task.Subtasks),
-			"execution_mode":  "collaborative",
+			"total_agents":   len(assignments),
+			"total_subtasks": len(task.Subtasks),
+			"execution_mode": "collaborative",
 		},
 	}
 
@@ -333,7 +333,7 @@ func (mas *MultiAgentSystem) executeSubtasks(ctx context.Context, task *Collabor
 
 				// Execute subtask
 				result, err := mas.executeSubtask(ctx, st, agent)
-				
+
 				mutex.Lock()
 				if err != nil {
 					errors = append(errors, err)
@@ -379,7 +379,7 @@ func (mas *MultiAgentSystem) executeSubtask(ctx context.Context, subtask *Subtas
 
 	// Execute with agent
 	output, err := agent.Execute(ctx, agentInput)
-	
+
 	endTime := time.Now()
 	subtask.EndTime = &endTime
 
@@ -388,15 +388,15 @@ func (mas *MultiAgentSystem) executeSubtask(ctx context.Context, subtask *Subtas
 	}
 
 	result := &SubtaskResult{
-		SubtaskID:    subtask.ID,
-		AgentID:      agent.ID(),
-		Success:      output.Success,
-		Result:       output.Result,
-		Confidence:   output.Confidence,
-		Duration:     endTime.Sub(startTime),
-		Messages:     output.Messages,
-		Error:        output.Error,
-		Metadata:     output.Metadata,
+		SubtaskID:  subtask.ID,
+		AgentID:    agent.ID(),
+		Success:    output.Success,
+		Result:     output.Result,
+		Confidence: output.Confidence,
+		Duration:   endTime.Sub(startTime),
+		Messages:   output.Messages,
+		Error:      output.Error,
+		Metadata:   output.Metadata,
 	}
 
 	return result, nil
@@ -460,11 +460,11 @@ func (mas *MultiAgentSystem) aggregateResults(ctx context.Context, task *Collabo
 
 	// Simple aggregation - combine all results
 	aggregated := map[string]interface{}{
-		"task_id":     task.ID,
-		"task_name":   task.Name,
-		"subtasks":    len(task.Subtasks),
-		"results":     results,
-		"timestamp":   time.Now(),
+		"task_id":   task.ID,
+		"task_name": task.Name,
+		"subtasks":  len(task.Subtasks),
+		"results":   results,
+		"timestamp": time.Now(),
 	}
 
 	return aggregated, nil
@@ -486,8 +486,8 @@ func (mas *MultiAgentSystem) GetSystemStatus() SystemStatus {
 		AgentStatuses: agentStatuses,
 		Timestamp:     time.Now(),
 		Metadata: map[string]interface{}{
-			"message_router_active": mas.MessageRouter != nil,
-			"coordinator_active":    mas.Coordinator != nil,
+			"message_router_active":  mas.MessageRouter != nil,
+			"coordinator_active":     mas.Coordinator != nil,
 			"workflow_engine_active": mas.WorkflowEngine != nil,
 		},
 	}
@@ -555,11 +555,11 @@ type SubtaskResult struct {
 
 // SystemStatus represents the status of the multi-agent system
 type SystemStatus struct {
-	SystemID      string                    `json:"system_id"`
-	TotalAgents   int                       `json:"total_agents"`
-	AgentStatuses map[string]AgentStatus    `json:"agent_statuses"`
-	Timestamp     time.Time                 `json:"timestamp"`
-	Metadata      map[string]interface{}    `json:"metadata"`
+	SystemID      string                 `json:"system_id"`
+	TotalAgents   int                    `json:"total_agents"`
+	AgentStatuses map[string]AgentStatus `json:"agent_statuses"`
+	Timestamp     time.Time              `json:"timestamp"`
+	Metadata      map[string]interface{} `json:"metadata"`
 }
 
 // UpdateConfig updates the system configuration
@@ -570,7 +570,7 @@ func (mas *MultiAgentSystem) UpdateConfig(config *MultiAgentConfig) {
 	if config.MaxConcurrentAgents > 0 {
 		mas.config.MaxConcurrentAgents = config.MaxConcurrentAgents
 	}
-	
+
 	if config.MessageTimeout > 0 {
 		mas.config.MessageTimeout = config.MessageTimeout
 	}

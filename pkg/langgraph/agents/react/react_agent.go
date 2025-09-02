@@ -17,83 +17,83 @@ var reactTracer = otel.Tracer("hackai/langgraph/agents/react")
 
 // ReActAgent implements the ReAct (Reasoning + Acting) pattern
 type ReActAgent struct {
-	ID               string
-	Name             string
-	Description      string
-	Tools            map[string]tools.Tool
-	MaxIterations    int
+	ID                  string
+	Name                string
+	Description         string
+	Tools               map[string]tools.Tool
+	MaxIterations       int
 	ConfidenceThreshold float64
-	Logger           *logger.Logger
-	ReasoningEngine  *ReasoningEngine
-	ActionPlanner    *ActionPlanner
-	SelfReflector    *SelfReflector
-	ToolExecutor     *ToolExecutor
-	config           *ReActConfig
+	Logger              *logger.Logger
+	ReasoningEngine     *ReasoningEngine
+	ActionPlanner       *ActionPlanner
+	SelfReflector       *SelfReflector
+	ToolExecutor        *ToolExecutor
+	config              *ReActConfig
 }
 
 // ReActConfig holds configuration for the ReAct agent
 type ReActConfig struct {
-	MaxIterations       int           `json:"max_iterations"`
-	ConfidenceThreshold float64       `json:"confidence_threshold"`
-	ToolTimeout         time.Duration `json:"tool_timeout"`
-	EnableSelfReflection bool         `json:"enable_self_reflection"`
-	EnableMemory        bool          `json:"enable_memory"`
-	MaxMemorySize       int           `json:"max_memory_size"`
+	MaxIterations        int           `json:"max_iterations"`
+	ConfidenceThreshold  float64       `json:"confidence_threshold"`
+	ToolTimeout          time.Duration `json:"tool_timeout"`
+	EnableSelfReflection bool          `json:"enable_self_reflection"`
+	EnableMemory         bool          `json:"enable_memory"`
+	MaxMemorySize        int           `json:"max_memory_size"`
 }
 
 // AgentInput represents input to the ReAct agent
 type AgentInput struct {
-	Query     string                 `json:"query"`
-	Context   map[string]interface{} `json:"context"`
-	Goals     []string               `json:"goals"`
-	Constraints []string             `json:"constraints"`
+	Query       string                 `json:"query"`
+	Context     map[string]interface{} `json:"context"`
+	Goals       []string               `json:"goals"`
+	Constraints []string               `json:"constraints"`
 }
 
 // AgentOutput represents output from the ReAct agent
 type AgentOutput struct {
-	Answer      string        `json:"answer"`
-	Confidence  float64       `json:"confidence"`
-	Iterations  int           `json:"iterations"`
-	Duration    time.Duration `json:"duration"`
-	Thoughts    []Thought     `json:"thoughts"`
-	Actions     []Action      `json:"actions"`
-	Success     bool          `json:"success"`
-	Error       string        `json:"error,omitempty"`
-	Metadata    map[string]interface{} `json:"metadata"`
+	Answer     string                 `json:"answer"`
+	Confidence float64                `json:"confidence"`
+	Iterations int                    `json:"iterations"`
+	Duration   time.Duration          `json:"duration"`
+	Thoughts   []Thought              `json:"thoughts"`
+	Actions    []Action               `json:"actions"`
+	Success    bool                   `json:"success"`
+	Error      string                 `json:"error,omitempty"`
+	Metadata   map[string]interface{} `json:"metadata"`
 }
 
 // Thought represents a reasoning step
 type Thought struct {
-	Step        int                    `json:"step"`
-	Content     string                 `json:"content"`
-	Reasoning   string                 `json:"reasoning"`
-	Confidence  float64                `json:"confidence"`
-	Timestamp   time.Time              `json:"timestamp"`
-	Metadata    map[string]interface{} `json:"metadata"`
+	Step       int                    `json:"step"`
+	Content    string                 `json:"content"`
+	Reasoning  string                 `json:"reasoning"`
+	Confidence float64                `json:"confidence"`
+	Timestamp  time.Time              `json:"timestamp"`
+	Metadata   map[string]interface{} `json:"metadata"`
 }
 
 // Action represents an action taken by the agent
 type Action struct {
-	Step        int                    `json:"step"`
-	Tool        string                 `json:"tool"`
-	Input       map[string]interface{} `json:"input"`
-	Output      interface{}            `json:"output"`
-	Success     bool                   `json:"success"`
-	Error       string                 `json:"error,omitempty"`
-	Duration    time.Duration          `json:"duration"`
-	Timestamp   time.Time              `json:"timestamp"`
-	Metadata    map[string]interface{} `json:"metadata"`
+	Step      int                    `json:"step"`
+	Tool      string                 `json:"tool"`
+	Input     map[string]interface{} `json:"input"`
+	Output    interface{}            `json:"output"`
+	Success   bool                   `json:"success"`
+	Error     string                 `json:"error,omitempty"`
+	Duration  time.Duration          `json:"duration"`
+	Timestamp time.Time              `json:"timestamp"`
+	Metadata  map[string]interface{} `json:"metadata"`
 }
 
 // NewReActAgent creates a new ReAct agent
 func NewReActAgent(id, name string, logger *logger.Logger) *ReActAgent {
 	config := &ReActConfig{
-		MaxIterations:       10,
-		ConfidenceThreshold: 0.8,
-		ToolTimeout:         30 * time.Second,
+		MaxIterations:        10,
+		ConfidenceThreshold:  0.8,
+		ToolTimeout:          30 * time.Second,
 		EnableSelfReflection: true,
-		EnableMemory:        true,
-		MaxMemorySize:       100,
+		EnableMemory:         true,
+		MaxMemorySize:        100,
 	}
 
 	return &ReActAgent{
@@ -139,7 +139,7 @@ func (ra *ReActAgent) Execute(ctx context.Context, input AgentInput) (*AgentOutp
 	defer span.End()
 
 	startTime := time.Now()
-	
+
 	output := &AgentOutput{
 		Thoughts: make([]Thought, 0),
 		Actions:  make([]Action, 0),
@@ -161,7 +161,7 @@ func (ra *ReActAgent) Execute(ctx context.Context, input AgentInput) (*AgentOutp
 			span.RecordError(err)
 			return output, err
 		}
-		
+
 		output.Thoughts = append(output.Thoughts, thought)
 		ra.Logger.Debug("Agent reasoning step",
 			"agent_id", ra.ID,
@@ -270,7 +270,7 @@ func (ra *ReActAgent) shouldConclude(thought Thought, output *AgentOutput) bool 
 	// Check if the thought indicates a conclusion
 	conclusionKeywords := []string{"conclusion", "answer", "result", "final", "therefore"}
 	thoughtLower := strings.ToLower(thought.Content)
-	
+
 	for _, keyword := range conclusionKeywords {
 		if strings.Contains(thoughtLower, keyword) {
 			return true
@@ -333,7 +333,7 @@ func (ra *ReActAgent) UpdateConfig(config *ReActConfig) {
 		ra.MaxIterations = config.MaxIterations
 		ra.config.MaxIterations = config.MaxIterations
 	}
-	
+
 	if config.ConfidenceThreshold > 0 && config.ConfidenceThreshold <= 1.0 {
 		ra.ConfidenceThreshold = config.ConfidenceThreshold
 		ra.config.ConfidenceThreshold = config.ConfidenceThreshold

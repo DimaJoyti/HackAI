@@ -12,26 +12,26 @@ import (
 
 // LabManager manages hands-on laboratory exercises
 type LabManager struct {
-	logger           *logger.Logger
-	labs             map[string]*Lab
-	activeSessions   map[string]*LabSession
-	environments     map[string]*LabEnvironment
-	environmentPool  *EnvironmentPool
-	config           *LabManagerConfig
-	mu               sync.RWMutex
+	logger          *logger.Logger
+	labs            map[string]*Lab
+	activeSessions  map[string]*LabSession
+	environments    map[string]*LabEnvironment
+	environmentPool *EnvironmentPool
+	config          *LabManagerConfig
+	mu              sync.RWMutex
 }
 
 // LabManagerConfig configuration for lab manager
 type LabManagerConfig struct {
-	MaxConcurrentSessions    int           `json:"max_concurrent_sessions"`
-	SessionTimeout           time.Duration `json:"session_timeout"`
-	EnvironmentTimeout       time.Duration `json:"environment_timeout"`
-	EnableAutoValidation     bool          `json:"enable_auto_validation"`
-	EnableHints              bool          `json:"enable_hints"`
-	EnableSolutions          bool          `json:"enable_solutions"`
-	MaxAttemptsPerStep       int           `json:"max_attempts_per_step"`
-	EnableEnvironmentReuse   bool          `json:"enable_environment_reuse"`
-	EnvironmentCleanupDelay  time.Duration `json:"environment_cleanup_delay"`
+	MaxConcurrentSessions   int           `json:"max_concurrent_sessions"`
+	SessionTimeout          time.Duration `json:"session_timeout"`
+	EnvironmentTimeout      time.Duration `json:"environment_timeout"`
+	EnableAutoValidation    bool          `json:"enable_auto_validation"`
+	EnableHints             bool          `json:"enable_hints"`
+	EnableSolutions         bool          `json:"enable_solutions"`
+	MaxAttemptsPerStep      int           `json:"max_attempts_per_step"`
+	EnableEnvironmentReuse  bool          `json:"enable_environment_reuse"`
+	EnvironmentCleanupDelay time.Duration `json:"environment_cleanup_delay"`
 }
 
 // EnvironmentPool manages a pool of lab environments
@@ -44,10 +44,10 @@ type EnvironmentPool struct {
 
 // PoolConfig configuration for environment pool
 type PoolConfig struct {
-	MinPoolSize     int           `json:"min_pool_size"`
-	MaxPoolSize     int           `json:"max_pool_size"`
-	WarmupTime      time.Duration `json:"warmup_time"`
-	IdleTimeout     time.Duration `json:"idle_timeout"`
+	MinPoolSize         int           `json:"min_pool_size"`
+	MaxPoolSize         int           `json:"max_pool_size"`
+	WarmupTime          time.Duration `json:"warmup_time"`
+	IdleTimeout         time.Duration `json:"idle_timeout"`
 	HealthCheckInterval time.Duration `json:"health_check_interval"`
 }
 
@@ -106,8 +106,8 @@ func (lm *LabManager) initializeDefaultLabs() {
 				"rate_limiting":  true,
 			},
 			Resources: map[string]interface{}{
-				"cpu":    "1 core",
-				"memory": "2GB",
+				"cpu":     "1 core",
+				"memory":  "2GB",
 				"storage": "10GB",
 			},
 		},
@@ -167,9 +167,9 @@ func (lm *LabManager) initializeDefaultLabs() {
 			"Validate security controls",
 		},
 		Validation: &LabValidation{
-			Type:     "automated",
+			Type:      "automated",
 			AutoCheck: true,
-			Timeout:  30 * time.Second,
+			Timeout:   30 * time.Second,
 			Criteria: []ValidationCriterion{
 				{
 					ID:       "injection-resistance",
@@ -504,6 +504,6 @@ func (lm *LabManager) validateSubmission(session *LabSession, submission *LabSub
 	// In a real implementation, this would perform actual validation
 	score := 85.0
 	feedback := "Good work! Consider improving the security configuration."
-	
+
 	return score, feedback
 }

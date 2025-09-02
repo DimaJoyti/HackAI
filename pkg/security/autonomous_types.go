@@ -332,8 +332,8 @@ const (
 	CriterionTypeCompleteness CriterionType = "completeness"
 )
 
-// RiskAssessment represents risk assessment
-type RiskAssessment struct {
+// AutonomousRiskAssessment represents risk assessment for autonomous systems
+type AutonomousRiskAssessment struct {
 	OverallRisk    float64                `json:"overall_risk"`
 	RiskFactors    []*RiskFactor          `json:"risk_factors"`
 	Mitigations    []*RiskMitigation      `json:"mitigations"`
@@ -348,23 +348,23 @@ type RiskFactor struct {
 	ID          string                 `json:"id"`
 	Name        string                 `json:"name"`
 	Description string                 `json:"description"`
-	Category    RiskCategory           `json:"category"`
+	Category    AutonomousRiskCategory `json:"category"`
 	Probability float64                `json:"probability"`
 	Impact      float64                `json:"impact"`
 	Severity    RiskSeverity           `json:"severity"`
 	Metadata    map[string]interface{} `json:"metadata"`
 }
 
-// RiskCategory defines risk categories
-type RiskCategory string
+// AutonomousRiskCategory defines risk categories for autonomous systems
+type AutonomousRiskCategory string
 
 const (
-	RiskCategoryTechnical    RiskCategory = "technical"
-	RiskCategoryOperational  RiskCategory = "operational"
-	RiskCategoryDetection    RiskCategory = "detection"
-	RiskCategoryLegal        RiskCategory = "legal"
-	RiskCategoryReputational RiskCategory = "reputational"
-	RiskCategoryFinancial    RiskCategory = "financial"
+	AutonomousRiskCategoryTechnical    AutonomousRiskCategory = "technical"
+	AutonomousRiskCategoryOperational  AutonomousRiskCategory = "operational"
+	AutonomousRiskCategoryDetection    AutonomousRiskCategory = "detection"
+	AutonomousRiskCategoryLegal        AutonomousRiskCategory = "legal"
+	AutonomousRiskCategoryReputational AutonomousRiskCategory = "reputational"
+	AutonomousRiskCategoryFinancial    AutonomousRiskCategory = "financial"
 )
 
 // RiskSeverity defines risk severity levels

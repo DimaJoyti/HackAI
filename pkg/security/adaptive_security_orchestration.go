@@ -183,7 +183,7 @@ type AdaptationEvent struct {
 // OrchestrationPerformanceMetrics represents orchestration performance metrics
 type OrchestrationPerformanceMetrics struct {
 	ExecutionTime time.Duration          `json:"execution_time"`
-	ResourceUsage *ResourceUsage         `json:"resource_usage"`
+	ResourceUsage *OrchestrationResourceUsage `json:"resource_usage"`
 	Throughput    float64                `json:"throughput"`
 	Efficiency    float64                `json:"efficiency"`
 	Scalability   float64                `json:"scalability"`

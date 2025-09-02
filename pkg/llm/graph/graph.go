@@ -77,7 +77,7 @@ func (g *DefaultStateGraph) Execute(ctx context.Context, initialState llm.GraphS
 	}
 
 	engine := NewDefaultExecutionEngine(config, g.logger)
-	
+
 	// Execute the graph
 	finalState, err := engine.Execute(ctx, g, initialState)
 	if err != nil {
@@ -133,9 +133,9 @@ func (g *DefaultStateGraph) AddEdge(edge llm.Edge) error {
 	// Add edge to the adjacency list
 	g.edges[edge.From] = append(g.edges[edge.From], edge)
 
-	g.logger.Debug("Edge added to graph", 
-		"graph_id", g.id, 
-		"from", edge.From, 
+	g.logger.Debug("Edge added to graph",
+		"graph_id", g.id,
+		"from", edge.From,
 		"to", edge.To,
 	)
 	return nil
@@ -152,9 +152,9 @@ func (g *DefaultStateGraph) RemoveEdge(from, to string) error {
 	for i, edge := range edges {
 		if edge.To == to {
 			g.edges[from] = append(edges[:i], edges[i+1:]...)
-			g.logger.Debug("Edge removed from graph", 
-				"graph_id", g.id, 
-				"from", from, 
+			g.logger.Debug("Edge removed from graph",
+				"graph_id", g.id,
+				"from", from,
 				"to", to,
 			)
 			return nil
@@ -202,8 +202,8 @@ func (g *DefaultStateGraph) Validate() error {
 	// Check for unreachable nodes
 	unreachable := g.findUnreachableNodes()
 	if len(unreachable) > 0 {
-		g.logger.Warn("Graph has unreachable nodes", 
-			"graph_id", g.id, 
+		g.logger.Warn("Graph has unreachable nodes",
+			"graph_id", g.id,
 			"unreachable_nodes", unreachable,
 		)
 	}

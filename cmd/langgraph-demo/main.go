@@ -140,8 +140,8 @@ func runEventSystemDemo(logger *logger.Logger) error {
 		messaging.EventTypeNodeCompleted,
 		"demo-agent",
 		map[string]interface{}{
-			"node_id": "start",
-			"result":  "success",
+			"node_id":  "start",
+			"result":   "success",
 			"duration": "100ms",
 		},
 	)

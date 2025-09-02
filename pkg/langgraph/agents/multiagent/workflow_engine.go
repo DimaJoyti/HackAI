@@ -10,11 +10,11 @@ import (
 
 // WorkflowEngine manages complex multi-agent workflows
 type WorkflowEngine struct {
-	logger           *logger.Logger
-	workflows        map[string]*Workflow
-	executionEngine  *WorkflowExecutionEngine
-	templateManager  *WorkflowTemplateManager
-	stateManager     *WorkflowStateManager
+	logger          *logger.Logger
+	workflows       map[string]*Workflow
+	executionEngine *WorkflowExecutionEngine
+	templateManager *WorkflowTemplateManager
+	stateManager    *WorkflowStateManager
 }
 
 // Workflow represents a multi-agent workflow
@@ -52,13 +52,13 @@ type WorkflowStep struct {
 type WorkflowStatus string
 
 const (
-	WorkflowStatusDraft      WorkflowStatus = "draft"
-	WorkflowStatusReady      WorkflowStatus = "ready"
-	WorkflowStatusRunning    WorkflowStatus = "running"
-	WorkflowStatusCompleted  WorkflowStatus = "completed"
-	WorkflowStatusFailed     WorkflowStatus = "failed"
-	WorkflowStatusCancelled  WorkflowStatus = "cancelled"
-	WorkflowStatusPaused     WorkflowStatus = "paused"
+	WorkflowStatusDraft     WorkflowStatus = "draft"
+	WorkflowStatusReady     WorkflowStatus = "ready"
+	WorkflowStatusRunning   WorkflowStatus = "running"
+	WorkflowStatusCompleted WorkflowStatus = "completed"
+	WorkflowStatusFailed    WorkflowStatus = "failed"
+	WorkflowStatusCancelled WorkflowStatus = "cancelled"
+	WorkflowStatusPaused    WorkflowStatus = "paused"
 )
 
 // StepType represents the type of workflow step
@@ -114,13 +114,13 @@ type WorkflowStateManager struct {
 
 // WorkflowTemplate represents a reusable workflow template
 type WorkflowTemplate struct {
-	ID          string                 `json:"id"`
-	Name        string                 `json:"name"`
-	Description string                 `json:"description"`
-	Category    string                 `json:"category"`
+	ID          string                  `json:"id"`
+	Name        string                  `json:"name"`
+	Description string                  `json:"description"`
+	Category    string                  `json:"category"`
 	Steps       []*WorkflowStepTemplate `json:"steps"`
-	Parameters  []TemplateParameter    `json:"parameters"`
-	Metadata    map[string]interface{} `json:"metadata"`
+	Parameters  []TemplateParameter     `json:"parameters"`
+	Metadata    map[string]interface{}  `json:"metadata"`
 }
 
 // WorkflowStepTemplate represents a step template
@@ -147,11 +147,11 @@ type TemplateParameter struct {
 
 // WorkflowState represents the current state of a workflow execution
 type WorkflowState struct {
-	WorkflowID   string                 `json:"workflow_id"`
-	CurrentStep  string                 `json:"current_step"`
-	Variables    map[string]interface{} `json:"variables"`
-	StepResults  map[string]interface{} `json:"step_results"`
-	LastUpdated  time.Time              `json:"last_updated"`
+	WorkflowID  string                 `json:"workflow_id"`
+	CurrentStep string                 `json:"current_step"`
+	Variables   map[string]interface{} `json:"variables"`
+	StepResults map[string]interface{} `json:"step_results"`
+	LastUpdated time.Time              `json:"last_updated"`
 }
 
 // NewWorkflowEngine creates a new workflow engine
@@ -409,7 +409,7 @@ func (wee *WorkflowExecutionEngine) Execute(ctx context.Context, workflow *Workf
 
 	// Execute steps based on dependencies
 	executionLevels := wee.buildExecutionLevels(workflow)
-	
+
 	for levelIndex, level := range executionLevels {
 		wee.logger.Debug("Executing workflow level",
 			"workflow_id", workflow.ID,
@@ -433,11 +433,11 @@ func (wee *WorkflowExecutionEngine) Execute(ctx context.Context, workflow *Workf
 	duration := time.Since(startTime)
 
 	result := &WorkflowExecutionResult{
-		WorkflowID:   workflow.ID,
-		Success:      true,
-		Duration:     duration,
-		StepResults:  state.StepResults,
-		FinalState:   state.Variables,
+		WorkflowID:  workflow.ID,
+		Success:     true,
+		Duration:    duration,
+		StepResults: state.StepResults,
+		FinalState:  state.Variables,
 	}
 
 	wee.logger.Info("Workflow execution completed",
@@ -513,9 +513,9 @@ func (wee *WorkflowExecutionEngine) executeAgentTask(ctx context.Context, step *
 	// Prepare agent input
 	agentInput := AgentInput{
 		Task: CollaborativeTask{
-			ID:          step.ID,
-			Name:        step.Name,
-			Objective:   fmt.Sprintf("Execute workflow step: %s", step.Name),
+			ID:        step.ID,
+			Name:      step.Name,
+			Objective: fmt.Sprintf("Execute workflow step: %s", step.Name),
 		},
 		Context: step.Input,
 	}

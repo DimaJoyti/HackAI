@@ -27,21 +27,21 @@ type OpenAPIGenerator struct {
 
 // OpenAPIConfig defines OpenAPI generation configuration
 type OpenAPIConfig struct {
-	Version              string            `yaml:"version"`
-	OutputDirectory      string            `yaml:"output_directory"`
-	OutputFormats        []string          `yaml:"output_formats"`
-	IncludeExamples      bool              `yaml:"include_examples"`
-	IncludeSchemas       bool              `yaml:"include_schemas"`
-	IncludeServers       bool              `yaml:"include_servers"`
-	IncludeSecurity      bool              `yaml:"include_security"`
-	IncludeTags          bool              `yaml:"include_tags"`
-	IncludeExternalDocs  bool              `yaml:"include_external_docs"`
-	ValidateSpec         bool              `yaml:"validate_spec"`
-	PrettyPrint          bool              `yaml:"pretty_print"`
-	SortPaths            bool              `yaml:"sort_paths"`
-	SortSchemas          bool              `yaml:"sort_schemas"`
-	CustomExtensions     map[string]interface{} `yaml:"custom_extensions"`
-	TemplateOverrides    map[string]string `yaml:"template_overrides"`
+	Version             string                 `yaml:"version"`
+	OutputDirectory     string                 `yaml:"output_directory"`
+	OutputFormats       []string               `yaml:"output_formats"`
+	IncludeExamples     bool                   `yaml:"include_examples"`
+	IncludeSchemas      bool                   `yaml:"include_schemas"`
+	IncludeServers      bool                   `yaml:"include_servers"`
+	IncludeSecurity     bool                   `yaml:"include_security"`
+	IncludeTags         bool                   `yaml:"include_tags"`
+	IncludeExternalDocs bool                   `yaml:"include_external_docs"`
+	ValidateSpec        bool                   `yaml:"validate_spec"`
+	PrettyPrint         bool                   `yaml:"pretty_print"`
+	SortPaths           bool                   `yaml:"sort_paths"`
+	SortSchemas         bool                   `yaml:"sort_schemas"`
+	CustomExtensions    map[string]interface{} `yaml:"custom_extensions"`
+	TemplateOverrides   map[string]string      `yaml:"template_overrides"`
 }
 
 // DocumentationGenerator generates comprehensive API documentation
@@ -52,13 +52,13 @@ type DocumentationGenerator struct {
 
 // BrandingConfig defines branding configuration for documentation
 type BrandingConfig struct {
-	Logo        string `yaml:"logo"`
-	FaviconURL  string `yaml:"favicon_url"`
-	PrimaryColor string `yaml:"primary_color"`
+	Logo           string `yaml:"logo"`
+	FaviconURL     string `yaml:"favicon_url"`
+	PrimaryColor   string `yaml:"primary_color"`
 	SecondaryColor string `yaml:"secondary_color"`
-	FontFamily  string `yaml:"font_family"`
-	CustomCSS   string `yaml:"custom_css"`
-	CustomJS    string `yaml:"custom_js"`
+	FontFamily     string `yaml:"font_family"`
+	CustomCSS      string `yaml:"custom_css"`
+	CustomJS       string `yaml:"custom_js"`
 }
 
 // NewOpenAPIGenerator creates a new OpenAPI generator
@@ -139,8 +139,8 @@ func (oag *OpenAPIGenerator) GenerateSpec(ctx context.Context, documentation *AP
 	)
 
 	oag.logger.WithFields(logger.Fields{
-		"paths_count":           len(spec.Paths),
-		"schemas_count":         len(spec.Components.Schemas),
+		"paths_count":            len(spec.Paths),
+		"schemas_count":          len(spec.Components.Schemas),
 		"security_schemes_count": len(spec.Components.SecuritySchemes),
 	}).Info("Generated OpenAPI specification")
 
@@ -151,7 +151,7 @@ func (oag *OpenAPIGenerator) GenerateSpec(ctx context.Context, documentation *AP
 func (oag *OpenAPIGenerator) generatePaths(ctx context.Context, spec *OpenAPISpec, endpoints map[string]*APIEndpoint) error {
 	// Group endpoints by path
 	pathGroups := make(map[string]map[string]*APIEndpoint)
-	
+
 	for _, endpoint := range endpoints {
 		if pathGroups[endpoint.Path] == nil {
 			pathGroups[endpoint.Path] = make(map[string]*APIEndpoint)
@@ -162,12 +162,12 @@ func (oag *OpenAPIGenerator) generatePaths(ctx context.Context, spec *OpenAPISpe
 	// Generate path items
 	for path, methods := range pathGroups {
 		pathItem := make(map[string]interface{})
-		
+
 		for method, endpoint := range methods {
 			operation := oag.generateOperation(ctx, endpoint)
 			pathItem[method] = operation
 		}
-		
+
 		spec.Paths[path] = pathItem
 	}
 
@@ -234,18 +234,18 @@ func (oag *OpenAPIGenerator) generateOperationID(endpoint *APIEndpoint) string {
 	if endpoint.ID != "" {
 		return endpoint.ID
 	}
-	
+
 	// Generate from method and path
 	method := strings.ToLower(endpoint.Method)
 	path := strings.ReplaceAll(endpoint.Path, "/", "_")
 	path = strings.ReplaceAll(path, "{", "")
 	path = strings.ReplaceAll(path, "}", "")
 	path = strings.Trim(path, "_")
-	
+
 	if path == "" {
 		return method + "_root"
 	}
-	
+
 	return method + "_" + path
 }
 
@@ -254,12 +254,12 @@ func (oag *OpenAPIGenerator) generateParameters(parameters []*APIParameter) []in
 	if len(parameters) == 0 {
 		return nil
 	}
-	
+
 	result := make([]interface{}, len(parameters))
 	for i, param := range parameters {
 		result[i] = param
 	}
-	
+
 	return result
 }
 
@@ -273,12 +273,12 @@ func (oag *OpenAPIGenerator) generateResponses(responses map[string]*APIResponse
 			},
 		}
 	}
-	
+
 	result := make(map[string]interface{})
 	for code, response := range responses {
 		result[code] = response
 	}
-	
+
 	return result
 }
 
@@ -295,19 +295,19 @@ func (oag *OpenAPIGenerator) validateSpec(ctx context.Context, spec *OpenAPISpec
 	if spec.Info == nil {
 		return fmt.Errorf("info section is required")
 	}
-	
+
 	if spec.Info.Title == "" {
 		return fmt.Errorf("info.title is required")
 	}
-	
+
 	if spec.Info.Version == "" {
 		return fmt.Errorf("info.version is required")
 	}
-	
+
 	if len(spec.Paths) == 0 {
 		return fmt.Errorf("at least one path is required")
 	}
-	
+
 	// Additional validation logic would go here
 	return nil
 }
@@ -319,10 +319,10 @@ func (oag *OpenAPIGenerator) SaveSpec(ctx context.Context, spec *OpenAPISpec) er
 
 	for _, format := range oag.config.OutputFormats {
 		filename := filepath.Join(oag.config.OutputDirectory, fmt.Sprintf("openapi.%s", format))
-		
+
 		var data []byte
 		var err error
-		
+
 		switch strings.ToLower(format) {
 		case "json":
 			if oag.config.PrettyPrint {
@@ -335,15 +335,15 @@ func (oag *OpenAPIGenerator) SaveSpec(ctx context.Context, spec *OpenAPISpec) er
 		default:
 			return fmt.Errorf("unsupported output format: %s", format)
 		}
-		
+
 		if err != nil {
 			return fmt.Errorf("failed to marshal spec to %s: %w", format, err)
 		}
-		
+
 		if err := ioutil.WriteFile(filename, data, 0644); err != nil {
 			return fmt.Errorf("failed to write spec file %s: %w", filename, err)
 		}
-		
+
 		oag.logger.WithFields(logger.Fields{
 			"format":   format,
 			"filename": filename,
@@ -466,10 +466,10 @@ func (dg *DocumentationGenerator) generateHTMLDocumentation(ctx context.Context,
 
 	// Generate HTML content
 	filename := filepath.Join(dg.config.OutputDirectory, "index.html")
-	
+
 	// In a real implementation, you would use Go's template engine
 	// to process the template with the documentation data
-	
+
 	dg.logger.WithField("filename", filename).Info("Generated HTML documentation")
 	return nil
 }
@@ -477,37 +477,37 @@ func (dg *DocumentationGenerator) generateHTMLDocumentation(ctx context.Context,
 // generateMarkdownDocumentation generates Markdown documentation
 func (dg *DocumentationGenerator) generateMarkdownDocumentation(ctx context.Context, documentation *APIDocumentation) error {
 	var content strings.Builder
-	
+
 	// Header
 	content.WriteString(fmt.Sprintf("# %s\n\n", documentation.Info.Title))
 	content.WriteString(fmt.Sprintf("%s\n\n", documentation.Info.Description))
 	content.WriteString(fmt.Sprintf("**Version:** %s\n\n", documentation.Info.Version))
-	
+
 	// Table of contents
 	content.WriteString("## Table of Contents\n\n")
-	
+
 	// Sort endpoints by path for consistent output
 	var sortedEndpoints []*APIEndpoint
 	for _, endpoint := range documentation.Endpoints {
 		sortedEndpoints = append(sortedEndpoints, endpoint)
 	}
-	
+
 	sort.Slice(sortedEndpoints, func(i, j int) bool {
 		return sortedEndpoints[i].Path < sortedEndpoints[j].Path
 	})
-	
+
 	// Generate endpoint documentation
 	content.WriteString("## Endpoints\n\n")
-	
+
 	for _, endpoint := range sortedEndpoints {
 		content.WriteString(fmt.Sprintf("### %s %s\n\n", endpoint.Method, endpoint.Path))
 		content.WriteString(fmt.Sprintf("%s\n\n", endpoint.Description))
-		
+
 		if len(endpoint.Parameters) > 0 {
 			content.WriteString("#### Parameters\n\n")
 			content.WriteString("| Name | Type | Location | Required | Description |\n")
 			content.WriteString("|------|------|----------|----------|-------------|\n")
-			
+
 			for _, param := range endpoint.Parameters {
 				required := "No"
 				if param.Required {
@@ -518,25 +518,25 @@ func (dg *DocumentationGenerator) generateMarkdownDocumentation(ctx context.Cont
 			}
 			content.WriteString("\n")
 		}
-		
+
 		if len(endpoint.Responses) > 0 {
 			content.WriteString("#### Responses\n\n")
 			content.WriteString("| Status Code | Description |\n")
 			content.WriteString("|-------------|-------------|\n")
-			
+
 			for code, response := range endpoint.Responses {
 				content.WriteString(fmt.Sprintf("| %s | %s |\n", code, response.Description))
 			}
 			content.WriteString("\n")
 		}
 	}
-	
+
 	// Save to file
 	filename := filepath.Join(dg.config.OutputDirectory, "README.md")
 	if err := ioutil.WriteFile(filename, []byte(content.String()), 0644); err != nil {
 		return fmt.Errorf("failed to write markdown documentation: %w", err)
 	}
-	
+
 	dg.logger.WithField("filename", filename).Info("Generated Markdown documentation")
 	return nil
 }

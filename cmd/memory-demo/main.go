@@ -26,23 +26,23 @@ func main() {
 
 	// Create memory configuration
 	config := &memory.MemoryConfig{
-		AgentID:                "demo-agent-001",
-		WorkingMemorySize:      50,
-		EpisodicMemorySize:     200,
-		SemanticMemorySize:     500,
-		ProceduralMemorySize:   100,
-		VectorMemorySize:       300,
-		ConsolidationInterval:  30 * time.Second,
-		RetentionPeriod:        7 * 24 * time.Hour, // 7 days
-		CompressionThreshold:   100,
-		EnablePersistence:      true,
-		EnableCompression:      true,
-		EnableEncryption:       false,
-		EnableIndexing:         true,
-		EnableAnalytics:        true,
-		PersistenceBackend:     "memory", // In-memory for demo
-		VectorDimensions:       128,
-		SimilarityThreshold:    0.7,
+		AgentID:               "demo-agent-001",
+		WorkingMemorySize:     50,
+		EpisodicMemorySize:    200,
+		SemanticMemorySize:    500,
+		ProceduralMemorySize:  100,
+		VectorMemorySize:      300,
+		ConsolidationInterval: 30 * time.Second,
+		RetentionPeriod:       7 * 24 * time.Hour, // 7 days
+		CompressionThreshold:  100,
+		EnablePersistence:     true,
+		EnableCompression:     true,
+		EnableEncryption:      false,
+		EnableIndexing:        true,
+		EnableAnalytics:       true,
+		PersistenceBackend:    "memory", // In-memory for demo
+		VectorDimensions:      128,
+		SimilarityThreshold:   0.7,
 	}
 
 	// Create agent memory system

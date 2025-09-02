@@ -180,8 +180,8 @@ type DetectedAnomaly struct {
 	Metadata    map[string]interface{} `json:"metadata"`
 }
 
-// SecurityIncident represents a security incident
-type SecurityIncident struct {
+// IntegrationSecurityIncident represents a security incident from integrations
+type IntegrationSecurityIncident struct {
 	ID          string                 `json:"id"`
 	Type        string                 `json:"type"`
 	Severity    string                 `json:"severity"`
@@ -209,8 +209,8 @@ type IncidentResponse struct {
 	Metadata    map[string]interface{} `json:"metadata"`
 }
 
-// ResponseAction represents a response action
-type ResponseAction struct {
+// IntegrationResponseAction represents a response action from integrations
+type IntegrationResponseAction struct {
 	ID          string                 `json:"id"`
 	Type        string                 `json:"type"`
 	Description string                 `json:"description"`
@@ -248,8 +248,8 @@ type OnCallSchedule struct {
 	Metadata      map[string]interface{} `json:"metadata"`
 }
 
-// ResponsePlaybook represents an incident response playbook
-type ResponsePlaybook struct {
+// IntegrationResponsePlaybook represents an incident response playbook from integrations
+type IntegrationResponsePlaybook struct {
 	ID          string                 `json:"id"`
 	Name        string                 `json:"name"`
 	Type        string                 `json:"type"`
@@ -259,8 +259,8 @@ type ResponsePlaybook struct {
 	Metadata    map[string]interface{} `json:"metadata"`
 }
 
-// PlaybookStep represents a step in a response playbook
-type PlaybookStep struct {
+// IntegrationPlaybookStep represents a step in a response playbook from integrations
+type IntegrationPlaybookStep struct {
 	ID           string                 `json:"id"`
 	Name         string                 `json:"name"`
 	Type         string                 `json:"type"`
@@ -279,8 +279,8 @@ type EscalationRules struct {
 	Metadata    map[string]interface{} `json:"metadata"`
 }
 
-// EscalationRule represents an escalation rule
-type EscalationRule struct {
+// IntegrationEscalationRule represents an escalation rule from integrations
+type IntegrationEscalationRule struct {
 	ID         string                 `json:"id"`
 	Condition  string                 `json:"condition"`
 	Severity   string                 `json:"severity"`
@@ -328,7 +328,7 @@ func NewSecurityIntegrationService(config *SecurityIntegrationConfig, logger *lo
 
 	riskManager := NewTradingRiskManager(riskConfig, logger)
 
-	complianceConfig := &compliance.ComplianceConfig{
+	complianceConfig := &compliance.RegulatoryConfig{
 		Jurisdictions:      []string{"US", "EU", "UK"},
 		RegulationTypes:    []string{"MiFID", "GDPR", "SOX"},
 		ReportingFrequency: 24 * time.Hour,

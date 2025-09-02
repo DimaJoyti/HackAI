@@ -14,7 +14,7 @@ import (
 // CreatorAgent specializes in content generation, strategy creation, and automated reporting
 type CreatorAgent struct {
 	*BaseBusinessAgent
-	templateEngine *TemplateEngine
+	templateEngine  *TemplateEngine
 	strategyBuilder *StrategyBuilder
 	reportGenerator *ReportGenerator
 }
@@ -36,12 +36,12 @@ type ReportGenerator struct {
 
 // ContentTemplate represents a content template
 type ContentTemplate struct {
-	ID          string                 `json:"id"`
-	Name        string                 `json:"name"`
-	Type        string                 `json:"type"`
-	Template    string                 `json:"template"`
-	Variables   []string               `json:"variables"`
-	Metadata    map[string]interface{} `json:"metadata"`
+	ID        string                 `json:"id"`
+	Name      string                 `json:"name"`
+	Type      string                 `json:"type"`
+	Template  string                 `json:"template"`
+	Variables []string               `json:"variables"`
+	Metadata  map[string]interface{} `json:"metadata"`
 }
 
 // StrategyTemplate represents a trading strategy template
@@ -66,22 +66,22 @@ type StrategyParameter struct {
 
 // StrategyRule represents a strategy rule
 type StrategyRule struct {
-	ID          string                 `json:"id"`
-	Name        string                 `json:"name"`
-	Condition   string                 `json:"condition"`
-	Action      string                 `json:"action"`
-	Priority    int                    `json:"priority"`
-	Metadata    map[string]interface{} `json:"metadata"`
+	ID        string                 `json:"id"`
+	Name      string                 `json:"name"`
+	Condition string                 `json:"condition"`
+	Action    string                 `json:"action"`
+	Priority  int                    `json:"priority"`
+	Metadata  map[string]interface{} `json:"metadata"`
 }
 
 // ReportTemplate represents a report template
 type ReportTemplate struct {
-	ID          string                 `json:"id"`
-	Name        string                 `json:"name"`
-	Type        string                 `json:"type"`
-	Sections    []ReportSection        `json:"sections"`
-	Format      string                 `json:"format"`
-	Metadata    map[string]interface{} `json:"metadata"`
+	ID       string                 `json:"id"`
+	Name     string                 `json:"name"`
+	Type     string                 `json:"type"`
+	Sections []ReportSection        `json:"sections"`
+	Format   string                 `json:"format"`
+	Metadata map[string]interface{} `json:"metadata"`
 }
 
 // ReportSection represents a section in a report
@@ -113,29 +113,29 @@ type TradingStrategy struct {
 
 // RiskManagementRules defines risk management for a strategy
 type RiskManagementRules struct {
-	StopLoss      float64 `json:"stop_loss"`
-	TakeProfit    float64 `json:"take_profit"`
-	PositionSize  float64 `json:"position_size"`
-	MaxDrawdown   float64 `json:"max_drawdown"`
-	RiskReward    float64 `json:"risk_reward"`
+	StopLoss     float64 `json:"stop_loss"`
+	TakeProfit   float64 `json:"take_profit"`
+	PositionSize float64 `json:"position_size"`
+	MaxDrawdown  float64 `json:"max_drawdown"`
+	RiskReward   float64 `json:"risk_reward"`
 }
 
 // BacktestResults contains backtesting results
 type BacktestResults struct {
-	TotalReturn     float64   `json:"total_return"`
-	SharpeRatio     float64   `json:"sharpe_ratio"`
-	MaxDrawdown     float64   `json:"max_drawdown"`
-	WinRate         float64   `json:"win_rate"`
-	ProfitFactor    float64   `json:"profit_factor"`
-	TotalTrades     int       `json:"total_trades"`
-	BacktestPeriod  string    `json:"backtest_period"`
-	CreatedAt       time.Time `json:"created_at"`
+	TotalReturn    float64   `json:"total_return"`
+	SharpeRatio    float64   `json:"sharpe_ratio"`
+	MaxDrawdown    float64   `json:"max_drawdown"`
+	WinRate        float64   `json:"win_rate"`
+	ProfitFactor   float64   `json:"profit_factor"`
+	TotalTrades    int       `json:"total_trades"`
+	BacktestPeriod string    `json:"backtest_period"`
+	CreatedAt      time.Time `json:"created_at"`
 }
 
 // NewCreatorAgent creates a new creator agent
 func NewCreatorAgent(id, name string, logger *logger.Logger) *CreatorAgent {
 	baseAgent := NewBaseBusinessAgent(id, name, "Content generation and strategy creation specialist", AgentTypeCreator, logger)
-	
+
 	agent := &CreatorAgent{
 		BaseBusinessAgent: baseAgent,
 		templateEngine:    NewTemplateEngine(),
@@ -315,8 +315,8 @@ func (c *CreatorAgent) createStrategy(ctx context.Context, task *BusinessTask) (
 	}
 
 	result := &BusinessTaskResult{
-		TaskID:    task.ID,
-		Success:   true,
+		TaskID:  task.ID,
+		Success: true,
 		Result: map[string]interface{}{
 			"strategy": strategy,
 			"summary":  c.generateStrategySummary(strategy),
@@ -351,8 +351,8 @@ func (c *CreatorAgent) generateReport(ctx context.Context, task *BusinessTask) (
 	report := c.buildReport(template, task.Parameters)
 
 	result := &BusinessTaskResult{
-		TaskID:    task.ID,
-		Success:   true,
+		TaskID:  task.ID,
+		Success: true,
 		Result: map[string]interface{}{
 			"report":      report,
 			"report_type": reportType,
@@ -393,8 +393,8 @@ func (c *CreatorAgent) createContent(ctx context.Context, task *BusinessTask) (*
 	content := c.generateContentFromTemplate(template, task.Parameters)
 
 	result := &BusinessTaskResult{
-		TaskID:    task.ID,
-		Success:   true,
+		TaskID:  task.ID,
+		Success: true,
 		Result: map[string]interface{}{
 			"content":      content,
 			"content_type": contentType,
@@ -413,11 +413,11 @@ func (c *CreatorAgent) createContent(ctx context.Context, task *BusinessTask) (*
 func (c *CreatorAgent) generateDocumentation(ctx context.Context, task *BusinessTask) (*BusinessTaskResult, error) {
 	// Implementation for documentation generation
 	return &BusinessTaskResult{
-		TaskID:    task.ID,
-		Success:   true,
-		Result:    map[string]interface{}{"message": "Documentation generated"},
+		TaskID:     task.ID,
+		Success:    true,
+		Result:     map[string]interface{}{"message": "Documentation generated"},
 		Confidence: 0.85,
-		CreatedAt: time.Now(),
+		CreatedAt:  time.Now(),
 	}, nil
 }
 
@@ -425,11 +425,11 @@ func (c *CreatorAgent) generateDocumentation(ctx context.Context, task *Business
 func (c *CreatorAgent) createTemplate(ctx context.Context, task *BusinessTask) (*BusinessTaskResult, error) {
 	// Implementation for template creation
 	return &BusinessTaskResult{
-		TaskID:    task.ID,
-		Success:   true,
-		Result:    map[string]interface{}{"message": "Template created"},
+		TaskID:     task.ID,
+		Success:    true,
+		Result:     map[string]interface{}{"message": "Template created"},
 		Confidence: 0.8,
-		CreatedAt: time.Now(),
+		CreatedAt:  time.Now(),
 	}, nil
 }
 
@@ -439,7 +439,7 @@ func (c *CreatorAgent) createTemplate(ctx context.Context, task *BusinessTask) (
 func (c *CreatorAgent) generateStrategySummary(strategy *TradingStrategy) string {
 	summary := fmt.Sprintf("Trading Strategy: %s\n", strategy.Name)
 	summary += fmt.Sprintf("Type: %s | Symbol: %s | Timeframe: %s\n", strategy.Type, strategy.Symbol, strategy.TimeFrame)
-	summary += fmt.Sprintf("Risk Management: Stop Loss: %.1f%%, Take Profit: %.1f%%\n", 
+	summary += fmt.Sprintf("Risk Management: Stop Loss: %.1f%%, Take Profit: %.1f%%\n",
 		strategy.RiskManagement.StopLoss*100, strategy.RiskManagement.TakeProfit*100)
 	summary += "Entry Conditions:\n"
 	for _, condition := range strategy.EntryConditions {
@@ -501,17 +501,17 @@ func (c *CreatorAgent) generateContentFromTemplate(template *ContentTemplate, pa
 func (te *TemplateEngine) initializeDefaultTemplates() {
 	templates := []*ContentTemplate{
 		{
-			ID:   "market_alert",
-			Name: "Market Alert",
-			Type: "alert",
-			Template: "🚨 Market Alert for {{symbol}}\nPrice: ${{price}}\nChange: {{change}}%\nVolume: {{volume}}",
+			ID:        "market_alert",
+			Name:      "Market Alert",
+			Type:      "alert",
+			Template:  "🚨 Market Alert for {{symbol}}\nPrice: ${{price}}\nChange: {{change}}%\nVolume: {{volume}}",
 			Variables: []string{"symbol", "price", "change", "volume"},
 		},
 		{
-			ID:   "trade_summary",
-			Name: "Trade Summary",
-			Type: "summary",
-			Template: "Trade executed: {{side}} {{quantity}} {{symbol}} at ${{price}}\nP&L: {{pnl}}\nStatus: {{status}}",
+			ID:        "trade_summary",
+			Name:      "Trade Summary",
+			Type:      "summary",
+			Template:  "Trade executed: {{side}} {{quantity}} {{symbol}} at ${{price}}\nP&L: {{pnl}}\nStatus: {{status}}",
 			Variables: []string{"side", "quantity", "symbol", "price", "pnl", "status"},
 		},
 	}

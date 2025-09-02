@@ -33,7 +33,7 @@ type TokenBucketLimiter struct {
 	config   *RateLimitConfig
 	mutex    sync.RWMutex
 	logger   *logger.Logger
-	
+
 	// Cleanup
 	lastCleanup time.Time
 }
@@ -87,7 +87,7 @@ func (rl *TokenBucketLimiter) AllowN(ctx context.Context, key string, n int) (bo
 func (rl *TokenBucketLimiter) Reset(ctx context.Context, key string) error {
 	rl.mutex.Lock()
 	defer rl.mutex.Unlock()
-	
+
 	delete(rl.limiters, key)
 	return nil
 }
@@ -140,18 +140,18 @@ func (rl *RedisRateLimiter) AllowN(ctx context.Context, key string, n int) (bool
 	now := time.Now()
 	window := time.Minute // Use per-minute window
 	windowStart := now.Truncate(window)
-	
+
 	redisKey := fmt.Sprintf("rate_limit:%s:%d", key, windowStart.Unix())
 
 	// Use Redis pipeline for atomic operations
 	pipe := rl.redis.client.Pipeline()
-	
+
 	// Increment counter
 	incrCmd := pipe.IncrBy(ctx, redisKey, int64(n))
-	
+
 	// Set expiration
 	pipe.Expire(ctx, redisKey, window+time.Second) // Add buffer
-	
+
 	// Execute pipeline
 	_, err := pipe.Exec(ctx)
 	if err != nil {
@@ -183,7 +183,7 @@ func (rl *RedisRateLimiter) AllowN(ctx context.Context, key string, n int) (bool
 // Reset resets the rate limit for a key
 func (rl *RedisRateLimiter) Reset(ctx context.Context, key string) error {
 	pattern := fmt.Sprintf("rate_limit:%s:*", key)
-	
+
 	// Get all keys matching pattern
 	keys, err := rl.redis.client.Keys(ctx, pattern).Result()
 	if err != nil {
@@ -240,7 +240,7 @@ func (m *RateLimitMiddleware) Handler(next http.Handler) http.Handler {
 
 		// Determine rate limit key
 		key := m.getRateLimitKey(r)
-		
+
 		// Check rate limit
 		allowed, err := m.limiter.Allow(ctx, key)
 		if err != nil {
@@ -263,7 +263,7 @@ func (m *RateLimitMiddleware) Handler(next http.Handler) http.Handler {
 
 			w.Header().Set("X-RateLimit-Exceeded", "true")
 			w.Header().Set("Retry-After", strconv.Itoa(int(window.Seconds())))
-			
+
 			http.Error(w, "Rate limit exceeded", http.StatusTooManyRequests)
 			return
 		}
@@ -280,7 +280,7 @@ func (m *RateLimitMiddleware) Handler(next http.Handler) http.Handler {
 // getRateLimitKey determines the rate limit key based on configuration
 func (m *RateLimitMiddleware) getRateLimitKey(r *http.Request) string {
 	// Priority: User ID > IP Address > Global
-	
+
 	// Try to get user ID from context (set by auth middleware)
 	if m.config.PerUserEnabled {
 		if userID := getUserIDFromContext(r.Context()); userID != "" {
@@ -320,7 +320,7 @@ func getClientIP(r *http.Request) string {
 	if err != nil {
 		return r.RemoteAddr
 	}
-	
+
 	return host
 }
 
@@ -375,7 +375,7 @@ func (c *RateLimitHealthChecker) Check(ctx context.Context) ComponentHealth {
 
 	status := HealthStatusHealthy
 	message := "Rate limiter is healthy"
-	
+
 	if !allowed {
 		// This shouldn't happen for a health check, but handle it gracefully
 		status = HealthStatusDegraded

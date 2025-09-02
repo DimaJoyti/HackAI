@@ -14,13 +14,13 @@ import (
 
 // ToolSecurityManager manages security for tool execution
 type ToolSecurityManager struct {
-	level           SecurityLevel
-	permissions     map[string]*PermissionSet
-	sessions        map[string]*SecuritySession
-	auditLog        []*AuditEntry
-	encryptionKeys  map[string]string
-	logger          *logger.Logger
-	mutex           sync.RWMutex
+	level          SecurityLevel
+	permissions    map[string]*PermissionSet
+	sessions       map[string]*SecuritySession
+	auditLog       []*AuditEntry
+	encryptionKeys map[string]string
+	logger         *logger.Logger
+	mutex          sync.RWMutex
 }
 
 // PermissionSet represents a set of permissions for a user/role
@@ -359,8 +359,8 @@ func (tsm *ToolSecurityManager) DecryptData(toolID string, encryptedData []byte)
 
 func (tsm *ToolSecurityManager) extractSecurityContext(ctx context.Context, options *ExecutionOptions) *SecurityContext {
 	securityCtx := &SecurityContext{
-		UserID:    options.UserID,
-		Metadata:  make(map[string]interface{}),
+		UserID:   options.UserID,
+		Metadata: make(map[string]interface{}),
 	}
 
 	// Extract additional context from options
@@ -471,12 +471,12 @@ func (tsm *ToolSecurityManager) GetSecurityStats() *SecurityStats {
 	defer tsm.mutex.RUnlock()
 
 	stats := &SecurityStats{
-		ActiveSessions:   len(tsm.sessions),
-		TotalUsers:       len(tsm.permissions),
-		AuditEntries:     len(tsm.auditLog),
-		EncryptionKeys:   len(tsm.encryptionKeys),
-		SecurityLevel:    tsm.level,
-		Timestamp:        time.Now(),
+		ActiveSessions: len(tsm.sessions),
+		TotalUsers:     len(tsm.permissions),
+		AuditEntries:   len(tsm.auditLog),
+		EncryptionKeys: len(tsm.encryptionKeys),
+		SecurityLevel:  tsm.level,
+		Timestamp:      time.Now(),
 	}
 
 	// Count successful vs failed audit entries

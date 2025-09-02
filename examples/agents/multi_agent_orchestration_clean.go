@@ -39,7 +39,7 @@ const (
 type Task struct {
 	ID          string                 `json:"id"`
 	Type        string                 `json:"type"`
-	Priority    TaskPriority               `json:"priority"`
+	Priority    TaskPriority           `json:"priority"`
 	Description string                 `json:"description"`
 	Parameters  map[string]interface{} `json:"parameters"`
 	Timeout     time.Duration          `json:"timeout"`

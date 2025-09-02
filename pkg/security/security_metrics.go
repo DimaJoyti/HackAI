@@ -14,85 +14,85 @@ import (
 // SecurityMetricsCollector collects and manages security metrics
 type SecurityMetricsCollector struct {
 	// Prometheus metrics
-	threatDetections     *prometheus.CounterVec
-	blockedRequests      *prometheus.CounterVec
-	securityEvents       *prometheus.CounterVec
-	threatScores         *prometheus.HistogramVec
-	processingDuration   *prometheus.HistogramVec
-	componentHealth      *prometheus.GaugeVec
-	alertsTriggered      *prometheus.CounterVec
-	falsePositives       *prometheus.CounterVec
-	modelAccuracy        *prometheus.GaugeVec
-	ruleEffectiveness    *prometheus.GaugeVec
-	
+	threatDetections   *prometheus.CounterVec
+	blockedRequests    *prometheus.CounterVec
+	securityEvents     *prometheus.CounterVec
+	threatScores       *prometheus.HistogramVec
+	processingDuration *prometheus.HistogramVec
+	componentHealth    *prometheus.GaugeVec
+	alertsTriggered    *prometheus.CounterVec
+	falsePositives     *prometheus.CounterVec
+	modelAccuracy      *prometheus.GaugeVec
+	ruleEffectiveness  *prometheus.GaugeVec
+
 	// Internal metrics storage
-	metrics              *SecurityMetrics
-	componentMetrics     map[string]*ComponentMetrics
-	threatIntelMetrics   *ThreatIntelligenceMetrics
-	performanceMetrics   *PerformanceMetrics
-	
+	metrics            *SecurityMetrics
+	componentMetrics   map[string]*ComponentMetrics
+	threatIntelMetrics *ThreatIntelligenceMetrics
+	performanceMetrics *PerformanceMetrics
+
 	// Configuration
-	config               *MetricsConfig
-	logger               Logger
-	
+	config *MetricsConfig
+	logger Logger
+
 	// Synchronization
-	mu                   sync.RWMutex
-	
+	mu sync.RWMutex
+
 	// Channels for real-time updates
-	eventChan            chan *SecurityEvent
-	metricsChan          chan *MetricUpdate
-	
+	eventChan   chan *SecurityEvent
+	metricsChan chan *MetricUpdate
+
 	// Background workers
-	ctx                  context.Context
-	cancel               context.CancelFunc
-	wg                   sync.WaitGroup
+	ctx    context.Context
+	cancel context.CancelFunc
+	wg     sync.WaitGroup
 }
 
 // SecurityMetrics comprehensive security metrics
 type SecurityMetrics struct {
 	// Request metrics
-	TotalRequests         int64                  `json:"total_requests"`
-	BlockedRequests       int64                  `json:"blocked_requests"`
-	AllowedRequests       int64                  `json:"allowed_requests"`
-	
+	TotalRequests   int64 `json:"total_requests"`
+	BlockedRequests int64 `json:"blocked_requests"`
+	AllowedRequests int64 `json:"allowed_requests"`
+
 	// Threat detection metrics
-	ThreatsDetected       int64                  `json:"threats_detected"`
-	ThreatsByType         map[string]int64       `json:"threats_by_type"`
-	ThreatsBySeverity     map[string]int64       `json:"threats_by_severity"`
-	ThreatsBySource       map[string]int64       `json:"threats_by_source"`
-	
+	ThreatsDetected   int64            `json:"threats_detected"`
+	ThreatsByType     map[string]int64 `json:"threats_by_type"`
+	ThreatsBySeverity map[string]int64 `json:"threats_by_severity"`
+	ThreatsBySource   map[string]int64 `json:"threats_by_source"`
+
 	// Component-specific metrics
-	PromptInjections      int64                  `json:"prompt_injections"`
-	InputViolations       int64                  `json:"input_violations"`
-	OutputSanitizations   int64                  `json:"output_sanitizations"`
-	FirewallBlocks        int64                  `json:"firewall_blocks"`
-	AgenticActions        int64                  `json:"agentic_actions"`
-	
+	PromptInjections    int64 `json:"prompt_injections"`
+	InputViolations     int64 `json:"input_violations"`
+	OutputSanitizations int64 `json:"output_sanitizations"`
+	FirewallBlocks      int64 `json:"firewall_blocks"`
+	AgenticActions      int64 `json:"agentic_actions"`
+
 	// Performance metrics
-	AverageProcessingTime time.Duration          `json:"average_processing_time"`
-	MaxProcessingTime     time.Duration          `json:"max_processing_time"`
-	MinProcessingTime     time.Duration          `json:"min_processing_time"`
-	
+	AverageProcessingTime time.Duration `json:"average_processing_time"`
+	MaxProcessingTime     time.Duration `json:"max_processing_time"`
+	MinProcessingTime     time.Duration `json:"min_processing_time"`
+
 	// Risk assessment metrics
-	AverageRiskScore      float64                `json:"average_risk_score"`
-	MaxRiskScore          float64                `json:"max_risk_score"`
-	RiskDistribution      map[string]int64       `json:"risk_distribution"`
-	
+	AverageRiskScore float64          `json:"average_risk_score"`
+	MaxRiskScore     float64          `json:"max_risk_score"`
+	RiskDistribution map[string]int64 `json:"risk_distribution"`
+
 	// Alert metrics
-	AlertsTriggered       int64                  `json:"alerts_triggered"`
-	AlertsByChannel       map[string]int64       `json:"alerts_by_channel"`
-	AlertsBySeverity      map[string]int64       `json:"alerts_by_severity"`
-	
+	AlertsTriggered  int64            `json:"alerts_triggered"`
+	AlertsByChannel  map[string]int64 `json:"alerts_by_channel"`
+	AlertsBySeverity map[string]int64 `json:"alerts_by_severity"`
+
 	// Accuracy metrics
-	TruePositives         int64                  `json:"true_positives"`
-	FalsePositives        int64                  `json:"false_positives"`
-	TrueNegatives         int64                  `json:"true_negatives"`
-	FalseNegatives        int64                  `json:"false_negatives"`
-	
+	TruePositives  int64 `json:"true_positives"`
+	FalsePositives int64 `json:"false_positives"`
+	TrueNegatives  int64 `json:"true_negatives"`
+	FalseNegatives int64 `json:"false_negatives"`
+
 	// Temporal metrics
-	StartTime             time.Time              `json:"start_time"`
-	LastUpdated           time.Time              `json:"last_updated"`
-	UptimeSeconds         int64                  `json:"uptime_seconds"`
+	StartTime     time.Time `json:"start_time"`
+	LastUpdated   time.Time `json:"last_updated"`
+	UptimeSeconds int64     `json:"uptime_seconds"`
 }
 
 // ComponentMetrics metrics for individual security components
@@ -111,61 +111,61 @@ type ComponentMetrics struct {
 
 // ThreatIntelligenceMetrics threat intelligence specific metrics
 type ThreatIntelligenceMetrics struct {
-	FeedsActive           int64                  `json:"feeds_active"`
-	IndicatorsTotal       int64                  `json:"indicators_total"`
-	IndicatorsByType      map[string]int64       `json:"indicators_by_type"`
-	LastUpdate            time.Time              `json:"last_update"`
-	UpdateFrequency       time.Duration          `json:"update_frequency"`
-	MatchesFound          int64                  `json:"matches_found"`
-	FalsePositiveRate     float64                `json:"false_positive_rate"`
-	CoverageScore         float64                `json:"coverage_score"`
+	FeedsActive       int64            `json:"feeds_active"`
+	IndicatorsTotal   int64            `json:"indicators_total"`
+	IndicatorsByType  map[string]int64 `json:"indicators_by_type"`
+	LastUpdate        time.Time        `json:"last_update"`
+	UpdateFrequency   time.Duration    `json:"update_frequency"`
+	MatchesFound      int64            `json:"matches_found"`
+	FalsePositiveRate float64          `json:"false_positive_rate"`
+	CoverageScore     float64          `json:"coverage_score"`
 }
 
 // PerformanceMetrics performance and resource utilization metrics
 type PerformanceMetrics struct {
-	CPUUsage              float64                `json:"cpu_usage"`
-	MemoryUsage           int64                  `json:"memory_usage"`
-	DiskUsage             int64                  `json:"disk_usage"`
-	NetworkIO             int64                  `json:"network_io"`
-	ConcurrentRequests    int64                  `json:"concurrent_requests"`
-	QueueDepth            int64                  `json:"queue_depth"`
-	CacheHitRate          float64                `json:"cache_hit_rate"`
-	DatabaseConnections   int64                  `json:"database_connections"`
+	CPUUsage            float64 `json:"cpu_usage"`
+	MemoryUsage         int64   `json:"memory_usage"`
+	DiskUsage           int64   `json:"disk_usage"`
+	NetworkIO           int64   `json:"network_io"`
+	ConcurrentRequests  int64   `json:"concurrent_requests"`
+	QueueDepth          int64   `json:"queue_depth"`
+	CacheHitRate        float64 `json:"cache_hit_rate"`
+	DatabaseConnections int64   `json:"database_connections"`
 }
 
-// SecurityEvent represents a security event for metrics
-type SecurityEvent struct {
-	ID                    string                 `json:"id"`
-	Type                  string                 `json:"type"`
-	Severity              string                 `json:"severity"`
-	Source                string                 `json:"source"`
-	Component             string                 `json:"component"`
-	ThreatScore           float64                `json:"threat_score"`
-	ProcessingTime        time.Duration          `json:"processing_time"`
-	Action                string                 `json:"action"`
-	Timestamp             time.Time              `json:"timestamp"`
-	Metadata              map[string]interface{} `json:"metadata"`
+// MetricsSecurityEvent represents a security event for metrics
+type MetricsSecurityEvent struct {
+	ID             string                 `json:"id"`
+	Type           string                 `json:"type"`
+	Severity       string                 `json:"severity"`
+	Source         string                 `json:"source"`
+	Component      string                 `json:"component"`
+	ThreatScore    float64                `json:"threat_score"`
+	ProcessingTime time.Duration          `json:"processing_time"`
+	Action         string                 `json:"action"`
+	Timestamp      time.Time              `json:"timestamp"`
+	Metadata       map[string]interface{} `json:"metadata"`
 }
 
 // MetricUpdate represents a metric update
 type MetricUpdate struct {
-	MetricName            string                 `json:"metric_name"`
-	Value                 float64                `json:"value"`
-	Labels                map[string]string      `json:"labels"`
-	Timestamp             time.Time              `json:"timestamp"`
+	MetricName string            `json:"metric_name"`
+	Value      float64           `json:"value"`
+	Labels     map[string]string `json:"labels"`
+	Timestamp  time.Time         `json:"timestamp"`
 }
 
 // MetricsConfig configuration for metrics collection
 type MetricsConfig struct {
-	Enabled               bool                   `json:"enabled"`
-	CollectionInterval    time.Duration          `json:"collection_interval"`
-	RetentionPeriod       time.Duration          `json:"retention_period"`
-	PrometheusEnabled     bool                   `json:"prometheus_enabled"`
-	PrometheusNamespace   string                 `json:"prometheus_namespace"`
-	BufferSize            int                    `json:"buffer_size"`
-	ExportInterval        time.Duration          `json:"export_interval"`
-	HealthCheckInterval   time.Duration          `json:"health_check_interval"`
-	EnableDetailedMetrics bool                   `json:"enable_detailed_metrics"`
+	Enabled               bool          `json:"enabled"`
+	CollectionInterval    time.Duration `json:"collection_interval"`
+	RetentionPeriod       time.Duration `json:"retention_period"`
+	PrometheusEnabled     bool          `json:"prometheus_enabled"`
+	PrometheusNamespace   string        `json:"prometheus_namespace"`
+	BufferSize            int           `json:"buffer_size"`
+	ExportInterval        time.Duration `json:"export_interval"`
+	HealthCheckInterval   time.Duration `json:"health_check_interval"`
+	EnableDetailedMetrics bool          `json:"enable_detailed_metrics"`
 }
 
 // Logger interface for metrics logging
@@ -179,15 +179,15 @@ type Logger interface {
 // NewSecurityMetricsCollector creates a new security metrics collector
 func NewSecurityMetricsCollector(config *MetricsConfig, logger Logger) *SecurityMetricsCollector {
 	ctx, cancel := context.WithCancel(context.Background())
-	
+
 	collector := &SecurityMetricsCollector{
-		config:             config,
-		logger:             logger,
-		ctx:                ctx,
-		cancel:             cancel,
-		eventChan:          make(chan *SecurityEvent, config.BufferSize),
-		metricsChan:        make(chan *MetricUpdate, config.BufferSize),
-		componentMetrics:   make(map[string]*ComponentMetrics),
+		config:           config,
+		logger:           logger,
+		ctx:              ctx,
+		cancel:           cancel,
+		eventChan:        make(chan *SecurityEvent, config.BufferSize),
+		metricsChan:      make(chan *MetricUpdate, config.BufferSize),
+		componentMetrics: make(map[string]*ComponentMetrics),
 		metrics: &SecurityMetrics{
 			ThreatsByType:     make(map[string]int64),
 			ThreatsBySeverity: make(map[string]int64),
@@ -202,11 +202,11 @@ func NewSecurityMetricsCollector(config *MetricsConfig, logger Logger) *Security
 		},
 		performanceMetrics: &PerformanceMetrics{},
 	}
-	
+
 	if config.PrometheusEnabled {
 		collector.initPrometheusMetrics()
 	}
-	
+
 	return collector
 }
 
@@ -216,7 +216,7 @@ func (smc *SecurityMetricsCollector) initPrometheusMetrics() {
 	if namespace == "" {
 		namespace = "security"
 	}
-	
+
 	smc.threatDetections = promauto.NewCounterVec(
 		prometheus.CounterOpts{
 			Namespace: namespace,
@@ -225,7 +225,7 @@ func (smc *SecurityMetricsCollector) initPrometheusMetrics() {
 		},
 		[]string{"type", "severity", "component", "source"},
 	)
-	
+
 	smc.blockedRequests = promauto.NewCounterVec(
 		prometheus.CounterOpts{
 			Namespace: namespace,
@@ -234,7 +234,7 @@ func (smc *SecurityMetricsCollector) initPrometheusMetrics() {
 		},
 		[]string{"reason", "component", "source"},
 	)
-	
+
 	smc.securityEvents = promauto.NewCounterVec(
 		prometheus.CounterOpts{
 			Namespace: namespace,
@@ -243,7 +243,7 @@ func (smc *SecurityMetricsCollector) initPrometheusMetrics() {
 		},
 		[]string{"event_type", "severity", "component"},
 	)
-	
+
 	smc.threatScores = promauto.NewHistogramVec(
 		prometheus.HistogramOpts{
 			Namespace: namespace,
@@ -253,7 +253,7 @@ func (smc *SecurityMetricsCollector) initPrometheusMetrics() {
 		},
 		[]string{"component", "threat_type"},
 	)
-	
+
 	smc.processingDuration = promauto.NewHistogramVec(
 		prometheus.HistogramOpts{
 			Namespace: namespace,
@@ -263,7 +263,7 @@ func (smc *SecurityMetricsCollector) initPrometheusMetrics() {
 		},
 		[]string{"component", "operation"},
 	)
-	
+
 	smc.componentHealth = promauto.NewGaugeVec(
 		prometheus.GaugeOpts{
 			Namespace: namespace,
@@ -272,7 +272,7 @@ func (smc *SecurityMetricsCollector) initPrometheusMetrics() {
 		},
 		[]string{"component", "status"},
 	)
-	
+
 	smc.alertsTriggered = promauto.NewCounterVec(
 		prometheus.CounterOpts{
 			Namespace: namespace,
@@ -281,7 +281,7 @@ func (smc *SecurityMetricsCollector) initPrometheusMetrics() {
 		},
 		[]string{"severity", "channel", "rule"},
 	)
-	
+
 	smc.falsePositives = promauto.NewCounterVec(
 		prometheus.CounterOpts{
 			Namespace: namespace,
@@ -290,7 +290,7 @@ func (smc *SecurityMetricsCollector) initPrometheusMetrics() {
 		},
 		[]string{"component", "threat_type"},
 	)
-	
+
 	smc.modelAccuracy = promauto.NewGaugeVec(
 		prometheus.GaugeOpts{
 			Namespace: namespace,
@@ -299,7 +299,7 @@ func (smc *SecurityMetricsCollector) initPrometheusMetrics() {
 		},
 		[]string{"model", "component"},
 	)
-	
+
 	smc.ruleEffectiveness = promauto.NewGaugeVec(
 		prometheus.GaugeOpts{
 			Namespace: namespace,
@@ -315,28 +315,28 @@ func (smc *SecurityMetricsCollector) Start() error {
 	if !smc.config.Enabled {
 		return nil
 	}
-	
+
 	smc.logger.Info("Starting security metrics collector")
-	
+
 	// Start background workers
 	smc.wg.Add(3)
 	go smc.eventProcessor()
 	go smc.metricsProcessor()
 	go smc.healthChecker()
-	
+
 	return nil
 }
 
 // Stop stops the metrics collection
 func (smc *SecurityMetricsCollector) Stop() error {
 	smc.logger.Info("Stopping security metrics collector")
-	
+
 	smc.cancel()
 	smc.wg.Wait()
-	
+
 	close(smc.eventChan)
 	close(smc.metricsChan)
-	
+
 	return nil
 }
 
@@ -345,7 +345,7 @@ func (smc *SecurityMetricsCollector) RecordSecurityEvent(event *SecurityEvent) {
 	if !smc.config.Enabled {
 		return
 	}
-	
+
 	select {
 	case smc.eventChan <- event:
 	default:
@@ -367,7 +367,7 @@ func (smc *SecurityMetricsCollector) RecordThreatDetection(threatType, severity,
 			"threat_type": threatType,
 		},
 	}
-	
+
 	smc.RecordSecurityEvent(event)
 }
 
@@ -385,7 +385,7 @@ func (smc *SecurityMetricsCollector) RecordBlockedRequest(reason, component, sou
 			"reason": reason,
 		},
 	}
-	
+
 	smc.RecordSecurityEvent(event)
 }
 
@@ -394,7 +394,7 @@ func (smc *SecurityMetricsCollector) RecordProcessingTime(component, operation s
 	if smc.processingDuration != nil {
 		smc.processingDuration.WithLabelValues(component, operation).Observe(duration.Seconds())
 	}
-	
+
 	update := &MetricUpdate{
 		MetricName: "processing_time",
 		Value:      duration.Seconds(),
@@ -404,7 +404,7 @@ func (smc *SecurityMetricsCollector) RecordProcessingTime(component, operation s
 		},
 		Timestamp: time.Now(),
 	}
-	
+
 	select {
 	case smc.metricsChan <- update:
 	default:
@@ -421,7 +421,7 @@ func (smc *SecurityMetricsCollector) UpdateComponentHealth(component, status str
 		}
 		smc.componentHealth.WithLabelValues(component, status).Set(value)
 	}
-	
+
 	smc.mu.Lock()
 	if smc.componentMetrics[component] == nil {
 		smc.componentMetrics[component] = &ComponentMetrics{

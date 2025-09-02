@@ -50,61 +50,61 @@ type BusinessTask struct {
 
 // BusinessTaskResult represents the result of a business task execution
 type BusinessTaskResult struct {
-	TaskID       string                 `json:"task_id"`
-	Success      bool                   `json:"success"`
-	Result       map[string]interface{} `json:"result"`
-	Confidence   float64                `json:"confidence"`
-	ExecutionTime time.Duration         `json:"execution_time"`
-	Metadata     map[string]interface{} `json:"metadata"`
-	Error        string                 `json:"error,omitempty"`
-	CreatedAt    time.Time              `json:"created_at"`
+	TaskID        string                 `json:"task_id"`
+	Success       bool                   `json:"success"`
+	Result        map[string]interface{} `json:"result"`
+	Confidence    float64                `json:"confidence"`
+	ExecutionTime time.Duration          `json:"execution_time"`
+	Metadata      map[string]interface{} `json:"metadata"`
+	Error         string                 `json:"error,omitempty"`
+	CreatedAt     time.Time              `json:"created_at"`
 }
 
 // BusinessContext provides context for business operations
 type BusinessContext struct {
-	UserID        string                 `json:"user_id"`
-	CompanyID     string                 `json:"company_id"`
-	MarketData    *MarketContext         `json:"market_data,omitempty"`
-	Portfolio     *PortfolioContext      `json:"portfolio,omitempty"`
-	RiskProfile   *RiskProfile           `json:"risk_profile,omitempty"`
-	Preferences   map[string]interface{} `json:"preferences"`
-	Constraints   []string               `json:"constraints"`
+	UserID      string                 `json:"user_id"`
+	CompanyID   string                 `json:"company_id"`
+	MarketData  *MarketContext         `json:"market_data,omitempty"`
+	Portfolio   *PortfolioContext      `json:"portfolio,omitempty"`
+	RiskProfile *RiskProfile           `json:"risk_profile,omitempty"`
+	Preferences map[string]interface{} `json:"preferences"`
+	Constraints []string               `json:"constraints"`
 }
 
 // MarketContext provides market-related context
 type MarketContext struct {
-	Symbols       []string               `json:"symbols"`
-	TimeFrame     string                 `json:"time_frame"`
-	MarketHours   bool                   `json:"market_hours"`
-	Volatility    float64                `json:"volatility"`
-	Metadata      map[string]interface{} `json:"metadata"`
+	Symbols     []string               `json:"symbols"`
+	TimeFrame   string                 `json:"time_frame"`
+	MarketHours bool                   `json:"market_hours"`
+	Volatility  float64                `json:"volatility"`
+	Metadata    map[string]interface{} `json:"metadata"`
 }
 
 // PortfolioContext provides portfolio-related context
 type PortfolioContext struct {
-	TotalValue    float64                `json:"total_value"`
-	Positions     []Position             `json:"positions"`
-	CashBalance   float64                `json:"cash_balance"`
-	PnL           float64                `json:"pnl"`
-	Metadata      map[string]interface{} `json:"metadata"`
+	TotalValue  float64                `json:"total_value"`
+	Positions   []Position             `json:"positions"`
+	CashBalance float64                `json:"cash_balance"`
+	PnL         float64                `json:"pnl"`
+	Metadata    map[string]interface{} `json:"metadata"`
 }
 
 // Position represents a trading position
 type Position struct {
-	Symbol    string  `json:"symbol"`
-	Quantity  float64 `json:"quantity"`
-	AvgPrice  float64 `json:"avg_price"`
+	Symbol       string  `json:"symbol"`
+	Quantity     float64 `json:"quantity"`
+	AvgPrice     float64 `json:"avg_price"`
 	CurrentPrice float64 `json:"current_price"`
-	PnL       float64 `json:"pnl"`
-	Side      string  `json:"side"` // "long" or "short"
+	PnL          float64 `json:"pnl"`
+	Side         string  `json:"side"` // "long" or "short"
 }
 
 // RiskProfile defines risk management parameters
 type RiskProfile struct {
-	RiskTolerance    string  `json:"risk_tolerance"` // "conservative", "moderate", "aggressive"
-	MaxPositionSize  float64 `json:"max_position_size"`
-	MaxDailyLoss     float64 `json:"max_daily_loss"`
-	StopLossPercent  float64 `json:"stop_loss_percent"`
+	RiskTolerance     string  `json:"risk_tolerance"` // "conservative", "moderate", "aggressive"
+	MaxPositionSize   float64 `json:"max_position_size"`
+	MaxDailyLoss      float64 `json:"max_daily_loss"`
+	StopLossPercent   float64 `json:"stop_loss_percent"`
 	TakeProfitPercent float64 `json:"take_profit_percent"`
 }
 
@@ -120,12 +120,12 @@ const (
 
 // BusinessAgentMetrics tracks agent performance
 type BusinessAgentMetrics struct {
-	TasksCompleted     int64         `json:"tasks_completed"`
-	TasksSuccessful    int64         `json:"tasks_successful"`
-	TasksFailed        int64         `json:"tasks_failed"`
-	AvgExecutionTime   time.Duration `json:"avg_execution_time"`
-	SuccessRate        float64       `json:"success_rate"`
-	LastActivity       time.Time     `json:"last_activity"`
+	TasksCompleted      int64              `json:"tasks_completed"`
+	TasksSuccessful     int64              `json:"tasks_successful"`
+	TasksFailed         int64              `json:"tasks_failed"`
+	AvgExecutionTime    time.Duration      `json:"avg_execution_time"`
+	SuccessRate         float64            `json:"success_rate"`
+	LastActivity        time.Time          `json:"last_activity"`
 	SpecializationScore map[string]float64 `json:"specialization_score"`
 }
 
@@ -147,10 +147,10 @@ type CollaborationWorkflow struct {
 
 // CollaborationStep represents a step in collaboration
 type CollaborationStep struct {
-	ID          string `json:"id"`
-	AgentType   BusinessAgentType `json:"agent_type"`
-	Action      string `json:"action"`
-	Dependencies []string `json:"dependencies"`
+	ID           string            `json:"id"`
+	AgentType    BusinessAgentType `json:"agent_type"`
+	Action       string            `json:"action"`
+	Dependencies []string          `json:"dependencies"`
 }
 
 // CollaborationResult represents the result of collaboration
@@ -177,7 +177,7 @@ type BaseBusinessAgent struct {
 // NewBaseBusinessAgent creates a new base business agent
 func NewBaseBusinessAgent(id, name, description string, agentType BusinessAgentType, logger *logger.Logger) *BaseBusinessAgent {
 	baseAgent := ai.NewBaseAgent(id, name, description, logger)
-	
+
 	return &BaseBusinessAgent{
 		BaseAgent:       baseAgent,
 		agentType:       agentType,
@@ -215,7 +215,7 @@ func (b *BaseBusinessAgent) GetPerformanceMetrics() *BusinessAgentMetrics {
 func (b *BaseBusinessAgent) AddSpecialization(specialization string) {
 	b.mutex.Lock()
 	defer b.mutex.Unlock()
-	
+
 	b.specializations = append(b.specializations, specialization)
 	b.metrics.SpecializationScore[specialization] = 0.5 // Initial score
 }
@@ -224,14 +224,14 @@ func (b *BaseBusinessAgent) AddSpecialization(specialization string) {
 func (b *BaseBusinessAgent) UpdateSpecializationScore(specialization string, score float64) {
 	b.mutex.Lock()
 	defer b.mutex.Unlock()
-	
+
 	if score < 0 {
 		score = 0
 	}
 	if score > 1 {
 		score = 1
 	}
-	
+
 	b.metrics.SpecializationScore[specialization] = score
 }
 
@@ -248,7 +248,7 @@ func (b *BaseBusinessAgent) ExecuteBusinessTask(ctx context.Context, task *Busin
 	defer span.End()
 
 	startTime := time.Now()
-	
+
 	// Update metrics
 	b.mutex.Lock()
 	b.metrics.LastActivity = startTime
@@ -264,8 +264,8 @@ func (b *BaseBusinessAgent) ExecuteBusinessTask(ctx context.Context, task *Busin
 	// This is a base implementation - specific agents will override this
 	result.Success = true
 	result.Result = map[string]interface{}{
-		"message": fmt.Sprintf("Task %s executed by %s agent", task.Type, b.agentType),
-		"agent_id": b.ID(),
+		"message":    fmt.Sprintf("Task %s executed by %s agent", task.Type, b.agentType),
+		"agent_id":   b.ID(),
 		"agent_type": string(b.agentType),
 	}
 	result.Confidence = 0.8

@@ -33,13 +33,13 @@ type ThreatDetectionRequest struct {
 
 // ThreatDetectionResult represents threat detection results
 type ThreatDetectionResult struct {
-	Level       string                 `json:"level"`
-	Score       float64                `json:"score"`
-	Threats     []DetectedThreat       `json:"threats"`
-	Indicators  []ThreatIndicator      `json:"indicators"`
-	Confidence  float64                `json:"confidence"`
-	Analysis    string                 `json:"analysis"`
-	Metadata    map[string]interface{} `json:"metadata"`
+	Level      string                 `json:"level"`
+	Score      float64                `json:"score"`
+	Threats    []DetectedThreat       `json:"threats"`
+	Indicators []ThreatIndicator      `json:"indicators"`
+	Confidence float64                `json:"confidence"`
+	Analysis   string                 `json:"analysis"`
+	Metadata   map[string]interface{} `json:"metadata"`
 }
 
 // DetectedThreat represents a detected threat
@@ -58,22 +58,22 @@ type DetectedThreat struct {
 
 // MITREMapping represents MITRE ATT&CK framework mapping
 type MITREMapping struct {
-	TacticID    string   `json:"tactic_id"`
-	TacticName  string   `json:"tactic_name"`
-	TechniqueID string   `json:"technique_id"`
-	Technique   string   `json:"technique"`
-	SubTechnique string  `json:"sub_technique,omitempty"`
-	References  []string `json:"references"`
+	TacticID     string   `json:"tactic_id"`
+	TacticName   string   `json:"tactic_name"`
+	TechniqueID  string   `json:"technique_id"`
+	Technique    string   `json:"technique"`
+	SubTechnique string   `json:"sub_technique,omitempty"`
+	References   []string `json:"references"`
 }
 
 // ThreatPatterns contains threat detection patterns
 type ThreatPatterns struct {
-	PromptInjection    []string `json:"prompt_injection"`
-	DataExfiltration   []string `json:"data_exfiltration"`
-	ModelExtraction    []string `json:"model_extraction"`
-	AdversarialInputs  []string `json:"adversarial_inputs"`
-	MaliciousCode      []string `json:"malicious_code"`
-	SocialEngineering  []string `json:"social_engineering"`
+	PromptInjection   []string `json:"prompt_injection"`
+	DataExfiltration  []string `json:"data_exfiltration"`
+	ModelExtraction   []string `json:"model_extraction"`
+	AdversarialInputs []string `json:"adversarial_inputs"`
+	MaliciousCode     []string `json:"malicious_code"`
+	SocialEngineering []string `json:"social_engineering"`
 }
 
 // NewThreatDetector creates a new threat detector

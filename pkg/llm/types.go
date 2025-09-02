@@ -142,25 +142,25 @@ type GraphInfo struct {
 type NodeType string
 
 const (
-	NodeTypeLLM        NodeType = "llm"
-	NodeTypeCondition  NodeType = "condition"
-	NodeTypeTransform  NodeType = "transform"
-	NodeTypeMemory     NodeType = "memory"
-	NodeTypeAction     NodeType = "action"
-	NodeTypeValidator  NodeType = "validator"
+	NodeTypeLLM       NodeType = "llm"
+	NodeTypeCondition NodeType = "condition"
+	NodeTypeTransform NodeType = "transform"
+	NodeTypeMemory    NodeType = "memory"
+	NodeTypeAction    NodeType = "action"
+	NodeTypeValidator NodeType = "validator"
 )
 
 // ChainType represents the type of a chain
 type ChainType string
 
 const (
-	ChainTypeSequential     ChainType = "sequential"
-	ChainTypeParallel       ChainType = "parallel"
-	ChainTypeConditional    ChainType = "conditional"
+	ChainTypeSequential      ChainType = "sequential"
+	ChainTypeParallel        ChainType = "parallel"
+	ChainTypeConditional     ChainType = "conditional"
 	ChainTypePromptInjection ChainType = "prompt_injection"
 	ChainTypeModelExtraction ChainType = "model_extraction"
-	ChainTypeDataPoisoning  ChainType = "data_poisoning"
-	ChainTypeAdversarial    ChainType = "adversarial"
+	ChainTypeDataPoisoning   ChainType = "data_poisoning"
+	ChainTypeAdversarial     ChainType = "adversarial"
 )
 
 // ExecutionContext provides context for chain/graph execution
@@ -177,16 +177,16 @@ type ExecutionContext struct {
 
 // ExecutionResult represents the result of a chain/graph execution
 type ExecutionResult struct {
-	ID           string                 `json:"id"`
-	ExecutionID  string                 `json:"execution_id"`
-	Success      bool                   `json:"success"`
-	Output       interface{}            `json:"output"`
-	Error        string                 `json:"error,omitempty"`
-	Duration     time.Duration          `json:"duration"`
-	TokensUsed   int                    `json:"tokens_used"`
-	Cost         float64                `json:"cost"`
-	Metadata     map[string]interface{} `json:"metadata"`
-	CompletedAt  time.Time              `json:"completed_at"`
+	ID          string                 `json:"id"`
+	ExecutionID string                 `json:"execution_id"`
+	Success     bool                   `json:"success"`
+	Output      interface{}            `json:"output"`
+	Error       string                 `json:"error,omitempty"`
+	Duration    time.Duration          `json:"duration"`
+	TokensUsed  int                    `json:"tokens_used"`
+	Cost        float64                `json:"cost"`
+	Metadata    map[string]interface{} `json:"metadata"`
+	CompletedAt time.Time              `json:"completed_at"`
 }
 
 // ChainConfig represents configuration for a chain

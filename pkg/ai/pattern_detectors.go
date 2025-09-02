@@ -41,7 +41,7 @@ func (d *RegexPatternDetector) Detect(input string, context map[string]interface
 	for patternName, pattern := range d.patterns {
 		if matches := pattern.FindAllString(inputLower, -1); len(matches) > 0 {
 			confidence := d.weights[patternName] * d.GetConfidence()
-			
+
 			// Adjust confidence based on number of matches
 			if len(matches) > 1 {
 				confidence = confidence * (1.0 + float64(len(matches)-1)*0.1)
@@ -87,39 +87,39 @@ func (d *RegexPatternDetector) initializePatterns() {
 		// System prompt extraction attempts
 		"system_prompt_extraction": `(?i)(show|display|print|reveal|tell me|what is|what's).*?(system prompt|initial prompt|original prompt|base prompt)`,
 		"prompt_reveal":            `(?i)(ignore|forget|disregard).*(previous|above|earlier).*(instruction|prompt|rule|directive)`,
-		
+
 		// Role confusion attacks
 		"role_confusion":     `(?i)(you are now|act as|pretend to be|roleplay as|assume the role).*(admin|administrator|developer|system|root)`,
 		"authority_override": `(?i)(i am|i'm).*(admin|administrator|developer|owner|creator|god mode)`,
-		
+
 		// Instruction injection
 		"instruction_override": `(?i)(new instruction|override|replace|update).*(rule|instruction|prompt|directive|command)`,
 		"command_injection":    `(?i)(execute|run|eval|system|shell|cmd|bash|powershell|subprocess)`,
-		
+
 		// Context manipulation
-		"context_break":     `(?i)(end of|stop|terminate|exit|quit).*(conversation|chat|session|context)`,
-		"delimiter_escape":  `(?i)("""|'''|\-\-\-|===|###|\*\*\*)`,
-		"encoding_bypass":   `(?i)(base64|hex|unicode|url encode|rot13|caesar)`,
-		
+		"context_break":    `(?i)(end of|stop|terminate|exit|quit).*(conversation|chat|session|context)`,
+		"delimiter_escape": `(?i)("""|'''|\-\-\-|===|###|\*\*\*)`,
+		"encoding_bypass":  `(?i)(base64|hex|unicode|url encode|rot13|caesar)`,
+
 		// Jailbreak attempts
-		"jailbreak_dan":      `(?i)(dan|do anything now|jailbreak|unrestricted mode)`,
-		"jailbreak_persona":  `(?i)(evil|uncensored|unfiltered|no restrictions|no limits|no rules)`,
-		"hypothetical":       `(?i)(hypothetically|imagine|pretend|what if|in a fictional world)`,
-		
+		"jailbreak_dan":     `(?i)(dan|do anything now|jailbreak|unrestricted mode)`,
+		"jailbreak_persona": `(?i)(evil|uncensored|unfiltered|no restrictions|no limits|no rules)`,
+		"hypothetical":      `(?i)(hypothetically|imagine|pretend|what if|in a fictional world)`,
+
 		// Data extraction
-		"data_extraction":    `(?i)(list|show|display|dump|export).*(users|passwords|keys|secrets|config|database)`,
-		"memory_extraction":  `(?i)(remember|recall|previous|earlier).*(conversation|message|input|data)`,
-		
+		"data_extraction":   `(?i)(list|show|display|dump|export).*(users|passwords|keys|secrets|config|database)`,
+		"memory_extraction": `(?i)(remember|recall|previous|earlier).*(conversation|message|input|data)`,
+
 		// Prompt injection markers
 		"injection_markers":  `(?i)(\[INST\]|\[/INST\]|<\|im_start\|\>|<\|im_end\|\>|<\|system\|\>|<\|user\|\>|<\|assistant\|\>)`,
 		"template_injection": `(?i)(\{\{|\}\}|\{%|%\}|\$\{|\}|\#\{|\})`,
-		
+
 		// Social engineering
 		"urgency_manipulation": `(?i)(urgent|emergency|critical|immediately|asap|help me)`,
 		"authority_appeal":     `(?i)(ceo|manager|boss|supervisor|director).*(said|told|ordered|requested)`,
-		
+
 		// Output manipulation
-		"output_format":     `(?i)(output|respond|reply|answer).*(json|xml|html|markdown|code|format)`,
+		"output_format":       `(?i)(output|respond|reply|answer).*(json|xml|html|markdown|code|format)`,
 		"length_manipulation": `(?i)(very long|extremely detailed|comprehensive|exhaustive).*(response|answer|explanation)`,
 	}
 
@@ -130,20 +130,20 @@ func (d *RegexPatternDetector) initializePatterns() {
 		"authority_override":       0.9,
 		"instruction_override":     0.8,
 		"command_injection":        0.9,
-		"context_break":           0.7,
-		"delimiter_escape":        0.6,
-		"encoding_bypass":         0.7,
-		"jailbreak_dan":           0.8,
-		"jailbreak_persona":       0.8,
-		"hypothetical":            0.6,
-		"data_extraction":         0.8,
-		"memory_extraction":       0.7,
-		"injection_markers":       0.9,
-		"template_injection":      0.8,
-		"urgency_manipulation":    0.5,
-		"authority_appeal":        0.6,
-		"output_format":           0.5,
-		"length_manipulation":     0.4,
+		"context_break":            0.7,
+		"delimiter_escape":         0.6,
+		"encoding_bypass":          0.7,
+		"jailbreak_dan":            0.8,
+		"jailbreak_persona":        0.8,
+		"hypothetical":             0.6,
+		"data_extraction":          0.8,
+		"memory_extraction":        0.7,
+		"injection_markers":        0.9,
+		"template_injection":       0.8,
+		"urgency_manipulation":     0.5,
+		"authority_appeal":         0.6,
+		"output_format":            0.5,
+		"length_manipulation":      0.4,
 	}
 
 	for name, pattern := range patterns {
@@ -164,20 +164,20 @@ func (d *RegexPatternDetector) getAttackType(patternName string) string {
 		"authority_override":       "role_manipulation",
 		"instruction_override":     "instruction_injection",
 		"command_injection":        "command_injection",
-		"context_break":           "context_manipulation",
-		"delimiter_escape":        "context_manipulation",
-		"encoding_bypass":         "encoding_attack",
-		"jailbreak_dan":           "jailbreak",
-		"jailbreak_persona":       "jailbreak",
-		"hypothetical":            "jailbreak",
-		"data_extraction":         "data_extraction",
-		"memory_extraction":       "data_extraction",
-		"injection_markers":       "template_injection",
-		"template_injection":      "template_injection",
-		"urgency_manipulation":    "social_engineering",
-		"authority_appeal":        "social_engineering",
-		"output_format":           "output_manipulation",
-		"length_manipulation":     "output_manipulation",
+		"context_break":            "context_manipulation",
+		"delimiter_escape":         "context_manipulation",
+		"encoding_bypass":          "encoding_attack",
+		"jailbreak_dan":            "jailbreak",
+		"jailbreak_persona":        "jailbreak",
+		"hypothetical":             "jailbreak",
+		"data_extraction":          "data_extraction",
+		"memory_extraction":        "data_extraction",
+		"injection_markers":        "template_injection",
+		"template_injection":       "template_injection",
+		"urgency_manipulation":     "social_engineering",
+		"authority_appeal":         "social_engineering",
+		"output_format":            "output_manipulation",
+		"length_manipulation":      "output_manipulation",
 	}
 
 	if attackType, exists := typeMap[patternName]; exists {
@@ -194,20 +194,20 @@ func (d *RegexPatternDetector) getSeverity(patternName string, confidence float6
 		"authority_override":       "critical",
 		"instruction_override":     "high",
 		"command_injection":        "critical",
-		"context_break":           "medium",
-		"delimiter_escape":        "medium",
-		"encoding_bypass":         "medium",
-		"jailbreak_dan":           "high",
-		"jailbreak_persona":       "high",
-		"hypothetical":            "medium",
-		"data_extraction":         "high",
-		"memory_extraction":       "medium",
-		"injection_markers":       "high",
-		"template_injection":      "high",
-		"urgency_manipulation":    "low",
-		"authority_appeal":        "medium",
-		"output_format":           "low",
-		"length_manipulation":     "low",
+		"context_break":            "medium",
+		"delimiter_escape":         "medium",
+		"encoding_bypass":          "medium",
+		"jailbreak_dan":            "high",
+		"jailbreak_persona":        "high",
+		"hypothetical":             "medium",
+		"data_extraction":          "high",
+		"memory_extraction":        "medium",
+		"injection_markers":        "high",
+		"template_injection":       "high",
+		"urgency_manipulation":     "low",
+		"authority_appeal":         "medium",
+		"output_format":            "low",
+		"length_manipulation":      "low",
 	}
 
 	severity := baseSeverity[patternName]
@@ -238,20 +238,20 @@ func (d *RegexPatternDetector) getDescription(patternName string) string {
 		"authority_override":       "Attempt to claim administrative privileges",
 		"instruction_override":     "Attempt to override or replace instructions",
 		"command_injection":        "Attempt to inject system commands",
-		"context_break":           "Attempt to break conversation context",
-		"delimiter_escape":        "Use of delimiter characters for context escape",
-		"encoding_bypass":         "Attempt to bypass filters using encoding",
-		"jailbreak_dan":           "Known jailbreak technique (DAN variant)",
-		"jailbreak_persona":       "Jailbreak attempt using persona manipulation",
-		"hypothetical":            "Hypothetical scenario for restriction bypass",
-		"data_extraction":         "Attempt to extract sensitive data",
-		"memory_extraction":       "Attempt to access conversation memory",
-		"injection_markers":       "Use of prompt template injection markers",
-		"template_injection":      "Template injection attack pattern",
-		"urgency_manipulation":    "Social engineering using urgency",
-		"authority_appeal":        "Social engineering using authority",
-		"output_format":           "Attempt to manipulate output format",
-		"length_manipulation":     "Attempt to manipulate response length",
+		"context_break":            "Attempt to break conversation context",
+		"delimiter_escape":         "Use of delimiter characters for context escape",
+		"encoding_bypass":          "Attempt to bypass filters using encoding",
+		"jailbreak_dan":            "Known jailbreak technique (DAN variant)",
+		"jailbreak_persona":        "Jailbreak attempt using persona manipulation",
+		"hypothetical":             "Hypothetical scenario for restriction bypass",
+		"data_extraction":          "Attempt to extract sensitive data",
+		"memory_extraction":        "Attempt to access conversation memory",
+		"injection_markers":        "Use of prompt template injection markers",
+		"template_injection":       "Template injection attack pattern",
+		"urgency_manipulation":     "Social engineering using urgency",
+		"authority_appeal":         "Social engineering using authority",
+		"output_format":            "Attempt to manipulate output format",
+		"length_manipulation":      "Attempt to manipulate response length",
 	}
 
 	if desc, exists := descriptions[patternName]; exists {
@@ -268,20 +268,20 @@ func (d *RegexPatternDetector) getMitigation(patternName string) string {
 		"authority_override":       "Verify user authentication and authorization",
 		"instruction_override":     "Ignore override attempts and maintain original instructions",
 		"command_injection":        "Block all command execution attempts",
-		"context_break":           "Maintain conversation context integrity",
-		"delimiter_escape":        "Sanitize delimiter characters",
-		"encoding_bypass":         "Decode and re-analyze input",
-		"jailbreak_dan":           "Apply jailbreak detection and blocking",
-		"jailbreak_persona":       "Maintain ethical guidelines regardless of persona",
-		"hypothetical":            "Clarify that hypothetical scenarios don't override safety",
-		"data_extraction":         "Block data access and audit request",
-		"memory_extraction":       "Limit memory access to authorized information",
-		"injection_markers":       "Strip template markers and sanitize input",
-		"template_injection":      "Escape template syntax and validate input",
-		"urgency_manipulation":    "Verify urgency claims through proper channels",
-		"authority_appeal":        "Verify authority claims independently",
-		"output_format":           "Use predefined safe output formats only",
-		"length_manipulation":     "Apply response length limits",
+		"context_break":            "Maintain conversation context integrity",
+		"delimiter_escape":         "Sanitize delimiter characters",
+		"encoding_bypass":          "Decode and re-analyze input",
+		"jailbreak_dan":            "Apply jailbreak detection and blocking",
+		"jailbreak_persona":        "Maintain ethical guidelines regardless of persona",
+		"hypothetical":             "Clarify that hypothetical scenarios don't override safety",
+		"data_extraction":          "Block data access and audit request",
+		"memory_extraction":        "Limit memory access to authorized information",
+		"injection_markers":        "Strip template markers and sanitize input",
+		"template_injection":       "Escape template syntax and validate input",
+		"urgency_manipulation":     "Verify urgency claims through proper channels",
+		"authority_appeal":         "Verify authority claims independently",
+		"output_format":            "Use predefined safe output formats only",
+		"length_manipulation":      "Apply response length limits",
 	}
 
 	if mitigation, exists := mitigations[patternName]; exists {
@@ -338,7 +338,7 @@ func (d *SemanticPatternDetector) UpdatePatterns(patterns []string) error {
 func (d *SemanticPatternDetector) detectSemanticManipulation(input string) bool {
 	// Simplified semantic analysis
 	// In a real implementation, this would use NLP models
-	
+
 	suspiciousPatterns := []string{
 		"contradiction",
 		"logical fallacy",

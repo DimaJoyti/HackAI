@@ -19,19 +19,19 @@ type BehavioralProfiler struct {
 
 // UserBehaviorProfile represents a user's behavioral profile
 type UserBehaviorProfile struct {
-	UserID              string                 `json:"user_id"`
-	FirstSeen           time.Time              `json:"first_seen"`
-	LastSeen            time.Time              `json:"last_seen"`
-	TotalInteractions   int                    `json:"total_interactions"`
-	JailbreakAttempts   int                    `json:"jailbreak_attempts"`
-	SuccessfulAttempts  int                    `json:"successful_attempts"`
-	AverageMessageLength float64               `json:"average_message_length"`
-	CommonTopics        map[string]int         `json:"common_topics"`
-	TypicalSentiment    string                 `json:"typical_sentiment"`
-	BehaviorPatterns    []BehaviorPattern      `json:"behavior_patterns"`
-	RiskScore           float64                `json:"risk_score"`
-	TrustScore          float64                `json:"trust_score"`
-	Metadata            map[string]interface{} `json:"metadata"`
+	UserID               string                 `json:"user_id"`
+	FirstSeen            time.Time              `json:"first_seen"`
+	LastSeen             time.Time              `json:"last_seen"`
+	TotalInteractions    int                    `json:"total_interactions"`
+	JailbreakAttempts    int                    `json:"jailbreak_attempts"`
+	SuccessfulAttempts   int                    `json:"successful_attempts"`
+	AverageMessageLength float64                `json:"average_message_length"`
+	CommonTopics         map[string]int         `json:"common_topics"`
+	TypicalSentiment     string                 `json:"typical_sentiment"`
+	BehaviorPatterns     []BehaviorPattern      `json:"behavior_patterns"`
+	RiskScore            float64                `json:"risk_score"`
+	TrustScore           float64                `json:"trust_score"`
+	Metadata             map[string]interface{} `json:"metadata"`
 }
 
 // BehaviorPattern represents a specific behavior pattern
@@ -46,12 +46,12 @@ type BehaviorPattern struct {
 
 // BehavioralAnalysisResult represents the result of behavioral analysis
 type BehavioralAnalysisResult struct {
-	UserProfile    *UserBehaviorProfile  `json:"user_profile"`
-	Indicators     []BehavioralIndicator `json:"indicators"`
-	AnomalyScore   float64               `json:"anomaly_score"`
-	RiskAssessment string                `json:"risk_assessment"`
-	Recommendations []string             `json:"recommendations"`
-	Metadata       map[string]interface{} `json:"metadata"`
+	UserProfile     *UserBehaviorProfile   `json:"user_profile"`
+	Indicators      []BehavioralIndicator  `json:"indicators"`
+	AnomalyScore    float64                `json:"anomaly_score"`
+	RiskAssessment  string                 `json:"risk_assessment"`
+	Recommendations []string               `json:"recommendations"`
+	Metadata        map[string]interface{} `json:"metadata"`
 }
 
 // NewBehavioralProfiler creates a new behavioral profiler
@@ -91,7 +91,7 @@ func (b *BehavioralProfiler) ProfileBehavior(ctx context.Context, input string, 
 		Recommendations: recommendations,
 		Metadata: map[string]interface{}{
 			"analysis_timestamp": time.Now(),
-			"user_id":           userID,
+			"user_id":            userID,
 		},
 	}
 
@@ -116,19 +116,19 @@ func (b *BehavioralProfiler) getOrCreateProfile(userID string) *UserBehaviorProf
 
 	// Create new profile
 	profile := &UserBehaviorProfile{
-		UserID:              userID,
-		FirstSeen:           time.Now(),
-		LastSeen:            time.Now(),
-		TotalInteractions:   0,
-		JailbreakAttempts:   0,
-		SuccessfulAttempts:  0,
+		UserID:               userID,
+		FirstSeen:            time.Now(),
+		LastSeen:             time.Now(),
+		TotalInteractions:    0,
+		JailbreakAttempts:    0,
+		SuccessfulAttempts:   0,
 		AverageMessageLength: 0.0,
-		CommonTopics:        make(map[string]int),
-		TypicalSentiment:    "neutral",
-		BehaviorPatterns:    make([]BehaviorPattern, 0),
-		RiskScore:           0.0,
-		TrustScore:          5.0, // Start with neutral trust
-		Metadata:            make(map[string]interface{}),
+		CommonTopics:         make(map[string]int),
+		TypicalSentiment:     "neutral",
+		BehaviorPatterns:     make([]BehaviorPattern, 0),
+		RiskScore:            0.0,
+		TrustScore:           5.0, // Start with neutral trust
+		Metadata:             make(map[string]interface{}),
 	}
 
 	// Manage profile cache size
@@ -230,13 +230,13 @@ func (b *BehavioralProfiler) analyzeBehavior(profile *UserBehaviorProfile, input
 // extractTopic extracts topic from input (simplified)
 func (b *BehavioralProfiler) extractTopic(input string) string {
 	inputLower := strings.ToLower(input)
-	
+
 	topics := map[string][]string{
-		"security":    {"hack", "security", "password", "vulnerability"},
-		"jailbreak":   {"jailbreak", "bypass", "override", "ignore"},
-		"roleplay":    {"roleplay", "pretend", "act as", "character"},
-		"technical":   {"code", "programming", "system", "debug"},
-		"emotional":   {"help", "please", "urgent", "desperate"},
+		"security":  {"hack", "security", "password", "vulnerability"},
+		"jailbreak": {"jailbreak", "bypass", "override", "ignore"},
+		"roleplay":  {"roleplay", "pretend", "act as", "character"},
+		"technical": {"code", "programming", "system", "debug"},
+		"emotional": {"help", "please", "urgent", "desperate"},
 	}
 
 	for topic, keywords := range topics {
@@ -253,7 +253,7 @@ func (b *BehavioralProfiler) extractTopic(input string) string {
 // analyzeSentiment analyzes sentiment (simplified)
 func (b *BehavioralProfiler) analyzeSentiment(input string) string {
 	inputLower := strings.ToLower(input)
-	
+
 	positiveWords := []string{"please", "thank", "help", "good", "great"}
 	negativeWords := []string{"bad", "terrible", "hate", "angry", "frustrated"}
 
@@ -283,7 +283,7 @@ func (b *BehavioralProfiler) analyzeSentiment(input string) string {
 // updateBehaviorPatterns updates behavior patterns
 func (b *BehavioralProfiler) updateBehaviorPatterns(profile *UserBehaviorProfile, input string) {
 	patterns := b.detectPatterns(input)
-	
+
 	for _, newPattern := range patterns {
 		found := false
 		for i, existingPattern := range profile.BehaviorPatterns {
@@ -294,7 +294,7 @@ func (b *BehavioralProfiler) updateBehaviorPatterns(profile *UserBehaviorProfile
 				break
 			}
 		}
-		
+
 		if !found {
 			profile.BehaviorPatterns = append(profile.BehaviorPatterns, newPattern)
 		}
@@ -345,20 +345,20 @@ func (b *BehavioralProfiler) isEscalatingBehavior(profile *UserBehaviorProfile) 
 // hasUnusualMessagePatterns checks for unusual message patterns
 func (b *BehavioralProfiler) hasUnusualMessagePatterns(profile *UserBehaviorProfile, input string) bool {
 	currentLength := float64(len(input))
-	
+
 	// Check if message length is significantly different from average
 	if profile.TotalInteractions > 3 {
 		lengthDiff := math.Abs(currentLength - profile.AverageMessageLength)
 		return lengthDiff > profile.AverageMessageLength*0.5 // 50% deviation
 	}
-	
+
 	return false
 }
 
 // hasSocialEngineeringIndicators checks for social engineering indicators
 func (b *BehavioralProfiler) hasSocialEngineeringIndicators(input string) bool {
 	inputLower := strings.ToLower(input)
-	
+
 	socialEngineering := []string{
 		"please help", "urgent", "desperate", "need your help",
 		"trust me", "between us", "secret", "don't tell",
@@ -369,14 +369,14 @@ func (b *BehavioralProfiler) hasSocialEngineeringIndicators(input string) bool {
 			return true
 		}
 	}
-	
+
 	return false
 }
 
 // hasTechnicalExploitationIndicators checks for technical exploitation indicators
 func (b *BehavioralProfiler) hasTechnicalExploitationIndicators(input string) bool {
 	inputLower := strings.ToLower(input)
-	
+
 	technicalExploitation := []string{
 		"system", "debug", "admin", "root", "sudo",
 		"execute", "run", "command", "script",
@@ -389,7 +389,7 @@ func (b *BehavioralProfiler) hasTechnicalExploitationIndicators(input string) bo
 			count++
 		}
 	}
-	
+
 	return count >= 2 // Multiple technical indicators
 }
 

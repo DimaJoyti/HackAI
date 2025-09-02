@@ -21,9 +21,9 @@ var securityTracer = otel.Tracer("hackai/infrastructure/security")
 type SecurityValidator struct {
 	config *LLMSecurityConfig
 	logger *logger.Logger
-	
+
 	// Compiled regex patterns for performance
-	blockedPatterns []*regexp.Regexp
+	blockedPatterns   []*regexp.Regexp
 	sensitivePatterns []*regexp.Regexp
 }
 
@@ -45,11 +45,11 @@ func NewSecurityValidator(config *LLMSecurityConfig, logger *logger.Logger) (*Se
 
 	// Compile sensitive data patterns
 	sensitivePatterns := []string{
-		`\b\d{4}[-\s]?\d{4}[-\s]?\d{4}[-\s]?\d{4}\b`,                    // Credit card numbers
-		`\b\d{3}-\d{2}-\d{4}\b`,                                          // SSN
-		`\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b`,          // Email addresses
+		`\b\d{4}[-\s]?\d{4}[-\s]?\d{4}[-\s]?\d{4}\b`,                       // Credit card numbers
+		`\b\d{3}-\d{2}-\d{4}\b`,                                            // SSN
+		`\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b`,              // Email addresses
 		`\b(?:\+?1[-.\s]?)?\(?[0-9]{3}\)?[-.\s]?[0-9]{3}[-.\s]?[0-9]{4}\b`, // Phone numbers
-		`\b(?:api[_-]?key|token|password|secret)\s*[:=]\s*[^\s]+\b`,     // API keys/tokens
+		`\b(?:api[_-]?key|token|password|secret)\s*[:=]\s*[^\s]+\b`,        // API keys/tokens
 	}
 
 	for _, pattern := range sensitivePatterns {
@@ -100,7 +100,7 @@ func (sv *SecurityValidator) ValidateInput(ctx context.Context, input string) *V
 				result.Valid = false
 				result.Blocked = true
 				result.Issues = append(result.Issues, fmt.Sprintf("Input contains blocked pattern: %s", pattern.String()))
-				
+
 				span.AddEvent("blocked_pattern_detected", trace.WithAttributes(
 					attribute.String("pattern", pattern.String()),
 				))
@@ -114,10 +114,10 @@ func (sv *SecurityValidator) ValidateInput(ctx context.Context, input string) *V
 			if pattern.MatchString(input) {
 				result.SensitiveDataFound = true
 				result.Issues = append(result.Issues, "Input contains potentially sensitive data")
-				
+
 				// Sanitize by replacing with placeholder
 				result.SanitizedInput = pattern.ReplaceAllString(result.SanitizedInput, "[REDACTED]")
-				
+
 				span.AddEvent("sensitive_data_detected", trace.WithAttributes(
 					attribute.String("pattern", pattern.String()),
 				))
@@ -172,10 +172,10 @@ func (sv *SecurityValidator) ValidateOutput(ctx context.Context, output string) 
 			if pattern.MatchString(output) {
 				result.SensitiveDataFound = true
 				result.Issues = append(result.Issues, "Output contains potentially sensitive data")
-				
+
 				// Sanitize output
 				result.SanitizedInput = pattern.ReplaceAllString(result.SanitizedInput, "[REDACTED]")
-				
+
 				span.AddEvent("sensitive_data_in_output", trace.WithAttributes(
 					attribute.String("pattern", pattern.String()),
 				))
@@ -196,14 +196,14 @@ func (sv *SecurityValidator) ValidateOutput(ctx context.Context, output string) 
 func (sv *SecurityValidator) sanitizeInput(input string) string {
 	// Remove null bytes
 	input = strings.ReplaceAll(input, "\x00", "")
-	
+
 	// Normalize whitespace
 	input = strings.TrimSpace(input)
-	
+
 	// Remove excessive whitespace
 	spaceRegex := regexp.MustCompile(`\s+`)
 	input = spaceRegex.ReplaceAllString(input, " ")
-	
+
 	return input
 }
 
@@ -259,19 +259,19 @@ func (m *SecurityMiddleware) Handler(next http.Handler) http.Handler {
 func (m *SecurityMiddleware) addSecurityHeaders(w http.ResponseWriter) {
 	// Prevent MIME type sniffing
 	w.Header().Set("X-Content-Type-Options", "nosniff")
-	
+
 	// Prevent clickjacking
 	w.Header().Set("X-Frame-Options", "DENY")
-	
+
 	// XSS protection
 	w.Header().Set("X-XSS-Protection", "1; mode=block")
-	
+
 	// Referrer policy
 	w.Header().Set("Referrer-Policy", "strict-origin-when-cross-origin")
-	
+
 	// Content Security Policy (basic)
 	w.Header().Set("Content-Security-Policy", "default-src 'self'")
-	
+
 	// HSTS (if HTTPS)
 	w.Header().Set("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
 }
@@ -280,7 +280,7 @@ func (m *SecurityMiddleware) addSecurityHeaders(w http.ResponseWriter) {
 func (m *SecurityMiddleware) validateRequest(ctx context.Context, r *http.Request) error {
 	// This is a simplified validation - in practice, you'd parse the request body
 	// and validate specific fields based on the endpoint
-	
+
 	// For now, just validate the User-Agent header as an example
 	userAgent := r.Header.Get("User-Agent")
 	if userAgent != "" {
@@ -333,10 +333,10 @@ func (al *AuditLogger) LogLLMRequest(ctx context.Context, userID, prompt, model 
 	}
 
 	event := map[string]interface{}{
-		"event_type": "llm_request",
-		"timestamp":  time.Now(),
-		"user_id":    userID,
-		"model":      model,
+		"event_type":    "llm_request",
+		"timestamp":     time.Now(),
+		"user_id":       userID,
+		"model":         model,
 		"prompt_length": len(prompt),
 	}
 
@@ -357,12 +357,12 @@ func (al *AuditLogger) LogLLMResponse(ctx context.Context, userID, response, mod
 	}
 
 	event := map[string]interface{}{
-		"event_type":     "llm_response",
-		"timestamp":      time.Now(),
-		"user_id":        userID,
-		"model":          model,
+		"event_type":      "llm_response",
+		"timestamp":       time.Now(),
+		"user_id":         userID,
+		"model":           model,
 		"response_length": len(response),
-		"tokens_used":    tokensUsed,
+		"tokens_used":     tokensUsed,
 	}
 
 	// Include response if not sensitive
@@ -431,11 +431,11 @@ func (c *SecurityHealthChecker) Check(ctx context.Context) ComponentHealth {
 	}
 
 	metadata := map[string]interface{}{
-		"blocked_patterns_count":    len(c.validator.blockedPatterns),
-		"sensitive_patterns_count":  len(c.validator.sensitivePatterns),
-		"input_validation_enabled":  c.validator.config.EnableInputValidation,
-		"output_filtering_enabled":  c.validator.config.EnableOutputFiltering,
-		"sensitive_data_detection":  c.validator.config.SensitiveDataDetection,
+		"blocked_patterns_count":   len(c.validator.blockedPatterns),
+		"sensitive_patterns_count": len(c.validator.sensitivePatterns),
+		"input_validation_enabled": c.validator.config.EnableInputValidation,
+		"output_filtering_enabled": c.validator.config.EnableOutputFiltering,
+		"sensitive_data_detection": c.validator.config.SensitiveDataDetection,
 	}
 
 	return ComponentHealth{

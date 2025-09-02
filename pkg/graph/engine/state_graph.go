@@ -34,7 +34,7 @@ type DefaultStateGraph struct {
 
 // GraphConfig represents configuration for a state graph
 type GraphConfig struct {
-	MaxExecutionTime    time.Duration          `json:"max_execution_time"`
+	MaxExecutionTime   time.Duration          `json:"max_execution_time"`
 	MaxSteps           int                    `json:"max_steps"`
 	EnablePersistence  bool                   `json:"enable_persistence"`
 	EnableCheckpoints  bool                   `json:"enable_checkpoints"`
@@ -74,9 +74,9 @@ func NewDefaultStateGraph(id, name, description string) *DefaultStateGraph {
 		endNodes:    make([]string, 0),
 		config: GraphConfig{
 			MaxExecutionTime:   30 * time.Minute,
-			MaxSteps:          1000,
-			EnablePersistence: true,
-			EnableCheckpoints: true,
+			MaxSteps:           1000,
+			EnablePersistence:  true,
+			EnableCheckpoints:  true,
 			CheckpointInterval: 10,
 			RetryPolicy: RetryPolicy{
 				MaxRetries:    3,
@@ -254,7 +254,7 @@ func (g *DefaultStateGraph) Execute(ctx context.Context, initialState llm.GraphS
 	}
 
 	stepCount := 0
-	
+
 	span.SetAttributes(
 		attribute.String("start_node", state.CurrentNode),
 		attribute.Int("max_steps", g.config.MaxSteps),

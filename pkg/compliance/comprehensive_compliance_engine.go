@@ -32,48 +32,18 @@ type ComprehensiveComplianceEngine struct {
 	complianceMetrics    *ComplianceMetrics
 }
 
-// ComplianceConfig defines comprehensive compliance configuration
-type ComplianceConfig struct {
-	// Regulatory frameworks
-	Frameworks map[string]FrameworkConfig `yaml:"frameworks"`
-	
-	// Monitoring settings
-	Monitoring map[string]interface{} `yaml:"monitoring"`
-
-	// Audit settings
-	Audit map[string]interface{} `yaml:"audit"`
-
-	// Reporting settings
-	Reporting map[string]interface{} `yaml:"reporting"`
-
-	// Risk assessment
-	RiskAssessment map[string]interface{} `yaml:"risk_assessment"`
-
-	// Controls management
-	Controls map[string]interface{} `yaml:"controls"`
-
-	// Evidence management
-	Evidence map[string]interface{} `yaml:"evidence"`
-
-	// Assessment settings
-	Assessment map[string]interface{} `yaml:"assessment"`
-
-	// Remediation settings
-	Remediation map[string]interface{} `yaml:"remediation"`
-}
-
 // FrameworkConfig defines configuration for a specific compliance framework
 type FrameworkConfig struct {
-	Enabled           bool                   `yaml:"enabled"`
-	Version           string                 `yaml:"version"`
-	Scope             []string               `yaml:"scope"`
-	Requirements      []map[string]interface{} `yaml:"requirements"`
-	Controls          []map[string]interface{} `yaml:"controls"`
-	AssessmentFreq    time.Duration          `yaml:"assessment_frequency"`
-	ReportingFreq     time.Duration          `yaml:"reporting_frequency"`
-	AutoRemediation   bool                   `yaml:"auto_remediation"`
-	Thresholds        map[string]float64     `yaml:"thresholds"`
-	Metadata          map[string]interface{} `yaml:"metadata"`
+	Enabled         bool                     `yaml:"enabled"`
+	Version         string                   `yaml:"version"`
+	Scope           []string                 `yaml:"scope"`
+	Requirements    []map[string]interface{} `yaml:"requirements"`
+	Controls        []map[string]interface{} `yaml:"controls"`
+	AssessmentFreq  time.Duration            `yaml:"assessment_frequency"`
+	ReportingFreq   time.Duration            `yaml:"reporting_frequency"`
+	AutoRemediation bool                     `yaml:"auto_remediation"`
+	Thresholds      map[string]float64       `yaml:"thresholds"`
+	Metadata        map[string]interface{}   `yaml:"metadata"`
 }
 
 // ComplianceFramework represents a regulatory compliance framework
@@ -94,84 +64,33 @@ const (
 
 // ComplianceRequest represents a compliance validation request
 type ComplianceRequest struct {
-	ID            string                 `json:"id"`
-	Framework     ComplianceFramework    `json:"framework"`
-	Activity      *ComplianceActivity    `json:"activity"`
-	Context       map[string]interface{} `json:"context"`
-	Timestamp     time.Time              `json:"timestamp"`
-	RequesterID   string                 `json:"requester_id"`
-	Priority      string                 `json:"priority"`
-	Metadata      map[string]interface{} `json:"metadata"`
-}
-
-// ComplianceActivity represents an activity subject to compliance validation
-type ComplianceActivity struct {
 	ID          string                 `json:"id"`
-	Type        string                 `json:"type"`
-	Description string                 `json:"description"`
-	UserID      string                 `json:"user_id"`
-	Resource    string                 `json:"resource"`
-	Action      string                 `json:"action"`
-	Data        map[string]interface{} `json:"data"`
+	Framework   ComplianceFramework    `json:"framework"`
+	Activity    *ComplianceActivity    `json:"activity"`
+	Context     map[string]interface{} `json:"context"`
 	Timestamp   time.Time              `json:"timestamp"`
-	Location    string                 `json:"location"`
-	System      string                 `json:"system"`
+	RequesterID string                 `json:"requester_id"`
+	Priority    string                 `json:"priority"`
 	Metadata    map[string]interface{} `json:"metadata"`
-}
-
-// ComplianceResult represents the result of compliance validation
-type ComplianceResult struct {
-	RequestID       string                  `json:"request_id"`
-	Framework       ComplianceFramework     `json:"framework"`
-	Compliant       bool                    `json:"compliant"`
-	Score           float64                 `json:"score"`
-	Violations      []*ComplianceViolation  `json:"violations"`
-	Recommendations []map[string]interface{} `json:"recommendations"`
-	Evidence        []map[string]interface{} `json:"evidence"`
-	Controls        []*ComplianceControl    `json:"controls"`
-	RiskLevel       string                  `json:"risk_level"`
-	NextAssessment  time.Time               `json:"next_assessment"`
-	ValidUntil      time.Time               `json:"valid_until"`
-	Metadata        map[string]interface{}  `json:"metadata"`
-	ProcessingTime  time.Duration           `json:"processing_time"`
-}
-
-// ComplianceViolation represents a compliance violation
-type ComplianceViolation struct {
-	ID              string                 `json:"id"`
-	Framework       ComplianceFramework    `json:"framework"`
-	RequirementID   string                 `json:"requirement_id"`
-	ControlID       string                 `json:"control_id"`
-	Severity        string                 `json:"severity"`
-	Category        string                 `json:"category"`
-	Description     string                 `json:"description"`
-	Impact          string                 `json:"impact"`
-	Recommendation  string                 `json:"recommendation"`
-	DetectedAt      time.Time              `json:"detected_at"`
-	Status          string                 `json:"status"`
-	AssignedTo      string                 `json:"assigned_to"`
-	DueDate         time.Time              `json:"due_date"`
-	Evidence        []string               `json:"evidence"`
-	Metadata        map[string]interface{} `json:"metadata"`
 }
 
 // ComplianceControl represents a compliance control
 type ComplianceControl struct {
-	ID              string                 `json:"id"`
-	Framework       ComplianceFramework    `json:"framework"`
-	Name            string                 `json:"name"`
-	Description     string                 `json:"description"`
-	Category        string                 `json:"category"`
-	Type            string                 `json:"type"`
-	Status          string                 `json:"status"`
-	Effectiveness   float64                `json:"effectiveness"`
-	Implementation  string                 `json:"implementation"`
-	Owner           string                 `json:"owner"`
-	LastTested      time.Time              `json:"last_tested"`
-	NextTest        time.Time              `json:"next_test"`
-	Evidence        []string               `json:"evidence"`
-	Dependencies    []string               `json:"dependencies"`
-	Metadata        map[string]interface{} `json:"metadata"`
+	ID             string                 `json:"id"`
+	Framework      ComplianceFramework    `json:"framework"`
+	Name           string                 `json:"name"`
+	Description    string                 `json:"description"`
+	Category       string                 `json:"category"`
+	Type           string                 `json:"type"`
+	Status         string                 `json:"status"`
+	Effectiveness  float64                `json:"effectiveness"`
+	Implementation string                 `json:"implementation"`
+	Owner          string                 `json:"owner"`
+	LastTested     time.Time              `json:"last_tested"`
+	NextTest       time.Time              `json:"next_test"`
+	Evidence       []string               `json:"evidence"`
+	Dependencies   []string               `json:"dependencies"`
+	Metadata       map[string]interface{} `json:"metadata"`
 }
 
 // NewComprehensiveComplianceEngine creates a new comprehensive compliance engine
@@ -254,14 +173,14 @@ func (cce *ComprehensiveComplianceEngine) ValidateCompliance(ctx context.Context
 	if currentRiskScore > riskThreshold {
 		result.Compliant = false
 		violation := &ComplianceViolation{
-			ID:             uuid.New().String(),
-			Framework:      request.Framework,
-			Severity:       "high",
-			Category:       "risk_management",
-			Description:    fmt.Sprintf("Risk score %.2f exceeds threshold %.2f", currentRiskScore, riskThreshold),
-			DetectedAt:     time.Now(),
-			Status:         "open",
-			Metadata:       map[string]interface{}{"risk_score": currentRiskScore},
+			ID:          uuid.New().String(),
+			Framework:   request.Framework,
+			Severity:    "high",
+			Category:    "risk_management",
+			Description: fmt.Sprintf("Risk score %.2f exceeds threshold %.2f", currentRiskScore, riskThreshold),
+			DetectedAt:  time.Now(),
+			Status:      "open",
+			Metadata:    map[string]interface{}{"risk_score": currentRiskScore},
 		}
 		result.Violations = append(result.Violations, violation)
 	}
@@ -286,8 +205,8 @@ func (cce *ComprehensiveComplianceEngine) ValidateCompliance(ctx context.Context
 	}
 
 	// 8. Set validity period (using default values)
-	result.ValidUntil = time.Now().Add(30 * 24 * time.Hour)      // 30 days default
-	result.NextAssessment = time.Now().Add(7 * 24 * time.Hour)   // 7 days default
+	result.ValidUntil = time.Now().Add(30 * 24 * time.Hour)    // 30 days default
+	result.NextAssessment = time.Now().Add(7 * 24 * time.Hour) // 7 days default
 
 	result.ProcessingTime = time.Since(startTime)
 
@@ -313,7 +232,7 @@ func (cce *ComprehensiveComplianceEngine) initializeFrameworks() {
 		if config.Enabled {
 			framework := cce.createRegulatoryFramework(frameworkName, &config)
 			cce.regulatoryFrameworks[frameworkName] = framework
-			
+
 			cce.logger.WithFields(logger.Fields{
 				"framework": frameworkName,
 				"version":   config.Version,
@@ -327,14 +246,14 @@ func (cce *ComprehensiveComplianceEngine) initializeFrameworks() {
 func (cce *ComprehensiveComplianceEngine) createRegulatoryFramework(name string, config *FrameworkConfig) *RegulatoryFramework {
 	// Create a generic regulatory framework configuration
 	regulatoryConfig := &RegulatoryConfig{
-		Jurisdictions:       []string{"global"},
-		RegulationTypes:     []string{name},
-		ReportingFrequency:  24 * time.Hour,
-		AuditRetention:      365 * 24 * time.Hour,
-		AutoReporting:       config.AutoRemediation,
-		RealTimeMonitoring:  true,
-		AlertThresholds:     config.Thresholds,
-		RequiredApprovals:   make(map[string][]string),
+		Jurisdictions:      []string{"global"},
+		RegulationTypes:    []string{name},
+		ReportingFrequency: 24 * time.Hour,
+		AuditRetention:     365 * 24 * time.Hour,
+		AutoReporting:      config.AutoRemediation,
+		RealTimeMonitoring: true,
+		AlertThresholds:    config.Thresholds,
+		RequiredApprovals:  make(map[string][]string),
 	}
 
 	return NewRegulatoryFramework(regulatoryConfig, cce.logger)
@@ -385,15 +304,15 @@ func (cce *ComprehensiveComplianceEngine) generateRecommendations(ctx context.Co
 
 	for _, violation := range result.Violations {
 		recommendation := map[string]interface{}{
-			"id":          uuid.New().String(),
-			"violation_id": violation.ID,
-			"framework":   violation.Framework,
-			"priority":    violation.Severity,
-			"title":       fmt.Sprintf("Remediate %s violation", violation.Category),
-			"description": violation.Recommendation,
-			"actions":     cce.generateRemediationActions(violation),
+			"id":               uuid.New().String(),
+			"violation_id":     violation.ID,
+			"framework":        violation.Framework,
+			"priority":         violation.Severity,
+			"title":            fmt.Sprintf("Remediate %s violation", violation.Category),
+			"description":      violation.Recommendation,
+			"actions":          cce.generateRemediationActions(violation),
 			"estimated_effort": cce.estimateRemediationEffort(violation),
-			"due_date":     time.Now().Add(cce.getRemediationTimeframe(violation.Severity)),
+			"due_date":         time.Now().Add(cce.getRemediationTimeframe(violation.Severity)),
 			"metadata": map[string]interface{}{
 				"violation_id": violation.ID,
 				"category":     violation.Category,
@@ -495,11 +414,11 @@ func (cce *ComprehensiveComplianceEngine) GenerateComplianceReport(ctx context.C
 func (cce *ComprehensiveComplianceEngine) RunComplianceAssessment(ctx context.Context, framework ComplianceFramework, scope []string) (map[string]interface{}, error) {
 	// Placeholder implementation - would use assessmentEngine if implemented
 	return map[string]interface{}{
-		"framework":   framework,
-		"status":      "completed",
-		"score":       0.95,
-		"timestamp":   time.Now(),
-		"violations":  0,
-		"scope":       scope,
+		"framework":  framework,
+		"status":     "completed",
+		"score":      0.95,
+		"timestamp":  time.Now(),
+		"violations": 0,
+		"scope":      scope,
 	}, nil
 }

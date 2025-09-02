@@ -38,9 +38,9 @@ func TestNewOlamaTool(t *testing.T) {
 			}{
 				Models: []providers.OlamaModelInfo{
 					{
-						Name:   "llama2",
-						Size:   3800000000,
-						Digest: "abc123def456",
+						Name:       "llama2",
+						Size:       3800000000,
+						Digest:     "abc123def456",
 						ModifiedAt: time.Now(),
 					},
 				},
@@ -93,8 +93,8 @@ func TestOlamaTool_Execute(t *testing.T) {
 		switch r.URL.Path {
 		case "/api/show":
 			response := providers.OlamaModelInfo{
-				Name:   "llama2",
-				Digest: "abc123def456",
+				Name:       "llama2",
+				Digest:     "abc123def456",
 				ModifiedAt: time.Now(),
 			}
 			json.NewEncoder(w).Encode(response)
@@ -166,8 +166,8 @@ func TestOlamaTool_ExecuteWithPreset(t *testing.T) {
 		switch r.URL.Path {
 		case "/api/show":
 			response := providers.OlamaModelInfo{
-				Name:   "codellama",
-				Digest: "def456ghi789",
+				Name:       "codellama",
+				Digest:     "def456ghi789",
 				ModifiedAt: time.Now(),
 			}
 			json.NewEncoder(w).Encode(response)
@@ -175,7 +175,7 @@ func TestOlamaTool_ExecuteWithPreset(t *testing.T) {
 			// Verify request contains system prompt from preset
 			var reqBody providers.OlamaRequest
 			json.NewDecoder(r.Body).Decode(&reqBody)
-			
+
 			// Check if coding preset was applied
 			hasSystemPrompt := false
 			for _, msg := range reqBody.Messages {
@@ -184,7 +184,7 @@ func TestOlamaTool_ExecuteWithPreset(t *testing.T) {
 					break
 				}
 			}
-			
+
 			response := providers.OlamaResponse{
 				Model:     "codellama",
 				CreatedAt: time.Now(),
@@ -194,11 +194,11 @@ func TestOlamaTool_ExecuteWithPreset(t *testing.T) {
 				},
 				Done: true,
 			}
-			
+
 			if hasSystemPrompt {
 				response.Message.Content = "Expert code solution with system prompt applied."
 			}
-			
+
 			json.NewEncoder(w).Encode(response)
 		default:
 			w.WriteHeader(http.StatusNotFound)
@@ -298,7 +298,7 @@ func TestOlamaTool_Validate(t *testing.T) {
 		{
 			name: "invalid max_tokens",
 			input: ai.ToolInput{
-				"prompt":    "Hello",
+				"prompt":     "Hello",
 				"max_tokens": -1,
 			},
 			wantErr: true,
@@ -372,8 +372,8 @@ func BenchmarkOlamaTool_Execute(b *testing.B) {
 		switch r.URL.Path {
 		case "/api/show":
 			response := providers.OlamaModelInfo{
-				Name:   "llama2",
-				Digest: "abc123",
+				Name:       "llama2",
+				Digest:     "abc123",
 				ModifiedAt: time.Now(),
 			}
 			json.NewEncoder(w).Encode(response)

@@ -44,9 +44,9 @@ func (r *AuditRepository) GetAuditLog(id uuid.UUID) (*domain.AuditLog, error) {
 // ListAuditLogs retrieves audit logs with filters
 func (r *AuditRepository) ListAuditLogs(filters map[string]interface{}, limit, offset int) ([]*domain.AuditLog, error) {
 	var logs []*domain.AuditLog
-	
+
 	query := r.db.Preload("User").Preload("Session")
-	
+
 	// Apply filters
 	for key, value := range filters {
 		switch key {
@@ -80,7 +80,7 @@ func (r *AuditRepository) ListAuditLogs(filters map[string]interface{}, limit, o
 			}
 		}
 	}
-	
+
 	err := query.Order("created_at DESC").Limit(limit).Offset(offset).Find(&logs).Error
 	return logs, err
 }
@@ -88,9 +88,9 @@ func (r *AuditRepository) ListAuditLogs(filters map[string]interface{}, limit, o
 // SearchAuditLogs searches audit logs with text query
 func (r *AuditRepository) SearchAuditLogs(query string, filters map[string]interface{}, limit, offset int) ([]*domain.AuditLog, error) {
 	var logs []*domain.AuditLog
-	
+
 	dbQuery := r.db.Preload("User").Preload("Session")
-	
+
 	// Apply text search
 	if query != "" {
 		searchPattern := fmt.Sprintf("%%%s%%", query)
@@ -99,7 +99,7 @@ func (r *AuditRepository) SearchAuditLogs(query string, filters map[string]inter
 			searchPattern, searchPattern, searchPattern, searchPattern,
 		)
 	}
-	
+
 	// Apply additional filters
 	for key, value := range filters {
 		switch key {
@@ -121,7 +121,7 @@ func (r *AuditRepository) SearchAuditLogs(query string, filters map[string]inter
 			}
 		}
 	}
-	
+
 	err := dbQuery.Order("created_at DESC").Limit(limit).Offset(offset).Find(&logs).Error
 	return logs, err
 }
@@ -155,9 +155,9 @@ func (r *AuditRepository) UpdateSecurityEvent(event *domain.SecurityEvent) error
 // ListSecurityEvents retrieves security events with filters
 func (r *AuditRepository) ListSecurityEvents(filters map[string]interface{}, limit, offset int) ([]*domain.SecurityEvent, error) {
 	var events []*domain.SecurityEvent
-	
+
 	query := r.db.Preload("AssignedUser").Preload("ResolvedUser")
-	
+
 	// Apply filters
 	for key, value := range filters {
 		switch key {
@@ -189,7 +189,7 @@ func (r *AuditRepository) ListSecurityEvents(filters map[string]interface{}, lim
 			query = query.Where("false_positive = ?", value)
 		}
 	}
-	
+
 	err := query.Order("created_at DESC").Limit(limit).Offset(offset).Find(&events).Error
 	return events, err
 }
@@ -227,9 +227,9 @@ func (r *AuditRepository) FindThreatIntelligence(value string) (*domain.ThreatIn
 // ListThreatIntelligence retrieves threat intelligence with filters
 func (r *AuditRepository) ListThreatIntelligence(filters map[string]interface{}, limit, offset int) ([]*domain.ThreatIntelligence, error) {
 	var intel []*domain.ThreatIntelligence
-	
+
 	query := r.db.Model(&domain.ThreatIntelligence{})
-	
+
 	// Apply filters
 	for key, value := range filters {
 		switch key {
@@ -255,7 +255,7 @@ func (r *AuditRepository) ListThreatIntelligence(filters map[string]interface{},
 			}
 		}
 	}
-	
+
 	err := query.Order("last_seen DESC").Limit(limit).Offset(offset).Find(&intel).Error
 	return intel, err
 }
@@ -265,7 +265,7 @@ func (r *AuditRepository) CreateSystemMetrics(metrics []*domain.SystemMetrics) e
 	if len(metrics) == 0 {
 		return nil
 	}
-	
+
 	// Use batch insert for better performance
 	return r.db.CreateInBatches(metrics, 1000).Error
 }
@@ -273,9 +273,9 @@ func (r *AuditRepository) CreateSystemMetrics(metrics []*domain.SystemMetrics) e
 // GetSystemMetrics retrieves system metrics with filters and time range
 func (r *AuditRepository) GetSystemMetrics(filters map[string]interface{}, from, to time.Time) ([]*domain.SystemMetrics, error) {
 	var metrics []*domain.SystemMetrics
-	
+
 	query := r.db.Where("timestamp BETWEEN ? AND ?", from, to)
-	
+
 	// Apply filters
 	for key, value := range filters {
 		switch key {
@@ -291,7 +291,7 @@ func (r *AuditRepository) GetSystemMetrics(filters map[string]interface{}, from,
 			query = query.Where("environment = ?", value)
 		}
 	}
-	
+
 	err := query.Order("timestamp ASC").Find(&metrics).Error
 	return metrics, err
 }
@@ -334,25 +334,25 @@ func (r *AuditRepository) ListBackupRecords(limit, offset int) ([]*domain.Backup
 // LogUserAction logs a user action
 func (r *AuditRepository) LogUserAction(userID uuid.UUID, sessionID *uuid.UUID, action, resource string, details map[string]interface{}) error {
 	detailsJSON, _ := json.Marshal(details)
-	
+
 	log := &domain.AuditLog{
-		UserID:     &userID,
-		SessionID:  sessionID,
-		Action:     action,
-		Resource:   resource,
-		Status:     domain.AuditStatusSuccess,
-		RiskLevel:  domain.RiskLevelLow,
-		Severity:   domain.SeverityInfo,
-		Details:    detailsJSON,
+		UserID:    &userID,
+		SessionID: sessionID,
+		Action:    action,
+		Resource:  resource,
+		Status:    domain.AuditStatusSuccess,
+		RiskLevel: domain.RiskLevelLow,
+		Severity:  domain.SeverityInfo,
+		Details:   detailsJSON,
 	}
-	
+
 	return r.CreateAuditLog(log)
 }
 
 // LogSecurityAction logs a security-related action
 func (r *AuditRepository) LogSecurityAction(userID *uuid.UUID, action, resource string, riskLevel domain.RiskLevel, details map[string]interface{}) error {
 	detailsJSON, _ := json.Marshal(details)
-	
+
 	severity := domain.SeverityInfo
 	switch riskLevel {
 	case domain.RiskLevelCritical:
@@ -364,7 +364,7 @@ func (r *AuditRepository) LogSecurityAction(userID *uuid.UUID, action, resource 
 	case domain.RiskLevelLow:
 		severity = domain.SeverityLow
 	}
-	
+
 	log := &domain.AuditLog{
 		UserID:    userID,
 		Action:    action,
@@ -375,7 +375,7 @@ func (r *AuditRepository) LogSecurityAction(userID *uuid.UUID, action, resource 
 		Details:   detailsJSON,
 		Tags:      []string{"security"},
 	}
-	
+
 	return r.CreateAuditLog(log)
 }
 
@@ -385,12 +385,12 @@ func (r *AuditRepository) LogAPICall(userID *uuid.UUID, method, path, ipAddress,
 	if statusCode >= 400 {
 		status = domain.AuditStatusFailure
 	}
-	
+
 	riskLevel := domain.RiskLevelLow
 	if statusCode >= 500 {
 		riskLevel = domain.RiskLevelMedium
 	}
-	
+
 	log := &domain.AuditLog{
 		UserID:     userID,
 		Action:     "api_call",
@@ -406,6 +406,6 @@ func (r *AuditRepository) LogAPICall(userID *uuid.UUID, method, path, ipAddress,
 		Severity:   domain.SeverityInfo,
 		Tags:       []string{"api"},
 	}
-	
+
 	return r.CreateAuditLog(log)
 }

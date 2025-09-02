@@ -36,16 +36,16 @@ type CostRecommendation struct {
 
 // CostAnalysisReport contains the complete cost analysis results
 type CostAnalysisReport struct {
-	GeneratedAt         time.Time              `json:"generated_at"`
-	TimeRange           string                 `json:"time_range"`
-	TotalCurrentCost    float64                `json:"total_current_cost"`
-	TotalOptimizedCost  float64                `json:"total_optimized_cost"`
-	TotalSavings        float64                `json:"total_savings"`
-	SavingsPercentage   float64                `json:"savings_percentage"`
-	Recommendations     []CostRecommendation   `json:"recommendations"`
-	CloudBreakdown      map[string]CloudCosts  `json:"cloud_breakdown"`
-	ServiceBreakdown    map[string]float64     `json:"service_breakdown"`
-	Summary             CostOptimizationSummary `json:"summary"`
+	GeneratedAt        time.Time               `json:"generated_at"`
+	TimeRange          string                  `json:"time_range"`
+	TotalCurrentCost   float64                 `json:"total_current_cost"`
+	TotalOptimizedCost float64                 `json:"total_optimized_cost"`
+	TotalSavings       float64                 `json:"total_savings"`
+	SavingsPercentage  float64                 `json:"savings_percentage"`
+	Recommendations    []CostRecommendation    `json:"recommendations"`
+	CloudBreakdown     map[string]CloudCosts   `json:"cloud_breakdown"`
+	ServiceBreakdown   map[string]float64      `json:"service_breakdown"`
+	Summary            CostOptimizationSummary `json:"summary"`
 }
 
 // CloudCosts represents costs for a specific cloud provider
@@ -160,7 +160,7 @@ func (sca *SimpleCostAnalyzer) AnalyzeCosts(ctx context.Context) (*CostAnalysisR
 				"Delete unused snapshots",
 			},
 			Details: map[string]interface{}{
-				"volume_type":     "gp2",
+				"volume_type":      "gp2",
 				"recommended_type": "gp3",
 				"unused_snapshots": 15,
 			},
@@ -172,26 +172,26 @@ func (sca *SimpleCostAnalyzer) AnalyzeCosts(ctx context.Context) (*CostAnalysisR
 
 	// Calculate cloud breakdown
 	awsCosts := CloudCosts{
-		Provider:      "aws",
-		CurrentCost:   1000.0,
-		OptimizedCost: 450.0,
-		PotentialSavings: 550.0,
+		Provider:          "aws",
+		CurrentCost:       1000.0,
+		OptimizedCost:     450.0,
+		PotentialSavings:  550.0,
 		SavingsPercentage: 55.0,
 	}
 
 	gcpCosts := CloudCosts{
-		Provider:      "gcp",
-		CurrentCost:   500.0,
-		OptimizedCost: 350.0,
-		PotentialSavings: 150.0,
+		Provider:          "gcp",
+		CurrentCost:       500.0,
+		OptimizedCost:     350.0,
+		PotentialSavings:  150.0,
 		SavingsPercentage: 30.0,
 	}
 
 	azureCosts := CloudCosts{
-		Provider:      "azure",
-		CurrentCost:   300.0,
-		OptimizedCost: 210.0,
-		PotentialSavings: 90.0,
+		Provider:          "azure",
+		CurrentCost:       300.0,
+		OptimizedCost:     210.0,
+		PotentialSavings:  90.0,
 		SavingsPercentage: 30.0,
 	}
 
@@ -279,7 +279,7 @@ Annual Savings Potential: $%.2f
 			break
 		}
 		output += fmt.Sprintf("%d. %s (%s)\n", i+1, rec.Type, rec.CloudProvider)
-		output += fmt.Sprintf("   Savings: $%.2f (%.1f%%) - Priority: %s\n", 
+		output += fmt.Sprintf("   Savings: $%.2f (%.1f%%) - Priority: %s\n",
 			rec.PotentialSavings, rec.SavingsPercentage, rec.Priority)
 		output += fmt.Sprintf("   Resource: %s\n", rec.Resource)
 		output += fmt.Sprintf("   Implementation: %s\n\n", rec.Implementation[0])

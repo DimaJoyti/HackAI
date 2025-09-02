@@ -386,11 +386,11 @@ func (n *LogNode) Execute(ctx context.Context, state llm.GraphState) (llm.GraphS
 
 	// Create log entry
 	logEntry := map[string]interface{}{
-		"timestamp": time.Now(),
-		"level":     n.level,
-		"message":   n.message,
-		"node_id":   n.ID(),
-		"node_name": n.Name(),
+		"timestamp":  time.Now(),
+		"level":      n.level,
+		"message":    n.message,
+		"node_id":    n.ID(),
+		"node_name":  n.Name(),
 		"state_data": state.Data,
 	}
 

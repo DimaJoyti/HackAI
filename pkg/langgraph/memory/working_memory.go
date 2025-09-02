@@ -13,16 +13,16 @@ import (
 
 // WorkingMemory manages short-term, active memory for agents
 type WorkingMemory struct {
-	entries         map[string]*MemoryEntry
-	maxSize         int
-	currentContext  map[string]interface{}
-	activeGoals     []*Goal
-	recentActions   []*Action
-	temporaryData   map[string]interface{}
-	attentionFocus  []string
-	config          *MemoryConfig
-	logger          *logger.Logger
-	mutex           sync.RWMutex
+	entries        map[string]*MemoryEntry
+	maxSize        int
+	currentContext map[string]interface{}
+	activeGoals    []*Goal
+	recentActions  []*Action
+	temporaryData  map[string]interface{}
+	attentionFocus []string
+	config         *MemoryConfig
+	logger         *logger.Logger
+	mutex          sync.RWMutex
 }
 
 // Goal represents an agent goal
@@ -64,11 +64,11 @@ type ActionType string
 
 const (
 	// Goal Status
-	GoalStatusPending    GoalStatus = "pending"
-	GoalStatusActive     GoalStatus = "active"
-	GoalStatusCompleted  GoalStatus = "completed"
-	GoalStatusFailed     GoalStatus = "failed"
-	GoalStatusSuspended  GoalStatus = "suspended"
+	GoalStatusPending   GoalStatus = "pending"
+	GoalStatusActive    GoalStatus = "active"
+	GoalStatusCompleted GoalStatus = "completed"
+	GoalStatusFailed    GoalStatus = "failed"
+	GoalStatusSuspended GoalStatus = "suspended"
 
 	// Action Status
 	ActionStatusPending   ActionStatus = "pending"
@@ -78,12 +78,12 @@ const (
 	ActionStatusCancelled ActionStatus = "cancelled"
 
 	// Action Types
-	ActionTypeThinking    ActionType = "thinking"
-	ActionTypeObservation ActionType = "observation"
-	ActionTypeToolUse     ActionType = "tool_use"
+	ActionTypeThinking      ActionType = "thinking"
+	ActionTypeObservation   ActionType = "observation"
+	ActionTypeToolUse       ActionType = "tool_use"
 	ActionTypeCommunication ActionType = "communication"
-	ActionTypeDecision    ActionType = "decision"
-	ActionTypeReflection  ActionType = "reflection"
+	ActionTypeDecision      ActionType = "decision"
+	ActionTypeReflection    ActionType = "reflection"
 )
 
 // NewWorkingMemory creates a new working memory instance
@@ -564,9 +564,9 @@ func (wm *WorkingMemory) sortEntries(entries []*MemoryEntry, sortBy, sortOrder s
 
 // Helper functions
 func contains(text, substr string) bool {
-	return len(text) >= len(substr) && (text == substr || 
-		(len(substr) > 0 && len(text) > 0 && 
-		 fmt.Sprintf("%s", text) == fmt.Sprintf("%s", substr)))
+	return len(text) >= len(substr) && (text == substr ||
+		(len(substr) > 0 && len(text) > 0 &&
+			fmt.Sprintf("%s", text) == fmt.Sprintf("%s", substr)))
 }
 
 func hasAnyTag(entryTags, queryTags []string) bool {

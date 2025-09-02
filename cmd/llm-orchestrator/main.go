@@ -133,7 +133,7 @@ func demonstrateChainExecution(ctx context.Context, orchestrator llm.Orchestrato
 
 	// Display results
 	logger.Info("Chain execution completed successfully")
-	
+
 	if results, ok := output["injection_results"]; ok {
 		logger.Info("Injection results available", "type", fmt.Sprintf("%T", results))
 	}
@@ -158,9 +158,9 @@ func displayOrchestratorStatus(orchestrator llm.Orchestrator, logger *logger.Log
 	chains := orchestrator.ListChains()
 	logger.Info("Registered chains", "count", len(chains))
 	for _, chain := range chains {
-		logger.Info("Chain", 
-			"id", chain.ID, 
-			"name", chain.Name, 
+		logger.Info("Chain",
+			"id", chain.ID,
+			"name", chain.Name,
 			"type", chain.Type,
 			"status", chain.Status,
 		)
@@ -170,9 +170,9 @@ func displayOrchestratorStatus(orchestrator llm.Orchestrator, logger *logger.Log
 	graphs := orchestrator.ListGraphs()
 	logger.Info("Registered graphs", "count", len(graphs))
 	for _, graph := range graphs {
-		logger.Info("Graph", 
-			"id", graph.ID, 
-			"name", graph.Name, 
+		logger.Info("Graph",
+			"id", graph.ID,
+			"name", graph.Name,
 			"nodes", graph.NodeCount,
 			"edges", graph.EdgeCount,
 			"status", graph.Status,

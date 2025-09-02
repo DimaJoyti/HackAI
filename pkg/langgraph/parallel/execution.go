@@ -76,11 +76,11 @@ type WorkerPool struct {
 
 // WorkerPoolConfig holds worker pool configuration
 type WorkerPoolConfig struct {
-	MaxWorkers      int           `json:"max_workers"`
-	QueueSize       int           `json:"queue_size"`
-	TaskTimeout     time.Duration `json:"task_timeout"`
-	IdleTimeout     time.Duration `json:"idle_timeout"`
-	EnableMetrics   bool          `json:"enable_metrics"`
+	MaxWorkers    int           `json:"max_workers"`
+	QueueSize     int           `json:"queue_size"`
+	TaskTimeout   time.Duration `json:"task_timeout"`
+	IdleTimeout   time.Duration `json:"idle_timeout"`
+	EnableMetrics bool          `json:"enable_metrics"`
 }
 
 // Worker represents a single worker in the pool
@@ -395,10 +395,10 @@ func NewResultMerger(logger *logger.Logger) *ResultMerger {
 
 // MergedResult holds the result of merging multiple results
 type MergedResult struct {
-	State       llm.GraphState         `json:"state"`
-	Conflicts   []StateConflict        `json:"conflicts"`
-	Resolution  ConflictResolution     `json:"resolution"`
-	Metadata    map[string]interface{} `json:"metadata"`
+	State      llm.GraphState         `json:"state"`
+	Conflicts  []StateConflict        `json:"conflicts"`
+	Resolution ConflictResolution     `json:"resolution"`
+	Metadata   map[string]interface{} `json:"metadata"`
 }
 
 // StateConflict represents a conflict between states

@@ -115,8 +115,8 @@ func (r *UserRepository) List(limit, offset int) ([]*domain.User, error) {
 func (r *UserRepository) Search(query string, limit, offset int) ([]*domain.User, error) {
 	var users []*domain.User
 	searchPattern := "%" + query + "%"
-	
-	if err := r.db.Where("username ILIKE ? OR email ILIKE ? OR first_name ILIKE ? OR last_name ILIKE ?", 
+
+	if err := r.db.Where("username ILIKE ? OR email ILIKE ? OR first_name ILIKE ? OR last_name ILIKE ?",
 		searchPattern, searchPattern, searchPattern, searchPattern).
 		Limit(limit).Offset(offset).Find(&users).Error; err != nil {
 		r.logger.WithError(err).WithField("query", query).Error("Failed to search users")

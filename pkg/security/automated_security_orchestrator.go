@@ -16,22 +16,22 @@ var securityOrchestratorTracer = otel.Tracer("hackai/security/orchestrator")
 
 // AutomatedSecurityOrchestrator provides automated security operations and response
 type AutomatedSecurityOrchestrator struct {
-	threatIntelligence    *ThreatIntelligenceEngine
-	incidentResponse      interface{} // Placeholder for IncidentResponseEngine
-	vulnerabilityManager  interface{} // Placeholder for VulnerabilityManager
-	securityAutomation    interface{} // Placeholder for SecurityAutomationEngine
-	complianceMonitor     interface{} // Placeholder for ComplianceMonitor
-	riskEngine            interface{} // Placeholder for RiskEngine
-	alertManager          *SecurityAlertManager
-	forensicsEngine       interface{} // Placeholder for ForensicsEngine
-	recoveryManager       interface{} // Placeholder for RecoveryManager
-	playbooks             map[string]*SecurityPlaybook
-	workflows             map[string]*SecurityWorkflow
-	config                *SecurityOrchestrationConfig
-	logger                *logger.Logger
-	mutex                 sync.RWMutex
-	activeIncidents       map[string]*SecurityIncident
-	automationMetrics     interface{} // Placeholder for AutomationMetrics
+	threatIntelligence   *ThreatIntelligenceEngine
+	incidentResponse     interface{} // Placeholder for IncidentResponseEngine
+	vulnerabilityManager interface{} // Placeholder for VulnerabilityManager
+	securityAutomation   interface{} // Placeholder for SecurityAutomationEngine
+	complianceMonitor    interface{} // Placeholder for ComplianceMonitor
+	riskEngine           interface{} // Placeholder for RiskEngine
+	alertManager         *SecurityAlertManager
+	forensicsEngine      interface{} // Placeholder for ForensicsEngine
+	recoveryManager      interface{} // Placeholder for RecoveryManager
+	playbooks            map[string]*SecurityPlaybook
+	workflows            map[string]*SecurityWorkflow
+	config               *SecurityOrchestrationConfig
+	logger               *logger.Logger
+	mutex                sync.RWMutex
+	activeIncidents      map[string]*SecurityIncident
+	automationMetrics    interface{} // Placeholder for AutomationMetrics
 }
 
 // SecurityOrchestrationConfig defines configuration for security orchestration
@@ -50,7 +50,7 @@ type SecurityOrchestrationConfig struct {
 
 	// Compliance monitoring
 	ComplianceMonitoring map[string]interface{} `yaml:"compliance_monitoring"`
-	
+
 	// Risk management
 	RiskManagement map[string]interface{} `yaml:"risk_management"`
 
@@ -65,110 +65,114 @@ type SecurityOrchestrationConfig struct {
 
 	// Playbook settings
 	Playbooks map[string]interface{} `yaml:"playbooks"`
-	
+
 	// Workflow settings
 	Workflows map[string]interface{} `yaml:"workflows"`
 }
 
 // SecurityPlaybook represents an automated security playbook
 type SecurityPlaybook struct {
-	ID              string                 `json:"id"`
-	Name            string                 `json:"name"`
-	Description     string                 `json:"description"`
-	Version         string                 `json:"version"`
-	Category        string                 `json:"category"`
-	Triggers        []map[string]interface{} `json:"triggers"`
-	Steps           []PlaybookStep           `json:"steps"`
-	Prerequisites   []string                 `json:"prerequisites"`
-	Outputs         []map[string]interface{} `json:"outputs"`
-	Timeout         time.Duration            `json:"timeout"`
-	RetryPolicy     RetryPolicy              `json:"retry_policy"`
-	Notifications   []map[string]interface{} `json:"notifications"`
-	Approvals       []map[string]interface{} `json:"approvals"`
-	Tags            []string               `json:"tags"`
-	CreatedAt       time.Time              `json:"created_at"`
-	UpdatedAt       time.Time              `json:"updated_at"`
-	CreatedBy       string                 `json:"created_by"`
-	Status          string                 `json:"status"`
-	Metadata        map[string]interface{} `json:"metadata"`
+	ID            string                   `json:"id"`
+	Name          string                   `json:"name"`
+	Description   string                   `json:"description"`
+	Version       string                   `json:"version"`
+	Category      string                   `json:"category"`
+	Triggers      []map[string]interface{} `json:"triggers"`
+	Steps         []PlaybookStep           `json:"steps"`
+	Prerequisites []string                 `json:"prerequisites"`
+	Outputs       []map[string]interface{} `json:"outputs"`
+	Timeout       time.Duration            `json:"timeout"`
+	RetryPolicy   RetryPolicy              `json:"retry_policy"`
+	Notifications []map[string]interface{} `json:"notifications"`
+	Approvals     []map[string]interface{} `json:"approvals"`
+	Tags          []string                 `json:"tags"`
+	CreatedAt     time.Time                `json:"created_at"`
+	UpdatedAt     time.Time                `json:"updated_at"`
+	CreatedBy     string                   `json:"created_by"`
+	Status        string                   `json:"status"`
+	Metadata      map[string]interface{}   `json:"metadata"`
 }
 
 // SecurityWorkflow represents an automated security workflow
 type SecurityWorkflow struct {
-	ID              string                 `json:"id"`
-	Name            string                 `json:"name"`
-	Description     string                 `json:"description"`
-	Type            string                 `json:"type"`
-	Schedule        map[string]interface{}   `json:"schedule,omitempty"`
-	Triggers        []map[string]interface{} `json:"triggers"`
-	Tasks           []map[string]interface{} `json:"tasks"`
-	Dependencies    []string                 `json:"dependencies"`
-	Conditions      []map[string]interface{} `json:"conditions"`
-	Outputs         []map[string]interface{} `json:"outputs"`
-	ErrorHandling   map[string]interface{}   `json:"error_handling"`
-	Monitoring      map[string]interface{}   `json:"monitoring"`
-	Status          string                 `json:"status"`
-	LastExecution   *time.Time             `json:"last_execution,omitempty"`
-	NextExecution   *time.Time             `json:"next_execution,omitempty"`
-	ExecutionCount  int                    `json:"execution_count"`
-	SuccessRate     float64                `json:"success_rate"`
-	Metadata        map[string]interface{} `json:"metadata"`
+	ID             string                   `json:"id"`
+	Name           string                   `json:"name"`
+	Description    string                   `json:"description"`
+	Type           string                   `json:"type"`
+	Schedule       map[string]interface{}   `json:"schedule,omitempty"`
+	Triggers       []map[string]interface{} `json:"triggers"`
+	Tasks          []map[string]interface{} `json:"tasks"`
+	Dependencies   []string                 `json:"dependencies"`
+	Conditions     []map[string]interface{} `json:"conditions"`
+	Outputs        []map[string]interface{} `json:"outputs"`
+	ErrorHandling  map[string]interface{}   `json:"error_handling"`
+	Monitoring     map[string]interface{}   `json:"monitoring"`
+	Status         string                   `json:"status"`
+	LastExecution  *time.Time               `json:"last_execution,omitempty"`
+	NextExecution  *time.Time               `json:"next_execution,omitempty"`
+	ExecutionCount int                      `json:"execution_count"`
+	SuccessRate    float64                  `json:"success_rate"`
+	Metadata       map[string]interface{}   `json:"metadata"`
 }
 
 // SecurityEvent represents a security event that triggers automation
 type SecurityEvent struct {
-	ID              string                 `json:"id"`
-	Type            string                 `json:"type"`
-	Severity        string                 `json:"severity"`
-	Source          string                 `json:"source"`
-	Title           string                 `json:"title"`
-	Description     string                 `json:"description"`
-	Timestamp       time.Time              `json:"timestamp"`
-	AffectedAssets  []string               `json:"affected_assets"`
-	Indicators      []SecurityIndicator    `json:"indicators"`
-	Context         map[string]interface{} `json:"context"`
-	ThreatActors    []string               `json:"threat_actors"`
-	AttackVectors   []string               `json:"attack_vectors"`
-	Confidence      float64                `json:"confidence"`
-	RiskScore       float64                `json:"risk_score"`
-	Tags            []string               `json:"tags"`
-	Metadata        map[string]interface{} `json:"metadata"`
+	ID             string                 `json:"id"`
+	Type           string                 `json:"type"`
+	Severity       string                 `json:"severity"`
+	Source         string                 `json:"source"`
+	Title          string                 `json:"title"`
+	Description    string                 `json:"description"`
+	Timestamp      time.Time              `json:"timestamp"`
+	AffectedAssets []string               `json:"affected_assets"`
+	Indicators     []SecurityIndicator    `json:"indicators"`
+	Context        map[string]interface{} `json:"context"`
+	ThreatActors   []string               `json:"threat_actors"`
+	AttackVectors  []string               `json:"attack_vectors"`
+	Confidence     float64                `json:"confidence"`
+	RiskScore      float64                `json:"risk_score"`
+	Tags           []string               `json:"tags"`
+	Component      string                 `json:"component"`
+	ThreatScore    float64                `json:"threat_score"`
+	Action         string                 `json:"action"`
+	ProcessingTime time.Duration          `json:"processing_time"`
+	Metadata       map[string]interface{} `json:"metadata"`
 }
 
 // SecurityIndicator represents an indicator of compromise or attack
 type SecurityIndicator struct {
-	ID          string                 `json:"id"`
-	Type        string                 `json:"type"`
-	Value       string                 `json:"value"`
-	Confidence  float64                `json:"confidence"`
-	Severity    string                 `json:"severity"`
-	Source      string                 `json:"source"`
-	FirstSeen   time.Time              `json:"first_seen"`
-	LastSeen    time.Time              `json:"last_seen"`
-	Context     map[string]interface{} `json:"context"`
-	Tags        []string               `json:"tags"`
-	Metadata    map[string]interface{} `json:"metadata"`
+	ID         string                 `json:"id"`
+	Type       string                 `json:"type"`
+	Value      string                 `json:"value"`
+	Confidence float64                `json:"confidence"`
+	Severity   string                 `json:"severity"`
+	Source     string                 `json:"source"`
+	FirstSeen  time.Time              `json:"first_seen"`
+	LastSeen   time.Time              `json:"last_seen"`
+	Context    map[string]interface{} `json:"context"`
+	Tags       []string               `json:"tags"`
+	Metadata   map[string]interface{} `json:"metadata"`
 }
 
 // AutomationExecution represents the execution of an automated security action
 type AutomationExecution struct {
-	ID              string                 `json:"id"`
-	Type            string                 `json:"type"`
-	PlaybookID      string                 `json:"playbook_id,omitempty"`
-	WorkflowID      string                 `json:"workflow_id,omitempty"`
-	TriggerEvent    *SecurityEvent         `json:"trigger_event"`
-	Status          string                 `json:"status"`
-	StartTime       time.Time              `json:"start_time"`
-	EndTime         *time.Time             `json:"end_time,omitempty"`
-	Duration        time.Duration          `json:"duration"`
-	Steps           []map[string]interface{} `json:"steps"`
-	Results         map[string]interface{}   `json:"results"`
-	Errors          []map[string]interface{} `json:"errors"`
-	Outputs         map[string]interface{}   `json:"outputs"`
-	Metrics         map[string]interface{}   `json:"metrics"`
-	Approvals       []map[string]interface{} `json:"approvals"`
-	Notifications   []map[string]interface{} `json:"notifications"`
-	Metadata        map[string]interface{} `json:"metadata"`
+	ID            string                   `json:"id"`
+	Type          string                   `json:"type"`
+	PlaybookID    string                   `json:"playbook_id,omitempty"`
+	WorkflowID    string                   `json:"workflow_id,omitempty"`
+	TriggerEvent  *SecurityEvent           `json:"trigger_event"`
+	Status        string                   `json:"status"`
+	StartTime     time.Time                `json:"start_time"`
+	EndTime       *time.Time               `json:"end_time,omitempty"`
+	Duration      time.Duration            `json:"duration"`
+	Steps         []map[string]interface{} `json:"steps"`
+	Results       map[string]interface{}   `json:"results"`
+	Errors        []map[string]interface{} `json:"errors"`
+	Outputs       map[string]interface{}   `json:"outputs"`
+	Metrics       map[string]interface{}   `json:"metrics"`
+	Approvals     []map[string]interface{} `json:"approvals"`
+	Notifications []map[string]interface{} `json:"notifications"`
+	Metadata      map[string]interface{}   `json:"metadata"`
 }
 
 // NewAutomatedSecurityOrchestrator creates a new automated security orchestrator
@@ -228,7 +232,7 @@ func (aso *AutomatedSecurityOrchestrator) ProcessSecurityEvent(ctx context.Conte
 			"event_id":   event.ID,
 			"event_type": event.Type,
 		}).Warn("No matching playbooks found for event")
-		
+
 		// Create default response
 		return aso.createDefaultResponse(ctx, enrichedEvent)
 	}
@@ -389,19 +393,19 @@ func (aso *AutomatedSecurityOrchestrator) scorePlaybook(playbook *SecurityPlaybo
 // executePlaybook executes a security playbook
 func (aso *AutomatedSecurityOrchestrator) executePlaybook(ctx context.Context, playbook *SecurityPlaybook, event *SecurityEvent) (*AutomationExecution, error) {
 	execution := &AutomationExecution{
-		ID:           uuid.New().String(),
-		Type:         "playbook",
-		PlaybookID:   playbook.ID,
-		TriggerEvent: event,
-		Status:       "running",
-		StartTime:    time.Now(),
-		Steps:        make([]map[string]interface{}, 0),
-		Results:      make(map[string]interface{}),
-		Errors:       make([]map[string]interface{}, 0),
-		Outputs:      make(map[string]interface{}),
-		Approvals:    make([]map[string]interface{}, 0),
+		ID:            uuid.New().String(),
+		Type:          "playbook",
+		PlaybookID:    playbook.ID,
+		TriggerEvent:  event,
+		Status:        "running",
+		StartTime:     time.Now(),
+		Steps:         make([]map[string]interface{}, 0),
+		Results:       make(map[string]interface{}),
+		Errors:        make([]map[string]interface{}, 0),
+		Outputs:       make(map[string]interface{}),
+		Approvals:     make([]map[string]interface{}, 0),
 		Notifications: make([]map[string]interface{}, 0),
-		Metadata:     make(map[string]interface{}),
+		Metadata:      make(map[string]interface{}),
 	}
 
 	aso.logger.WithFields(logger.Fields{
@@ -598,7 +602,7 @@ func (aso *AutomatedSecurityOrchestrator) RegisterPlaybook(ctx context.Context, 
 	defer aso.mutex.Unlock()
 
 	aso.playbooks[playbook.ID] = playbook
-	
+
 	aso.logger.WithFields(logger.Fields{
 		"playbook_id":   playbook.ID,
 		"playbook_name": playbook.Name,
@@ -614,7 +618,7 @@ func (aso *AutomatedSecurityOrchestrator) RegisterWorkflow(ctx context.Context, 
 	defer aso.mutex.Unlock()
 
 	aso.workflows[workflow.ID] = workflow
-	
+
 	aso.logger.WithFields(logger.Fields{
 		"workflow_id":   workflow.ID,
 		"workflow_name": workflow.Name,

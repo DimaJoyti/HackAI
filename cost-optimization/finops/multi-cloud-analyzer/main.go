@@ -43,16 +43,16 @@ type CostRecommendation struct {
 
 // CostAnalysisReport represents the complete cost analysis report
 type CostAnalysisReport struct {
-	GeneratedAt      time.Time                     `json:"generated_at"`
-	TimeRange        string                        `json:"time_range"`
-	TotalCost        float64                       `json:"total_cost"`
-	OptimizedCost    float64                       `json:"optimized_cost"`
-	PotentialSavings float64                       `json:"potential_savings"`
-	SavingsPercentage float64                      `json:"savings_percentage"`
-	CloudBreakdown   map[string]CloudCosts         `json:"cloud_breakdown"`
-	ServiceBreakdown map[string]float64            `json:"service_breakdown"`
-	Recommendations  []CostRecommendation          `json:"recommendations"`
-	Summary          CostOptimizationSummary       `json:"summary"`
+	GeneratedAt       time.Time               `json:"generated_at"`
+	TimeRange         string                  `json:"time_range"`
+	TotalCost         float64                 `json:"total_cost"`
+	OptimizedCost     float64                 `json:"optimized_cost"`
+	PotentialSavings  float64                 `json:"potential_savings"`
+	SavingsPercentage float64                 `json:"savings_percentage"`
+	CloudBreakdown    map[string]CloudCosts   `json:"cloud_breakdown"`
+	ServiceBreakdown  map[string]float64      `json:"service_breakdown"`
+	Recommendations   []CostRecommendation    `json:"recommendations"`
+	Summary           CostOptimizationSummary `json:"summary"`
 }
 
 // CloudCosts represents costs for a specific cloud provider
@@ -164,7 +164,7 @@ func (mca *MultiCloudCostAnalyzer) AnalyzeCosts(ctx context.Context) (*CostAnaly
 				"Implement proper restart handling",
 			},
 			Details: map[string]interface{}{
-				"workload_type": "batch_processing",
+				"workload_type":   "batch_processing",
 				"fault_tolerance": true,
 			},
 			CreatedAt: time.Now(),

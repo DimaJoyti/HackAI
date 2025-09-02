@@ -36,19 +36,19 @@ type APIResponse struct {
 
 // SecurityAnalysisRequest represents a security analysis request
 type SecurityAnalysisRequest struct {
-	Content     string            `json:"content"`
-	Type        string            `json:"type"`
-	Options     map[string]interface{} `json:"options,omitempty"`
-	Metadata    map[string]interface{} `json:"metadata,omitempty"`
+	Content  string                 `json:"content"`
+	Type     string                 `json:"type"`
+	Options  map[string]interface{} `json:"options,omitempty"`
+	Metadata map[string]interface{} `json:"metadata,omitempty"`
 }
 
 // SecurityAnalysisResponse represents a security analysis response
 type SecurityAnalysisResponse struct {
-	AnalysisID   string  `json:"analysis_id"`
-	RiskScore    float64 `json:"risk_score"`
-	IsBlocked    bool    `json:"is_blocked"`
-	Threats      []string `json:"threats"`
-	Confidence   float64 `json:"confidence"`
+	AnalysisID     string        `json:"analysis_id"`
+	RiskScore      float64       `json:"risk_score"`
+	IsBlocked      bool          `json:"is_blocked"`
+	Threats        []string      `json:"threats"`
+	Confidence     float64       `json:"confidence"`
 	ProcessingTime time.Duration `json:"processing_time"`
 }
 
@@ -97,7 +97,7 @@ func NewAPIClient(baseURL string, logger *logger.Logger) *APIClient {
 func demonstrateAPIIntegration(ctx context.Context, client *APIClient, logger *logger.Logger) {
 	fmt.Println("\n🔐 1. Authentication & Authorization:")
 	fmt.Println("====================================")
-	
+
 	// Authenticate with the API
 	if err := client.Authenticate(ctx, "demo@hackai.dev", "demo_password"); err != nil {
 		fmt.Printf("❌ Authentication failed: %v\n", err)
@@ -107,31 +107,31 @@ func demonstrateAPIIntegration(ctx context.Context, client *APIClient, logger *l
 
 	fmt.Println("\n🛡️ 2. Security Analysis API:")
 	fmt.Println("=============================")
-	
+
 	// Demonstrate security analysis
 	demonstrateSecurityAnalysis(ctx, client)
 
 	fmt.Println("\n🤖 3. Agent Management API:")
 	fmt.Println("============================")
-	
+
 	// Demonstrate agent management
 	demonstrateAgentManagement(ctx, client)
 
 	fmt.Println("\n📊 4. Monitoring & Analytics API:")
 	fmt.Println("=================================")
-	
+
 	// Demonstrate monitoring APIs
 	demonstrateMonitoringAPIs(ctx, client)
 
 	fmt.Println("\n📡 5. Real-time Communication API:")
 	fmt.Println("==================================")
-	
+
 	// Demonstrate real-time APIs
 	demonstrateRealtimeAPIs(ctx, client)
 
 	fmt.Println("\n🔧 6. System Management API:")
 	fmt.Println("=============================")
-	
+
 	// Demonstrate system management
 	demonstrateSystemManagement(ctx, client)
 }
@@ -188,16 +188,16 @@ func demonstrateSecurityAnalysis(ctx context.Context, client *APIClient) {
 
 	for i, testCase := range testCases {
 		fmt.Printf("\n[Test %d] %s:\n", i+1, testCase.name)
-		
+
 		request := SecurityAnalysisRequest{
 			Content: testCase.content,
 			Type:    testCase.type_,
 			Options: map[string]interface{}{
 				"enable_deep_analysis": true,
-				"include_suggestions": true,
+				"include_suggestions":  true,
 			},
 			Metadata: map[string]interface{}{
-				"source": "api_demo",
+				"source":    "api_demo",
 				"test_case": testCase.name,
 			},
 		}
@@ -243,10 +243,10 @@ func demonstrateAgentManagement(ctx context.Context, client *APIClient) {
 	// Create a new agent task
 	fmt.Println("\n🎯 Creating agent task:")
 	taskData := map[string]interface{}{
-		"type": "security_analysis",
+		"type":     "security_analysis",
 		"priority": "high",
 		"parameters": map[string]interface{}{
-			"target": "system_logs",
+			"target":    "system_logs",
 			"timeframe": "last_24h",
 		},
 		"agents": []string{"security-analyst-001"},
@@ -262,7 +262,7 @@ func demonstrateAgentManagement(ctx context.Context, client *APIClient) {
 		fmt.Println("✅ Agent task created successfully")
 		if taskID, ok := response.Data["task_id"].(string); ok {
 			fmt.Printf("   Task ID: %s\n", taskID)
-			
+
 			// Monitor task status
 			monitorTaskStatus(ctx, client, taskID)
 		}
@@ -322,8 +322,8 @@ func demonstrateRealtimeAPIs(ctx context.Context, client *APIClient) {
 		"channel": "demo-channel",
 		"type":    "notification",
 		"data": map[string]interface{}{
-			"title":   "API Demo Message",
-			"message": "This is a test message from the API demo",
+			"title":    "API Demo Message",
+			"message":  "This is a test message from the API demo",
 			"priority": "normal",
 		},
 	}
@@ -394,7 +394,7 @@ func demonstrateSystemManagement(ctx context.Context, client *APIClient) {
 // monitorTaskStatus monitors the status of an agent task
 func monitorTaskStatus(ctx context.Context, client *APIClient, taskID string) {
 	fmt.Printf("\n🔄 Monitoring task status: %s\n", taskID)
-	
+
 	for i := 0; i < 5; i++ {
 		response, err := client.makeRequest(ctx, "GET", fmt.Sprintf("/api/v1/agents/tasks/%s", taskID), nil)
 		if err != nil {
@@ -405,7 +405,7 @@ func monitorTaskStatus(ctx context.Context, client *APIClient, taskID string) {
 		if response.Success {
 			if status, ok := response.Data["status"].(string); ok {
 				fmt.Printf("   Status: %s\n", status)
-				
+
 				if status == "completed" || status == "failed" {
 					if result, ok := response.Data["result"]; ok {
 						resultJSON, _ := json.MarshalIndent(result, "   ", "  ")
@@ -423,7 +423,7 @@ func monitorTaskStatus(ctx context.Context, client *APIClient, taskID string) {
 // makeRequest makes an HTTP request to the API
 func (c *APIClient) makeRequest(ctx context.Context, method, endpoint string, data interface{}) (*APIResponse, error) {
 	var body io.Reader
-	
+
 	if data != nil {
 		jsonData, err := json.Marshal(data)
 		if err != nil {

@@ -14,14 +14,14 @@ import (
 
 // AdvancedToolRegistry provides advanced tool registration and management
 type AdvancedToolRegistry struct {
-	integrations    map[string]*ToolIntegration
-	categories      map[string][]*ToolIntegration
-	dependencies    map[string][]string
-	tags            map[string][]*ToolIntegration
-	versions        map[string]map[string]*ToolIntegration
-	healthChecks    map[string]*HealthCheck
-	logger          *logger.Logger
-	mutex           sync.RWMutex
+	integrations map[string]*ToolIntegration
+	categories   map[string][]*ToolIntegration
+	dependencies map[string][]string
+	tags         map[string][]*ToolIntegration
+	versions     map[string]map[string]*ToolIntegration
+	healthChecks map[string]*HealthCheck
+	logger       *logger.Logger
+	mutex        sync.RWMutex
 }
 
 // HealthCheck represents a health check for a tool
@@ -49,30 +49,30 @@ const (
 
 // RegistryQuery represents a query for finding tools
 type RegistryQuery struct {
-	Categories   []string               `json:"categories,omitempty"`
-	Tags         []string               `json:"tags,omitempty"`
-	Capabilities []ToolCapability       `json:"capabilities,omitempty"`
-	Status       []IntegrationStatus    `json:"status,omitempty"`
-	NamePattern  string                 `json:"name_pattern,omitempty"`
-	MinVersion   string                 `json:"min_version,omitempty"`
-	MaxVersion   string                 `json:"max_version,omitempty"`
-	HealthStatus []HealthStatus         `json:"health_status,omitempty"`
-	Limit        int                    `json:"limit,omitempty"`
-	Offset       int                    `json:"offset,omitempty"`
-	SortBy       string                 `json:"sort_by,omitempty"`
-	SortOrder    string                 `json:"sort_order,omitempty"`
+	Categories   []string            `json:"categories,omitempty"`
+	Tags         []string            `json:"tags,omitempty"`
+	Capabilities []ToolCapability    `json:"capabilities,omitempty"`
+	Status       []IntegrationStatus `json:"status,omitempty"`
+	NamePattern  string              `json:"name_pattern,omitempty"`
+	MinVersion   string              `json:"min_version,omitempty"`
+	MaxVersion   string              `json:"max_version,omitempty"`
+	HealthStatus []HealthStatus      `json:"health_status,omitempty"`
+	Limit        int                 `json:"limit,omitempty"`
+	Offset       int                 `json:"offset,omitempty"`
+	SortBy       string              `json:"sort_by,omitempty"`
+	SortOrder    string              `json:"sort_order,omitempty"`
 }
 
 // RegistryStats holds statistics about the registry
 type RegistryStats struct {
-	TotalIntegrations    int                            `json:"total_integrations"`
-	IntegrationsByStatus map[IntegrationStatus]int      `json:"integrations_by_status"`
-	IntegrationsByHealth map[HealthStatus]int           `json:"integrations_by_health"`
-	CategoriesCount      map[string]int                 `json:"categories_count"`
-	TagsCount            map[string]int                 `json:"tags_count"`
-	AverageSuccessRate   float64                        `json:"average_success_rate"`
-	TotalExecutions      int64                          `json:"total_executions"`
-	LastUpdated          time.Time                      `json:"last_updated"`
+	TotalIntegrations    int                       `json:"total_integrations"`
+	IntegrationsByStatus map[IntegrationStatus]int `json:"integrations_by_status"`
+	IntegrationsByHealth map[HealthStatus]int      `json:"integrations_by_health"`
+	CategoriesCount      map[string]int            `json:"categories_count"`
+	TagsCount            map[string]int            `json:"tags_count"`
+	AverageSuccessRate   float64                   `json:"average_success_rate"`
+	TotalExecutions      int64                     `json:"total_executions"`
+	LastUpdated          time.Time                 `json:"last_updated"`
 }
 
 // NewAdvancedToolRegistry creates a new advanced tool registry
@@ -127,7 +127,7 @@ func (atr *AdvancedToolRegistry) RegisterIntegration(integration *ToolIntegratio
 	if atr.versions[toolName] == nil {
 		atr.versions[toolName] = make(map[string]*ToolIntegration)
 	}
-	
+
 	version := "1.0.0" // Default version
 	if versionStr, exists := integration.Metadata["version"]; exists {
 		if v, ok := versionStr.(string); ok {

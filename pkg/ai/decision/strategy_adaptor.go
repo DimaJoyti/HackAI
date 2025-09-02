@@ -48,8 +48,8 @@ func (sa *StrategyAdaptor) initializeDefaultStrategies() {
 			Description: "Uses Bayesian inference for decision making",
 			Algorithm:   AlgorithmBayesian,
 			Parameters: map[string]interface{}{
-				"prior_weight":     0.3,
-				"evidence_weight":  0.7,
+				"prior_weight":        0.3,
+				"evidence_weight":     0.7,
 				"uncertainty_penalty": 0.2,
 			},
 			Effectiveness: 0.8,
@@ -64,9 +64,9 @@ func (sa *StrategyAdaptor) initializeDefaultStrategies() {
 			Description: "Balances expected value with risk assessment",
 			Algorithm:   AlgorithmHeuristic,
 			Parameters: map[string]interface{}{
-				"risk_weight":      0.4,
-				"value_weight":     0.6,
-				"safety_margin":    0.1,
+				"risk_weight":   0.4,
+				"value_weight":  0.6,
+				"safety_margin": 0.1,
 			},
 			Effectiveness: 0.75,
 			UsageCount:    0,

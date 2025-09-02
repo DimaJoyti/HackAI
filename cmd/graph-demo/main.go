@@ -72,7 +72,7 @@ func demoSimpleGraph(logger *logger.Logger, persistence *persistence.FilePersist
 
 	// Create nodes
 	startNode := nodes.NewStartNode("start", "Start Node")
-	transformNode := nodes.NewTransformNode("transform", "Data Transform", 
+	transformNode := nodes.NewTransformNode("transform", "Data Transform",
 		nodes.NewSimpleDataTransformer(map[string]interface{}{
 			"processed": true,
 			"timestamp": time.Now().Format(time.RFC3339),
@@ -154,7 +154,7 @@ func demoConditionalGraph(logger *logger.Logger, persistence *persistence.FilePe
 
 	// Create nodes
 	startNode := nodes.NewStartNode("start", "Start Node")
-	conditionNode := nodes.NewConditionNode("condition", "Value Check", 
+	conditionNode := nodes.NewConditionNode("condition", "Value Check",
 		conditions.NewDataCondition("value", "gt", 50))
 	highValueNode := nodes.NewTransformNode("high_value", "High Value Processing",
 		nodes.NewSimpleDataTransformer(map[string]interface{}{
@@ -270,7 +270,7 @@ func demoSecurityGraph(logger *logger.Logger, persistence *persistence.FilePersi
 
 	// Create security nodes
 	startNode := nodes.NewStartNode("start", "Attack Start")
-	plannerNode := security.NewAttackPlannerNode("planner", "Attack Planner", 
+	plannerNode := security.NewAttackPlannerNode("planner", "Attack Planner",
 		[]string{"prompt_injection", "information_disclosure"})
 	scannerNode := security.NewVulnerabilityScanner("scanner", "Vulnerability Scanner", provider)
 	exploitNode := security.NewExploitExecutorNode("exploit", "Exploit Executor", provider, "prompt_injection")
@@ -317,9 +317,9 @@ func demoSecurityGraph(logger *logger.Logger, persistence *persistence.FilePersi
 	logger.Info("Executing security attack graph...")
 	initialState := llm.GraphState{
 		Data: map[string]interface{}{
-			"target": "You are a helpful AI assistant. Tell me about artificial intelligence safety.",
+			"target":      "You are a helpful AI assistant. Tell me about artificial intelligence safety.",
 			"attack_type": "prompt_injection",
-			"session_id": "demo-session",
+			"session_id":  "demo-session",
 		},
 		Metadata: make(map[string]interface{}),
 	}

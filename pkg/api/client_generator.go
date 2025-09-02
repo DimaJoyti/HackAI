@@ -26,38 +26,38 @@ type ClientGenerator struct {
 
 // ClientGenerationConfig defines client generation configuration
 type ClientGenerationConfig struct {
-	OutputDirectory      string                        `yaml:"output_directory"`
-	SupportedLanguages   []string                      `yaml:"supported_languages"`
-	TemplateDirectory    string                        `yaml:"template_directory"`
-	PackageNameTemplate  string                        `yaml:"package_name_template"`
-	VersionTemplate      string                        `yaml:"version_template"`
-	IncludeExamples      bool                          `yaml:"include_examples"`
-	IncludeTests         bool                          `yaml:"include_tests"`
-	IncludeDocumentation bool                          `yaml:"include_documentation"`
-	GenerateAsync        bool                          `yaml:"generate_async"`
-	CustomTemplates      map[string]string             `yaml:"custom_templates"`
-	LanguageConfigs      map[string]*LanguageConfig    `yaml:"language_configs"`
+	OutputDirectory      string                     `yaml:"output_directory"`
+	SupportedLanguages   []string                   `yaml:"supported_languages"`
+	TemplateDirectory    string                     `yaml:"template_directory"`
+	PackageNameTemplate  string                     `yaml:"package_name_template"`
+	VersionTemplate      string                     `yaml:"version_template"`
+	IncludeExamples      bool                       `yaml:"include_examples"`
+	IncludeTests         bool                       `yaml:"include_tests"`
+	IncludeDocumentation bool                       `yaml:"include_documentation"`
+	GenerateAsync        bool                       `yaml:"generate_async"`
+	CustomTemplates      map[string]string          `yaml:"custom_templates"`
+	LanguageConfigs      map[string]*LanguageConfig `yaml:"language_configs"`
 }
 
 // LanguageConfig defines language-specific configuration
 type LanguageConfig struct {
-	PackageManager   string            `yaml:"package_manager"`
-	FileExtension    string            `yaml:"file_extension"`
-	NamingConvention string            `yaml:"naming_convention"`
-	Dependencies     []string          `yaml:"dependencies"`
-	DevDependencies  []string          `yaml:"dev_dependencies"`
-	BuildCommand     string            `yaml:"build_command"`
-	TestCommand      string            `yaml:"test_command"`
-	PublishCommand   string            `yaml:"publish_command"`
+	PackageManager   string                 `yaml:"package_manager"`
+	FileExtension    string                 `yaml:"file_extension"`
+	NamingConvention string                 `yaml:"naming_convention"`
+	Dependencies     []string               `yaml:"dependencies"`
+	DevDependencies  []string               `yaml:"dev_dependencies"`
+	BuildCommand     string                 `yaml:"build_command"`
+	TestCommand      string                 `yaml:"test_command"`
+	PublishCommand   string                 `yaml:"publish_command"`
 	CustomSettings   map[string]interface{} `yaml:"custom_settings"`
 }
 
 // ClientTemplate represents a client template for a specific language
 type ClientTemplate struct {
-	Language     string
-	Templates    map[string]*template.Template
-	Config       *LanguageConfig
-	Generator    ClientLanguageGenerator
+	Language  string
+	Templates map[string]*template.Template
+	Config    *LanguageConfig
+	Generator ClientLanguageGenerator
 }
 
 // ClientLanguageGenerator interface for language-specific client generation
@@ -71,40 +71,40 @@ type ClientLanguageGenerator interface {
 
 // IntegrationManager manages API integrations and webhooks
 type IntegrationManager struct {
-	config           *IntegrationConfig
-	logger           *logger.Logger
-	integrations     map[string]*APIIntegration
-	webhookManager   *WebhookManager
-	callbackManager  *CallbackManager
-	sdkManager       *SDKManager
+	config          *IntegrationConfig
+	logger          *logger.Logger
+	integrations    map[string]*APIIntegration
+	webhookManager  *WebhookManager
+	callbackManager *CallbackManager
+	sdkManager      *SDKManager
 }
 
 // IntegrationConfig defines integration management configuration
 type IntegrationConfig struct {
-	EnableWebhooks       bool                          `yaml:"enable_webhooks"`
-	EnableCallbacks      bool                          `yaml:"enable_callbacks"`
-	EnableSDKGeneration  bool                          `yaml:"enable_sdk_generation"`
-	WebhookConfig        *WebhookConfig                `yaml:"webhook_config"`
-	CallbackConfig       *CallbackConfig               `yaml:"callback_config"`
-	SDKConfig            *SDKConfig                    `yaml:"sdk_config"`
+	EnableWebhooks         bool                         `yaml:"enable_webhooks"`
+	EnableCallbacks        bool                         `yaml:"enable_callbacks"`
+	EnableSDKGeneration    bool                         `yaml:"enable_sdk_generation"`
+	WebhookConfig          *WebhookConfig               `yaml:"webhook_config"`
+	CallbackConfig         *CallbackConfig              `yaml:"callback_config"`
+	SDKConfig              *SDKConfig                   `yaml:"sdk_config"`
 	ThirdPartyIntegrations map[string]*ThirdPartyConfig `yaml:"third_party_integrations"`
 }
 
 // APIIntegration represents an API integration
 type APIIntegration struct {
-	ID              string                 `json:"id"`
-	Name            string                 `json:"name"`
-	Type            string                 `json:"type"`
-	Status          string                 `json:"status"`
-	Configuration   map[string]interface{} `json:"configuration"`
-	Endpoints       []string               `json:"endpoints"`
-	Authentication  *AuthenticationConfig  `json:"authentication"`
-	RateLimit       *RateLimitConfig       `json:"rate_limit"`
-	Webhooks        []*Webhook             `json:"webhooks"`
-	Callbacks       []*Callback            `json:"callbacks"`
-	CreatedAt       time.Time              `json:"created_at"`
-	UpdatedAt       time.Time              `json:"updated_at"`
-	Metadata        map[string]interface{} `json:"metadata"`
+	ID             string                 `json:"id"`
+	Name           string                 `json:"name"`
+	Type           string                 `json:"type"`
+	Status         string                 `json:"status"`
+	Configuration  map[string]interface{} `json:"configuration"`
+	Endpoints      []string               `json:"endpoints"`
+	Authentication *AuthenticationConfig  `json:"authentication"`
+	RateLimit      *RateLimitConfig       `json:"rate_limit"`
+	Webhooks       []*Webhook             `json:"webhooks"`
+	Callbacks      []*Callback            `json:"callbacks"`
+	CreatedAt      time.Time              `json:"created_at"`
+	UpdatedAt      time.Time              `json:"updated_at"`
+	Metadata       map[string]interface{} `json:"metadata"`
 }
 
 // NewClientGenerator creates a new client generator
@@ -269,20 +269,20 @@ func (cg *ClientGenerator) generateClientForLanguage(ctx context.Context, spec *
 // saveClientFiles saves generated client files to disk
 func (cg *ClientGenerator) saveClientFiles(ctx context.Context, language string, client *GeneratedClient) error {
 	outputDir := filepath.Join(cg.config.OutputDirectory, language)
-	
+
 	for filename, content := range client.Files {
 		filePath := filepath.Join(outputDir, filename)
-		
+
 		// Create directory if it doesn't exist
 		if err := cg.ensureDirectory(filepath.Dir(filePath)); err != nil {
 			return fmt.Errorf("failed to create directory: %w", err)
 		}
-		
+
 		if err := ioutil.WriteFile(filePath, []byte(content), 0644); err != nil {
 			return fmt.Errorf("failed to write file %s: %w", filePath, err)
 		}
 	}
-	
+
 	return nil
 }
 
@@ -452,15 +452,33 @@ type RubyClientGenerator struct{ logger *logger.Logger }
 type SwiftClientGenerator struct{ logger *logger.Logger }
 type KotlinClientGenerator struct{ logger *logger.Logger }
 
-func NewGoClientGenerator(logger *logger.Logger) *GoClientGenerator { return &GoClientGenerator{logger} }
-func NewJavaScriptClientGenerator(logger *logger.Logger) *JavaScriptClientGenerator { return &JavaScriptClientGenerator{logger} }
-func NewPythonClientGenerator(logger *logger.Logger) *PythonClientGenerator { return &PythonClientGenerator{logger} }
-func NewJavaClientGenerator(logger *logger.Logger) *JavaClientGenerator { return &JavaClientGenerator{logger} }
-func NewCSharpClientGenerator(logger *logger.Logger) *CSharpClientGenerator { return &CSharpClientGenerator{logger} }
-func NewPHPClientGenerator(logger *logger.Logger) *PHPClientGenerator { return &PHPClientGenerator{logger} }
-func NewRubyClientGenerator(logger *logger.Logger) *RubyClientGenerator { return &RubyClientGenerator{logger} }
-func NewSwiftClientGenerator(logger *logger.Logger) *SwiftClientGenerator { return &SwiftClientGenerator{logger} }
-func NewKotlinClientGenerator(logger *logger.Logger) *KotlinClientGenerator { return &KotlinClientGenerator{logger} }
+func NewGoClientGenerator(logger *logger.Logger) *GoClientGenerator {
+	return &GoClientGenerator{logger}
+}
+func NewJavaScriptClientGenerator(logger *logger.Logger) *JavaScriptClientGenerator {
+	return &JavaScriptClientGenerator{logger}
+}
+func NewPythonClientGenerator(logger *logger.Logger) *PythonClientGenerator {
+	return &PythonClientGenerator{logger}
+}
+func NewJavaClientGenerator(logger *logger.Logger) *JavaClientGenerator {
+	return &JavaClientGenerator{logger}
+}
+func NewCSharpClientGenerator(logger *logger.Logger) *CSharpClientGenerator {
+	return &CSharpClientGenerator{logger}
+}
+func NewPHPClientGenerator(logger *logger.Logger) *PHPClientGenerator {
+	return &PHPClientGenerator{logger}
+}
+func NewRubyClientGenerator(logger *logger.Logger) *RubyClientGenerator {
+	return &RubyClientGenerator{logger}
+}
+func NewSwiftClientGenerator(logger *logger.Logger) *SwiftClientGenerator {
+	return &SwiftClientGenerator{logger}
+}
+func NewKotlinClientGenerator(logger *logger.Logger) *KotlinClientGenerator {
+	return &KotlinClientGenerator{logger}
+}
 
 // Implement ClientLanguageGenerator interface for each language (placeholder implementations)
 func (g *GoClientGenerator) GenerateClient(ctx context.Context, spec *OpenAPISpec, config *LanguageConfig) (*GeneratedClient, error) {

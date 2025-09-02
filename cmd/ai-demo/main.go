@@ -97,7 +97,7 @@ func demoVulnerabilityScanning(ctx context.Context, scanner *usecase.Vulnerabili
 
 	for i, target := range targets {
 		fmt.Printf("  %d. Scanning %s...\n", i+1, target)
-		
+
 		config := domain.ScanConfig{
 			Timeout:         30,
 			MaxDepth:        3,
@@ -113,7 +113,7 @@ func demoVulnerabilityScanning(ctx context.Context, scanner *usecase.Vulnerabili
 
 		fmt.Printf("     ✅ Scan started (ID: %s)\n", scan.ID.String()[:8])
 		fmt.Printf("     📊 Status: %s, Progress: %d%%\n", scan.Status, scan.Progress)
-		
+
 		// Simulate waiting for scan completion
 		time.Sleep(2 * time.Second)
 		fmt.Printf("     🔍 AI Analysis: Detected SQL injection patterns\n")
@@ -130,7 +130,7 @@ func demoNetworkAnalysis(ctx context.Context, analyzer *usecase.NetworkAnalyzerU
 
 	for i, target := range targets {
 		fmt.Printf("  %d. Analyzing network %s...\n", i+1, target)
-		
+
 		config := domain.NetworkScanConfig{
 			Timeout:   5,
 			Threads:   10,
@@ -147,7 +147,7 @@ func demoNetworkAnalysis(ctx context.Context, analyzer *usecase.NetworkAnalyzerU
 
 		fmt.Printf("     ✅ Network scan started (ID: %s)\n", scan.ID.String()[:8])
 		fmt.Printf("     📊 Status: %s, Progress: %d%%\n", scan.Status, scan.Progress)
-		
+
 		// Simulate scan results
 		time.Sleep(1 * time.Second)
 		fmt.Printf("     🖥️  AI Detection: 5 hosts discovered\n")
@@ -167,7 +167,7 @@ func demoThreatIntelligence(ctx context.Context, threatIntel *usecase.ThreatInte
 
 	for i, target := range targets {
 		fmt.Printf("  %d. Analyzing threat intelligence for %s...\n", i+1, target)
-		
+
 		report, err := threatIntel.AnalyzeThreat(ctx, target)
 		if err != nil {
 			fmt.Printf("     ❌ Error: %v\n", err)
@@ -179,22 +179,22 @@ func demoThreatIntelligence(ctx context.Context, threatIntel *usecase.ThreatInte
 		fmt.Printf("     📊 Risk Score: %.1f/10\n", report.RiskScore)
 		fmt.Printf("     🔍 Confidence: %.0f%%\n", report.Confidence*100)
 		fmt.Printf("     📝 Summary: %s\n", report.Summary)
-		
+
 		if len(report.Indicators) > 0 {
 			fmt.Printf("     🚨 Threat Indicators:\n")
 			for _, indicator := range report.Indicators {
-				fmt.Printf("       - %s: %s (Confidence: %.0f%%)\n", 
+				fmt.Printf("       - %s: %s (Confidence: %.0f%%)\n",
 					indicator.Type, indicator.Description, indicator.Confidence*100)
 			}
 		}
-		
+
 		if len(report.Recommendations) > 0 {
 			fmt.Printf("     💡 Recommendations:\n")
 			for _, rec := range report.Recommendations {
 				fmt.Printf("       - %s\n", rec)
 			}
 		}
-		
+
 		time.Sleep(500 * time.Millisecond)
 	}
 }
@@ -215,7 +215,7 @@ func demoLogAnalysis(ctx context.Context, logAnalyzer *usecase.LogAnalyzerUseCas
 	}
 
 	fmt.Printf("  📋 Analyzing %d log entries...\n", len(sampleLogs))
-	
+
 	timeRange := usecase.TimeRange{
 		Start: time.Now().Add(-1 * time.Hour),
 		End:   time.Now(),
@@ -272,7 +272,7 @@ func demoComprehensiveAIAnalysis(ctx context.Context, aiService *usecase.AIModel
 		Type:     "comprehensive",
 		Targets:  targets,
 		Priority: "high",
-		Config:   map[string]interface{}{
+		Config: map[string]interface{}{
 			"deep_analysis": true,
 			"correlation":   true,
 		},
@@ -326,12 +326,12 @@ func demoComprehensiveAIAnalysis(ctx context.Context, aiService *usecase.AIModel
 	// Pretty print the full result as JSON (truncated for demo)
 	fmt.Printf("     📄 Full Analysis Report:\n")
 	jsonData, _ := json.MarshalIndent(map[string]interface{}{
-		"id":                result.ID,
-		"overall_risk_score": result.OverallRiskScore,
-		"threat_level":      result.ThreatLevel,
-		"execution_time":    result.ExecutionTime.String(),
-		"findings_count":    len(result.CorrelatedFindings),
-		"insights_count":    len(result.AIInsights),
+		"id":                    result.ID,
+		"overall_risk_score":    result.OverallRiskScore,
+		"threat_level":          result.ThreatLevel,
+		"execution_time":        result.ExecutionTime.String(),
+		"findings_count":        len(result.CorrelatedFindings),
+		"insights_count":        len(result.AIInsights),
 		"recommendations_count": len(result.Recommendations),
 	}, "       ", "  ")
 	fmt.Printf("       %s\n", string(jsonData))

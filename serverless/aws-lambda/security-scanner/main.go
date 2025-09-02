@@ -11,12 +11,6 @@ import (
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
-	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/config"
-	"github.com/aws/aws-sdk-go-v2/service/inspector2"
-	"github.com/aws/aws-sdk-go-v2/service/securityhub"
-	"github.com/aws/aws-sdk-go-v2/service/guardduty"
-	"github.com/aws/aws-sdk-go-v2/service/sns"
 )
 
 // SecurityScanEvent represents the event structure for security scanning
@@ -25,25 +19,25 @@ type SecurityScanEvent struct {
 	DetailType    string                 `json:"detail-type"`
 	Detail        map[string]interface{} `json:"detail"`
 	Function      string                 `json:"function"`
-	ScanType      string                 `json:"scan_type"`      // vulnerability, compliance, threat, configuration
-	Target        string                 `json:"target"`        // cluster, service, container, network
+	ScanType      string                 `json:"scan_type"` // vulnerability, compliance, threat, configuration
+	Target        string                 `json:"target"`    // cluster, service, container, network
 	TargetID      string                 `json:"target_id"`
-	Severity      string                 `json:"severity"`      // critical, high, medium, low
+	Severity      string                 `json:"severity"` // critical, high, medium, low
 	CloudProvider string                 `json:"cloud_provider"`
 }
 
 // SecurityScanResponse represents the response from security scanning
 type SecurityScanResponse struct {
-	Success       bool                     `json:"success"`
-	Message       string                   `json:"message"`
-	ScanID        string                   `json:"scan_id"`
-	ScanType      string                   `json:"scan_type"`
-	Target        string                   `json:"target"`
-	Findings      []SecurityFinding        `json:"findings"`
-	Summary       SecurityScanSummary      `json:"summary"`
-	Timestamp     time.Time                `json:"timestamp"`
-	NextScanTime  time.Time                `json:"next_scan_time"`
-	Remediation   []RemediationAction      `json:"remediation"`
+	Success      bool                `json:"success"`
+	Message      string              `json:"message"`
+	ScanID       string              `json:"scan_id"`
+	ScanType     string              `json:"scan_type"`
+	Target       string              `json:"target"`
+	Findings     []SecurityFinding   `json:"findings"`
+	Summary      SecurityScanSummary `json:"summary"`
+	Timestamp    time.Time           `json:"timestamp"`
+	NextScanTime time.Time           `json:"next_scan_time"`
+	Remediation  []RemediationAction `json:"remediation"`
 }
 
 // SecurityFinding represents a security finding
@@ -76,22 +70,18 @@ type SecurityScanSummary struct {
 
 // RemediationAction represents a recommended remediation action
 type RemediationAction struct {
-	ID          string `json:"id"`
-	Title       string `json:"title"`
-	Description string `json:"description"`
-	Priority    string `json:"priority"`
-	Effort      string `json:"effort"`
-	Impact      string `json:"impact"`
+	ID          string   `json:"id"`
+	Title       string   `json:"title"`
+	Description string   `json:"description"`
+	Priority    string   `json:"priority"`
+	Effort      string   `json:"effort"`
+	Impact      string   `json:"impact"`
 	Steps       []string `json:"steps"`
-	Automated   bool   `json:"automated"`
+	Automated   bool     `json:"automated"`
 }
 
 // SecurityScanner handles multi-cloud security scanning operations
 type SecurityScanner struct {
-	inspector2Client   *inspector2.Client
-	securityHubClient  *securityhub.Client
-	guardDutyClient    *guardduty.Client
-	snsClient         *sns.Client
 	region            string
 	environment       string
 	alertTopicArn     string
@@ -99,19 +89,11 @@ type SecurityScanner struct {
 
 // NewSecurityScanner creates a new SecurityScanner instance
 func NewSecurityScanner(ctx context.Context) (*SecurityScanner, error) {
-	cfg, err := config.LoadDefaultConfig(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("failed to load AWS config: %w", err)
-	}
-
+	// TODO: Initialize AWS clients when SDK dependencies are available
 	return &SecurityScanner{
-		inspector2Client:  inspector2.NewFromConfig(cfg),
-		securityHubClient: securityhub.NewFromConfig(cfg),
-		guardDutyClient:   guardduty.NewFromConfig(cfg),
-		snsClient:        sns.NewFromConfig(cfg),
-		region:           os.Getenv("AWS_REGION"),
-		environment:      os.Getenv("ENVIRONMENT"),
-		alertTopicArn:    os.Getenv("SECURITY_ALERT_TOPIC_ARN"),
+		region:        os.Getenv("AWS_REGION"),
+		environment:   os.Getenv("ENVIRONMENT"),
+		alertTopicArn: os.Getenv("SECURITY_ALERT_TOPIC_ARN"),
 	}, nil
 }
 
@@ -179,9 +161,9 @@ func (ss *SecurityScanner) performVulnerabilityScan(ctx context.Context, event S
 			CWE:         "CWE-89",
 			CVE:         "CVE-2023-12345",
 			Evidence: map[string]interface{}{
-				"endpoint": "/api/auth/login",
+				"endpoint":  "/api/auth/login",
 				"parameter": "username",
-				"payload": "' OR 1=1 --",
+				"payload":   "' OR 1=1 --",
 			},
 		},
 		{
@@ -198,7 +180,7 @@ func (ss *SecurityScanner) performVulnerabilityScan(ctx context.Context, event S
 			CWE:         "CWE-1104",
 			CVE:         "CVE-2023-67890",
 			Evidence: map[string]interface{}{
-				"packages": []string{"lodash@4.17.15", "express@4.16.1"},
+				"packages":      []string{"lodash@4.17.15", "express@4.16.1"},
 				"fix_available": true,
 			},
 		},
@@ -243,8 +225,8 @@ func (ss *SecurityScanner) performComplianceScan(ctx context.Context, event Secu
 			LastSeen:    time.Now(),
 			Evidence: map[string]interface{}{
 				"compliance_framework": "SOC2",
-				"control": "CC6.1",
-				"requirement": "Encryption at rest",
+				"control":              "CC6.1",
+				"requirement":          "Encryption at rest",
 			},
 		},
 		{
@@ -259,8 +241,8 @@ func (ss *SecurityScanner) performComplianceScan(ctx context.Context, event Secu
 			LastSeen:    time.Now(),
 			Evidence: map[string]interface{}{
 				"compliance_framework": "ISO27001",
-				"control": "A.10.1.1",
-				"requirement": "Audit logging policy",
+				"control":              "A.10.1.1",
+				"requirement":          "Audit logging policy",
 			},
 		},
 	}
@@ -299,10 +281,10 @@ func (ss *SecurityScanner) performThreatScan(ctx context.Context, event Security
 			FirstSeen:   time.Now().Add(-1 * time.Hour),
 			LastSeen:    time.Now(),
 			Evidence: map[string]interface{}{
-				"source_ip": "10.0.1.100",
-				"destination_ip": "192.168.1.1",
-				"port": 4444,
-				"protocol": "TCP",
+				"source_ip":         "10.0.1.100",
+				"destination_ip":    "192.168.1.1",
+				"port":              4444,
+				"protocol":          "TCP",
 				"bytes_transferred": 1024000,
 			},
 		},
@@ -347,8 +329,8 @@ func (ss *SecurityScanner) performConfigurationScan(ctx context.Context, event S
 			LastSeen:    time.Now(),
 			Evidence: map[string]interface{}{
 				"container_id": "abc123",
-				"user": "root",
-				"privileged": true,
+				"user":         "root",
+				"privileged":   true,
 				"capabilities": []string{"SYS_ADMIN", "NET_ADMIN"},
 			},
 		},
@@ -384,7 +366,7 @@ func (ss *SecurityScanner) calculateSummary(findings []SecurityFinding) Security
 	}
 
 	// Calculate risk score (0-100)
-	summary.RiskScore = (summary.CriticalFindings * 25) + (summary.HighFindings * 15) + 
+	summary.RiskScore = (summary.CriticalFindings * 25) + (summary.HighFindings * 15) +
 		(summary.MediumFindings * 8) + (summary.LowFindings * 2)
 	if summary.RiskScore > 100 {
 		summary.RiskScore = 100
@@ -436,6 +418,22 @@ func (ss *SecurityScanner) generateRemediation(findings []SecurityFinding) []Rem
 					"Update backup encryption settings",
 				},
 			})
+		case "configuration":
+			actions = append(actions, RemediationAction{
+				ID:          fmt.Sprintf("remediation-%s", finding.ID),
+				Title:       "Fix Container Configuration",
+				Description: "Configure container to run with non-root user",
+				Priority:    "medium",
+				Effort:      "low",
+				Impact:      "medium",
+				Automated:   false,
+				Steps: []string{
+					"Create non-root user in container",
+					"Update container runtime configuration",
+					"Remove unnecessary privileges and capabilities",
+					"Test container functionality",
+				},
+			})
 		}
 	}
 
@@ -443,19 +441,12 @@ func (ss *SecurityScanner) generateRemediation(findings []SecurityFinding) []Rem
 }
 
 func (ss *SecurityScanner) sendSecurityAlert(ctx context.Context, subject string, response SecurityScanResponse) error {
-	if ss.alertTopicArn == "" {
-		return nil // No alert topic configured
+	// TODO: Implement SNS alerts when AWS SDK is available
+	log.Printf("SECURITY ALERT: %s - %s", subject, response.Message)
+	if ss.alertTopicArn != "" {
+		log.Printf("Would send alert to SNS topic: %s", ss.alertTopicArn)
 	}
-
-	message, _ := json.Marshal(response)
-	
-	_, err := ss.snsClient.Publish(ctx, &sns.PublishInput{
-		TopicArn: aws.String(ss.alertTopicArn),
-		Subject:  aws.String(subject),
-		Message:  aws.String(string(message)),
-	})
-
-	return err
+	return nil
 }
 
 // Lambda handler

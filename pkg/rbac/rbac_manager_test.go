@@ -5,9 +5,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/dimajoyti/hackai/pkg/logger"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/dimajoyti/hackai/pkg/logger"
 )
 
 func createTestRBACLogger() *logger.Logger {

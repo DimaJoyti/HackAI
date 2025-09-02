@@ -103,8 +103,8 @@ func (ca *CapabilityAssessor) AssessCapabilities(ctx context.Context, tool *Disc
 	capabilities.ResourceRequirements = &ResourceRequirements{
 		CPU:         0.5,
 		Memory:      512 * 1024 * 1024, // 512MB
-		Storage:     100 * 1024 * 1024,  // 100MB
-		Network:     1024,               // 1KB/s
+		Storage:     100 * 1024 * 1024, // 100MB
+		Network:     1024,              // 1KB/s
 		Concurrency: 10,
 		RateLimit:   100,
 	}
@@ -243,11 +243,11 @@ type IntegrationManager struct {
 
 // IntegratedTool represents an integrated tool
 type IntegratedTool struct {
-	Tool          *DiscoveredTool `json:"tool"`
-	IntegratedAt  time.Time       `json:"integrated_at"`
-	LastUsed      time.Time       `json:"last_used"`
-	UsageCount    int64           `json:"usage_count"`
-	SuccessRate   float64         `json:"success_rate"`
+	Tool          *DiscoveredTool        `json:"tool"`
+	IntegratedAt  time.Time              `json:"integrated_at"`
+	LastUsed      time.Time              `json:"last_used"`
+	UsageCount    int64                  `json:"usage_count"`
+	SuccessRate   float64                `json:"success_rate"`
 	Configuration map[string]interface{} `json:"configuration"`
 }
 
@@ -410,7 +410,7 @@ func NewDiscoveryScheduler(interval time.Duration, logger *logger.Logger) *Disco
 // Start starts the discovery scheduler
 func (ds *DiscoveryScheduler) Start(ctx context.Context, discoveryFunc func(context.Context) error) {
 	ds.ticker = time.NewTicker(ds.interval)
-	
+
 	go func() {
 		for {
 			select {

@@ -97,11 +97,11 @@ func (ban *BaseAttackNode) Validate() error {
 // EntryPointNode represents an initial access vector
 type EntryPointNode struct {
 	BaseAttackNode
-	AccessMethod    string   `json:"access_method"`
-	TargetSurface   string   `json:"target_surface"`
-	RequiredTools   []string `json:"required_tools"`
-	DetectionRate   float64  `json:"detection_rate"`
-	SuccessRate     float64  `json:"success_rate"`
+	AccessMethod  string   `json:"access_method"`
+	TargetSurface string   `json:"target_surface"`
+	RequiredTools []string `json:"required_tools"`
+	DetectionRate float64  `json:"detection_rate"`
+	SuccessRate   float64  `json:"success_rate"`
 }
 
 // Execute executes the entry point attack

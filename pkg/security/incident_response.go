@@ -97,15 +97,15 @@ type ResponseRule struct {
 	ID          string                 `json:"id"`
 	Name        string                 `json:"name"`
 	Description string                 `json:"description"`
-	Conditions  []*RuleCondition       `json:"conditions"`
+	Conditions  []*ResponseRuleCondition `json:"conditions"`
 	Actions     []*AutomatedAction     `json:"actions"`
 	Enabled     bool                   `json:"enabled"`
 	Priority    int                    `json:"priority"`
 	Metadata    map[string]interface{} `json:"metadata"`
 }
 
-// RuleCondition defines conditions for response rules
-type RuleCondition struct {
+// ResponseRuleCondition defines conditions for response rules
+type ResponseRuleCondition struct {
 	Field    string      `json:"field"`
 	Operator string      `json:"operator"`
 	Value    interface{} `json:"value"`
@@ -125,7 +125,7 @@ type AutomatedAction struct {
 type EscalationRule struct {
 	ID         string           `json:"id"`
 	Name       string           `json:"name"`
-	Conditions []*RuleCondition `json:"conditions"`
+	Conditions []*ResponseRuleCondition `json:"conditions"`
 	EscalateTo []string         `json:"escalate_to"`
 	Delay      time.Duration    `json:"delay"`
 	Enabled    bool             `json:"enabled"`
@@ -518,7 +518,7 @@ func (irs *IncidentResponseSystem) evaluateResponseRules(incident *SecurityIncid
 }
 
 // evaluateConditions evaluates rule conditions against an incident
-func (irs *IncidentResponseSystem) evaluateConditions(conditions []*RuleCondition, incident *SecurityIncident) bool {
+func (irs *IncidentResponseSystem) evaluateConditions(conditions []*ResponseRuleCondition, incident *SecurityIncident) bool {
 	for _, condition := range conditions {
 		if !irs.evaluateCondition(condition, incident) {
 			return false
@@ -528,7 +528,7 @@ func (irs *IncidentResponseSystem) evaluateConditions(conditions []*RuleConditio
 }
 
 // evaluateCondition evaluates a single condition
-func (irs *IncidentResponseSystem) evaluateCondition(condition *RuleCondition, incident *SecurityIncident) bool {
+func (irs *IncidentResponseSystem) evaluateCondition(condition *ResponseRuleCondition, incident *SecurityIncident) bool {
 	var fieldValue interface{}
 
 	switch condition.Field {
@@ -726,7 +726,7 @@ func (irs *IncidentResponseSystem) initializeDefaultRules() {
 		ID:          "rule_critical_auto_block",
 		Name:        "Critical Threat Auto Block",
 		Description: "Automatically block critical threats",
-		Conditions: []*RuleCondition{
+		Conditions: []*ResponseRuleCondition{
 			{Field: "severity", Operator: "equals", Value: "critical"},
 		},
 		Actions: []*AutomatedAction{
@@ -754,7 +754,7 @@ func (irs *IncidentResponseSystem) initializeDefaultRules() {
 	escalationRule := &EscalationRule{
 		ID:   "escalation_high_severity",
 		Name: "High Severity Escalation",
-		Conditions: []*RuleCondition{
+		Conditions: []*ResponseRuleCondition{
 			{Field: "severity", Operator: "in", Value: []interface{}{"high", "critical"}},
 		},
 		EscalateTo: []string{"security_team", "incident_commander"},

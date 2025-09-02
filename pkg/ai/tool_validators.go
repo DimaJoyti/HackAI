@@ -13,13 +13,13 @@ import (
 
 // SecurityToolValidator validates security tools to prevent misuse
 type SecurityToolValidator struct {
-	id                string
-	logger            *logger.Logger
-	allowedTargets    []string
-	blockedTargets    []string
-	allowPrivateIPs   bool
-	allowLocalhost    bool
-	maxScanIntensity  string
+	id               string
+	logger           *logger.Logger
+	allowedTargets   []string
+	blockedTargets   []string
+	allowPrivateIPs  bool
+	allowLocalhost   bool
+	maxScanIntensity string
 }
 
 // NewSecurityToolValidator creates a new security tool validator
@@ -101,7 +101,7 @@ func (v *SecurityToolValidator) validateSecurityTool(ctx context.Context, toolNa
 func (v *SecurityToolValidator) validateBasicTool(ctx context.Context, toolName string, input map[string]interface{}) error {
 	// Check for potentially dangerous parameters
 	dangerousParams := []string{"exec", "eval", "system", "shell", "cmd"}
-	
+
 	for key, value := range input {
 		keyLower := strings.ToLower(key)
 		for _, dangerous := range dangerousParams {
@@ -226,7 +226,7 @@ func (v *SecurityToolValidator) validateScanIntensity(intensity string) error {
 // validateAttackType validates attack types
 func (v *SecurityToolValidator) validateAttackType(attackType string) error {
 	allowedTypes := []string{"web_app", "network", "wireless", "social_engineering"}
-	
+
 	for _, allowed := range allowedTypes {
 		if attackType == allowed {
 			return nil

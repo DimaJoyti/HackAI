@@ -27,11 +27,11 @@ type MockLLMProvider struct {
 
 // TestConfig represents test configuration
 type TestConfig struct {
-	Timeout         time.Duration
-	MaxRetries      int
-	EnableMocking   bool
-	LogLevel        string
-	TestDataPath    string
+	Timeout       time.Duration
+	MaxRetries    int
+	EnableMocking bool
+	LogLevel      string
+	TestDataPath  string
 }
 
 // NewAgentTestSuite creates a new agent test suite
@@ -75,15 +75,15 @@ func (m *MockLLMProvider) GetCallCount(prompt string) int {
 // Generate simulates LLM generation
 func (m *MockLLMProvider) Generate(ctx context.Context, prompt string) (string, error) {
 	m.callCount[prompt]++
-	
+
 	if err, exists := m.errors[prompt]; exists {
 		return "", err
 	}
-	
+
 	if response, exists := m.responses[prompt]; exists {
 		return response, nil
 	}
-	
+
 	// Default response
 	return "Mock response for: " + prompt, nil
 }
@@ -157,12 +157,12 @@ func (suite *AgentTestSuite) GetT() *testing.T {
 func (suite *AgentTestSuite) RunWithTimeout(timeout time.Duration, fn func() error) error {
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
-	
+
 	done := make(chan error, 1)
 	go func() {
 		done <- fn()
 	}()
-	
+
 	select {
 	case err := <-done:
 		return err
@@ -195,10 +195,10 @@ func (suite *AgentTestSuite) LogDebug(msg string, args ...interface{}) {
 func (suite *AgentTestSuite) TestSecurityAnalysis(analyzeFunc func(context.Context, string) (interface{}, error)) {
 	ctx, cancel := suite.CreateTestContext(30 * time.Second)
 	defer cancel()
-	
+
 	testCases := []struct {
-		name     string
-		input    string
+		name        string
+		input       string
 		expectError bool
 	}{
 		{
@@ -217,11 +217,11 @@ func (suite *AgentTestSuite) TestSecurityAnalysis(analyzeFunc func(context.Conte
 			expectError: true,
 		},
 	}
-	
+
 	for _, tc := range testCases {
 		suite.t.Run(tc.name, func(t *testing.T) {
 			result, err := analyzeFunc(ctx, tc.input)
-			
+
 			if tc.expectError {
 				suite.AssertError(err)
 			} else {
@@ -236,12 +236,12 @@ func (suite *AgentTestSuite) TestSecurityAnalysis(analyzeFunc func(context.Conte
 func (suite *AgentTestSuite) TestAgentResponse(responseFunc func(context.Context, string) (string, error)) {
 	ctx, cancel := suite.CreateTestContext(30 * time.Second)
 	defer cancel()
-	
+
 	testCases := []struct {
-		name     string
-		input    string
+		name        string
+		input       string
 		expectError bool
-		minLength int
+		minLength   int
 	}{
 		{
 			name:        "Simple query",
@@ -262,11 +262,11 @@ func (suite *AgentTestSuite) TestAgentResponse(responseFunc func(context.Context
 			minLength:   0,
 		},
 	}
-	
+
 	for _, tc := range testCases {
 		suite.t.Run(tc.name, func(t *testing.T) {
 			response, err := responseFunc(ctx, tc.input)
-			
+
 			if tc.expectError {
 				suite.AssertError(err)
 			} else {
@@ -281,20 +281,20 @@ func (suite *AgentTestSuite) TestAgentResponse(responseFunc func(context.Context
 func (suite *AgentTestSuite) TestAgentPerformance(performanceFunc func(context.Context) (time.Duration, error)) {
 	ctx, cancel := suite.CreateTestContext(60 * time.Second)
 	defer cancel()
-	
+
 	const maxAcceptableLatency = 5 * time.Second
 	const numIterations = 5
-	
+
 	var totalDuration time.Duration
-	
+
 	for i := 0; i < numIterations; i++ {
 		duration, err := performanceFunc(ctx)
 		suite.RequireNoError(err)
-		
+
 		suite.AssertLess(duration, maxAcceptableLatency)
 		totalDuration += duration
 	}
-	
+
 	averageDuration := totalDuration / numIterations
 	suite.LogInfo("Average performance", "duration", averageDuration)
 	suite.AssertLess(averageDuration, maxAcceptableLatency/2)
@@ -304,16 +304,16 @@ func (suite *AgentTestSuite) TestAgentPerformance(performanceFunc func(context.C
 func (suite *AgentTestSuite) TestConcurrentOperations(operationFunc func(context.Context, int) error) {
 	ctx, cancel := suite.CreateTestContext(60 * time.Second)
 	defer cancel()
-	
+
 	const numConcurrentOps = 10
 	errors := make(chan error, numConcurrentOps)
-	
+
 	for i := 0; i < numConcurrentOps; i++ {
 		go func(id int) {
 			errors <- operationFunc(ctx, id)
 		}(i)
 	}
-	
+
 	for i := 0; i < numConcurrentOps; i++ {
 		err := <-errors
 		suite.AssertNoError(err)

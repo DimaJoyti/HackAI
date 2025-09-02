@@ -253,12 +253,12 @@ func (n *NoCompressor) CompressionRatio(originalSize, compressedSize int) float6
 
 // CompressionStats tracks compression statistics
 type CompressionStats struct {
-	TotalOperations   int64   `json:"total_operations"`
-	TotalOriginalSize int64   `json:"total_original_size"`
-	TotalCompressedSize int64 `json:"total_compressed_size"`
-	AverageRatio      float64 `json:"average_ratio"`
-	CompressionTime   int64   `json:"compression_time_ns"`
-	DecompressionTime int64   `json:"decompression_time_ns"`
+	TotalOperations     int64   `json:"total_operations"`
+	TotalOriginalSize   int64   `json:"total_original_size"`
+	TotalCompressedSize int64   `json:"total_compressed_size"`
+	AverageRatio        float64 `json:"average_ratio"`
+	CompressionTime     int64   `json:"compression_time_ns"`
+	DecompressionTime   int64   `json:"decompression_time_ns"`
 }
 
 // UpdateStats updates compression statistics
@@ -277,9 +277,9 @@ func (cs *CompressionStats) UpdateStats(originalSize, compressedSize int, compre
 // GetCompressionEfficiency returns compression efficiency metrics
 func (cs *CompressionStats) GetCompressionEfficiency() map[string]interface{} {
 	return map[string]interface{}{
-		"space_saved_bytes":   cs.TotalOriginalSize - cs.TotalCompressedSize,
-		"space_saved_percent": (1.0 - cs.AverageRatio) * 100,
-		"avg_compression_time_ms": float64(cs.CompressionTime) / float64(cs.TotalOperations) / 1e6,
+		"space_saved_bytes":         cs.TotalOriginalSize - cs.TotalCompressedSize,
+		"space_saved_percent":       (1.0 - cs.AverageRatio) * 100,
+		"avg_compression_time_ms":   float64(cs.CompressionTime) / float64(cs.TotalOperations) / 1e6,
 		"avg_decompression_time_ms": float64(cs.DecompressionTime) / float64(cs.TotalOperations) / 1e6,
 	}
 }

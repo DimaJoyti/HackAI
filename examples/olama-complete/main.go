@@ -156,9 +156,9 @@ func setupAttackOrchestration(tool *tools.OlamaTool, logger *logger.Logger) *gra
 
 func demonstrateBasicOperations(ctx context.Context, tool *tools.OlamaTool) {
 	examples := []struct {
-		name   string
-		input  ai.ToolInput
-		desc   string
+		name  string
+		input ai.ToolInput
+		desc  string
 	}{
 		{
 			name: "Creative Writing",
@@ -189,7 +189,7 @@ func demonstrateBasicOperations(ctx context.Context, tool *tools.OlamaTool) {
 	for i, example := range examples {
 		fmt.Printf("\n%d. %s\n", i+1, example.name)
 		fmt.Printf("   Description: %s\n", example.desc)
-		
+
 		result, err := tool.Execute(ctx, example.input)
 		if err != nil {
 			fmt.Printf("   ❌ Error: %v\n", err)
@@ -246,7 +246,7 @@ func demonstrateSecurityScanning(ctx context.Context, scanner *security.OlamaSec
 		fmt.Printf("   ⏱️ Duration: %v\n", result.Duration)
 
 		if len(result.Vulnerabilities) > 0 {
-			fmt.Printf("   🚨 Top Vulnerability: %s (%s)\n", 
+			fmt.Printf("   🚨 Top Vulnerability: %s (%s)\n",
 				result.Vulnerabilities[0].Title, result.Vulnerabilities[0].Severity)
 		}
 	}
@@ -287,16 +287,16 @@ func demonstrateAttackOrchestration(ctx context.Context, attackGraph *graphs.Att
 
 		initialState := ai.GraphState{
 			"attack_state": &graphs.AttackState{
-				TargetSystem:     scenario.target,
-				AttackType:       scenario.attackType,
-				CurrentStrategy:  "",
-				Attempts:         make([]graphs.AttackAttempt, 0),
+				TargetSystem:      scenario.target,
+				AttackType:        scenario.attackType,
+				CurrentStrategy:   "",
+				Attempts:          make([]graphs.AttackAttempt, 0),
 				SuccessfulAttacks: make([]graphs.AttackAttempt, 0),
-				Context:          make(map[string]interface{}),
-				Confidence:       0.0,
-				NextAction:       "",
-				CompletionStatus: "initialized",
-				Metadata:         make(map[string]interface{}),
+				Context:           make(map[string]interface{}),
+				Confidence:        0.0,
+				NextAction:        "",
+				CompletionStatus:  "initialized",
+				Metadata:          make(map[string]interface{}),
 			},
 		}
 
@@ -342,8 +342,8 @@ func demonstrateAdvancedFeatures(ctx context.Context, provider *providers.OlamaP
 
 	fmt.Println("\n4. Streaming Generation")
 	streamInput := ai.ToolInput{
-		"prompt":    "Write a haiku about cybersecurity",
-		"streaming": true,
+		"prompt":     "Write a haiku about cybersecurity",
+		"streaming":  true,
 		"max_tokens": 100,
 	}
 
@@ -386,14 +386,14 @@ func demonstrateRealWorldWorkflow(ctx context.Context, scanner *security.OlamaSe
 
 		attackState := ai.GraphState{
 			"attack_state": &graphs.AttackState{
-				TargetSystem:     "Production AI System",
-				AttackType:       "sophisticated_social_engineering",
-				Context:          map[string]interface{}{"initial_scan": scanResult},
-				Attempts:         make([]graphs.AttackAttempt, 0),
+				TargetSystem:      "Production AI System",
+				AttackType:        "sophisticated_social_engineering",
+				Context:           map[string]interface{}{"initial_scan": scanResult},
+				Attempts:          make([]graphs.AttackAttempt, 0),
 				SuccessfulAttacks: make([]graphs.AttackAttempt, 0),
-				Confidence:       0.0,
-				CompletionStatus: "initialized",
-				Metadata:         make(map[string]interface{}),
+				Confidence:        0.0,
+				CompletionStatus:  "initialized",
+				Metadata:          make(map[string]interface{}),
 			},
 		}
 
@@ -412,11 +412,13 @@ func demonstrateRealWorldWorkflow(ctx context.Context, scanner *security.OlamaSe
 		// Generate final security report
 		fmt.Printf("\n📋 Security Assessment Report:\n")
 		fmt.Printf("   Risk Level: %s\n", scanResult.ThreatLevel)
-		fmt.Printf("   Penetration Success Rate: %.1f%%\n", 
+		fmt.Printf("   Penetration Success Rate: %.1f%%\n",
 			float64(len(attackResult.SuccessfulAttacks))/float64(len(attackResult.Attempts))*100)
 		fmt.Printf("   Recommended Actions:\n")
 		for i, rec := range scanResult.Recommendations {
-			if i >= 3 { break }
+			if i >= 3 {
+				break
+			}
 			fmt.Printf("     %d. %s\n", i+1, rec)
 		}
 	} else {

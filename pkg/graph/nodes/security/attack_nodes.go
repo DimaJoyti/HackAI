@@ -87,7 +87,7 @@ func (n *AttackPlannerNode) analyzeTarget(target interface{}) TargetAnalysis {
 
 	if targetStr, ok := target.(string); ok {
 		targetLower := strings.ToLower(targetStr)
-		
+
 		// Simple target analysis based on keywords
 		if strings.Contains(targetLower, "gpt") || strings.Contains(targetLower, "openai") {
 			analysis.Type = "openai"
@@ -108,11 +108,11 @@ func (n *AttackPlannerNode) analyzeTarget(target interface{}) TargetAnalysis {
 // planAttackStrategy plans the attack strategy based on target analysis
 func (n *AttackPlannerNode) planAttackStrategy() map[string]interface{} {
 	strategy := map[string]interface{}{
-		"approach":     "multi_vector",
-		"priority":     "stealth",
-		"escalation":   "gradual",
-		"fallback":     "adaptive",
-		"timeline":     "immediate",
+		"approach":   "multi_vector",
+		"priority":   "stealth",
+		"escalation": "gradual",
+		"fallback":   "adaptive",
+		"timeline":   "immediate",
 	}
 
 	// Adjust strategy based on target security level
@@ -133,8 +133,8 @@ func (n *AttackPlannerNode) planAttackStrategy() map[string]interface{} {
 // VulnerabilityScanner scans for vulnerabilities in the target
 type VulnerabilityScanner struct {
 	*nodes.BaseNode
-	provider       providers.LLMProvider
-	scanTypes      []string
+	provider        providers.LLMProvider
+	scanTypes       []string
 	vulnerabilityDB map[string]VulnerabilityInfo
 }
 
@@ -151,7 +151,7 @@ type VulnerabilityInfo struct {
 // NewVulnerabilityScanner creates a new vulnerability scanner node
 func NewVulnerabilityScanner(id, name string, provider providers.LLMProvider) *VulnerabilityScanner {
 	base := nodes.NewBaseNode(id, name, "Vulnerability scanning node", llm.NodeTypeValidator)
-	
+
 	// Initialize vulnerability database
 	vulnDB := map[string]VulnerabilityInfo{
 		"prompt_injection": {
@@ -200,7 +200,7 @@ func (n *VulnerabilityScanner) Execute(ctx context.Context, state llm.GraphState
 	defer span.End()
 
 	vulnerabilities := make([]map[string]interface{}, 0)
-	
+
 	for _, scanType := range n.scanTypes {
 		vuln, detected := n.scanForVulnerability(ctx, scanType, state)
 		if detected {
@@ -294,7 +294,7 @@ type ExploitExecutorNode struct {
 // NewExploitExecutorNode creates a new exploit executor node
 func NewExploitExecutorNode(id, name string, provider providers.LLMProvider, exploitType string) *ExploitExecutorNode {
 	base := nodes.NewBaseNode(id, name, fmt.Sprintf("Exploit executor for %s", exploitType), llm.NodeTypeAction)
-	
+
 	// Define payloads based on exploit type
 	var payloads []string
 	switch exploitType {
@@ -497,11 +497,11 @@ func (n *ReportGeneratorNode) Execute(ctx context.Context, state llm.GraphState)
 // generateReport generates a comprehensive attack report
 func (n *ReportGeneratorNode) generateReport(state llm.GraphState) map[string]interface{} {
 	report := map[string]interface{}{
-		"timestamp":     time.Now(),
-		"format":        n.reportFormat,
-		"summary":       n.generateSummary(state),
+		"timestamp":       time.Now(),
+		"format":          n.reportFormat,
+		"summary":         n.generateSummary(state),
 		"vulnerabilities": state.Data["vulnerabilities"],
-		"attack_results": n.collectAttackResults(state),
+		"attack_results":  n.collectAttackResults(state),
 		"recommendations": n.generateRecommendations(state),
 	}
 
@@ -511,17 +511,17 @@ func (n *ReportGeneratorNode) generateReport(state llm.GraphState) map[string]in
 // generateSummary generates a summary of the attack session
 func (n *ReportGeneratorNode) generateSummary(state llm.GraphState) map[string]interface{} {
 	summary := map[string]interface{}{
-		"total_attacks":      0,
-		"successful_attacks": 0,
+		"total_attacks":         0,
+		"successful_attacks":    0,
 		"vulnerabilities_found": 0,
-		"risk_level":        "low",
+		"risk_level":            "low",
 	}
 
 	// Count vulnerabilities
 	if vulns, exists := state.Data["vulnerabilities"]; exists {
 		if vulnList, ok := vulns.([]map[string]interface{}); ok {
 			summary["vulnerabilities_found"] = len(vulnList)
-			
+
 			// Determine risk level based on vulnerabilities
 			highSeverityCount := 0
 			for _, vuln := range vulnList {
@@ -529,7 +529,7 @@ func (n *ReportGeneratorNode) generateSummary(state llm.GraphState) map[string]i
 					highSeverityCount++
 				}
 			}
-			
+
 			if highSeverityCount > 0 {
 				summary["risk_level"] = "high"
 			} else if len(vulnList) > 0 {

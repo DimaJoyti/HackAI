@@ -12,41 +12,41 @@ import (
 
 // EpisodicMemory manages episodic memories (experiences and events)
 type EpisodicMemory struct {
-	episodes    map[string]*Episode
-	maxSize     int
-	indexer     *EpisodeIndexer
-	retriever   *EpisodeRetriever
+	episodes     map[string]*Episode
+	maxSize      int
+	indexer      *EpisodeIndexer
+	retriever    *EpisodeRetriever
 	consolidator *MemoryConsolidator
-	config      *MemoryConfig
-	logger      *logger.Logger
-	mutex       sync.RWMutex
+	config       *MemoryConfig
+	logger       *logger.Logger
+	mutex        sync.RWMutex
 }
 
 // Episode represents an episodic memory
 type Episode struct {
-	ID          string                 `json:"id"`
-	Title       string                 `json:"title"`
-	Description string                 `json:"description"`
-	Type        EpisodeType            `json:"type"`
-	Context     *EpisodeContext        `json:"context"`
-	Events      []*EpisodeEvent        `json:"events"`
-	Participants []string              `json:"participants"`
-	Location    string                 `json:"location"`
-	StartTime   time.Time              `json:"start_time"`
-	EndTime     *time.Time             `json:"end_time,omitempty"`
-	Duration    time.Duration          `json:"duration"`
-	Importance  float64                `json:"importance"`
-	Confidence  float64                `json:"confidence"`
-	Emotions    map[string]float64     `json:"emotions"`
-	Outcomes    []*EpisodeOutcome      `json:"outcomes"`
-	Lessons     []string               `json:"lessons"`
-	Tags        []string               `json:"tags"`
-	References  []string               `json:"references"`
-	Metadata    map[string]interface{} `json:"metadata"`
-	CreatedAt   time.Time              `json:"created_at"`
-	UpdatedAt   time.Time              `json:"updated_at"`
-	AccessCount int64                  `json:"access_count"`
-	LastAccess  time.Time              `json:"last_access"`
+	ID           string                 `json:"id"`
+	Title        string                 `json:"title"`
+	Description  string                 `json:"description"`
+	Type         EpisodeType            `json:"type"`
+	Context      *EpisodeContext        `json:"context"`
+	Events       []*EpisodeEvent        `json:"events"`
+	Participants []string               `json:"participants"`
+	Location     string                 `json:"location"`
+	StartTime    time.Time              `json:"start_time"`
+	EndTime      *time.Time             `json:"end_time,omitempty"`
+	Duration     time.Duration          `json:"duration"`
+	Importance   float64                `json:"importance"`
+	Confidence   float64                `json:"confidence"`
+	Emotions     map[string]float64     `json:"emotions"`
+	Outcomes     []*EpisodeOutcome      `json:"outcomes"`
+	Lessons      []string               `json:"lessons"`
+	Tags         []string               `json:"tags"`
+	References   []string               `json:"references"`
+	Metadata     map[string]interface{} `json:"metadata"`
+	CreatedAt    time.Time              `json:"created_at"`
+	UpdatedAt    time.Time              `json:"updated_at"`
+	AccessCount  int64                  `json:"access_count"`
+	LastAccess   time.Time              `json:"last_access"`
 }
 
 // EpisodeContext represents the context of an episode
@@ -119,22 +119,22 @@ type OutcomeType string
 
 const (
 	// Episode Types
-	EpisodeTypeTask         EpisodeType = "task"
-	EpisodeTypeConversation EpisodeType = "conversation"
-	EpisodeTypeLearning     EpisodeType = "learning"
+	EpisodeTypeTask           EpisodeType = "task"
+	EpisodeTypeConversation   EpisodeType = "conversation"
+	EpisodeTypeLearning       EpisodeType = "learning"
 	EpisodeTypeProblemSolving EpisodeType = "problem_solving"
-	EpisodeTypeDecision     EpisodeType = "decision"
-	EpisodeTypeExperiment   EpisodeType = "experiment"
-	EpisodeTypeInteraction  EpisodeType = "interaction"
+	EpisodeTypeDecision       EpisodeType = "decision"
+	EpisodeTypeExperiment     EpisodeType = "experiment"
+	EpisodeTypeInteraction    EpisodeType = "interaction"
 
 	// Event Types
-	EventTypeAction      EventType = "action"
-	EventTypeObservation EventType = "observation"
-	EventTypeDecision    EventType = "decision"
+	EventTypeAction        EventType = "action"
+	EventTypeObservation   EventType = "observation"
+	EventTypeDecision      EventType = "decision"
 	EventTypeCommunication EventType = "communication"
-	EventTypeError       EventType = "error"
-	EventTypeSuccess     EventType = "success"
-	EventTypeReflection  EventType = "reflection"
+	EventTypeError         EventType = "error"
+	EventTypeSuccess       EventType = "success"
+	EventTypeReflection    EventType = "reflection"
 
 	// Outcome Types
 	OutcomeTypeSuccess     OutcomeType = "success"
@@ -375,26 +375,26 @@ func (em *EpisodicMemory) GetStatistics() *MemoryTypeStatistics {
 
 func (em *EpisodicMemory) convertToEpisode(entry *MemoryEntry) (*Episode, error) {
 	episode := &Episode{
-		ID:          entry.ID,
-		Title:       fmt.Sprintf("Episode %s", entry.ID[:8]),
-		Description: fmt.Sprintf("%v", entry.Content),
-		Type:        EpisodeTypeTask, // Default type
-		Context:     &EpisodeContext{},
-		Events:      make([]*EpisodeEvent, 0),
+		ID:           entry.ID,
+		Title:        fmt.Sprintf("Episode %s", entry.ID[:8]),
+		Description:  fmt.Sprintf("%v", entry.Content),
+		Type:         EpisodeTypeTask, // Default type
+		Context:      &EpisodeContext{},
+		Events:       make([]*EpisodeEvent, 0),
 		Participants: make([]string, 0),
-		StartTime:   entry.Timestamp,
-		Importance:  entry.Importance,
-		Confidence:  entry.Confidence,
-		Emotions:    make(map[string]float64),
-		Outcomes:    make([]*EpisodeOutcome, 0),
-		Lessons:     make([]string, 0),
-		Tags:        entry.Tags,
-		References:  make([]string, 0),
-		Metadata:    entry.Metadata,
-		CreatedAt:   entry.Timestamp,
-		UpdatedAt:   time.Now(),
-		AccessCount: entry.AccessCount,
-		LastAccess:  entry.LastAccess,
+		StartTime:    entry.Timestamp,
+		Importance:   entry.Importance,
+		Confidence:   entry.Confidence,
+		Emotions:     make(map[string]float64),
+		Outcomes:     make([]*EpisodeOutcome, 0),
+		Lessons:      make([]string, 0),
+		Tags:         entry.Tags,
+		References:   make([]string, 0),
+		Metadata:     entry.Metadata,
+		CreatedAt:    entry.Timestamp,
+		UpdatedAt:    time.Now(),
+		AccessCount:  entry.AccessCount,
+		LastAccess:   entry.LastAccess,
 	}
 
 	// Extract additional information from context
@@ -448,8 +448,8 @@ func (em *EpisodicMemory) evictOldestEpisode() error {
 	var lowestImportance float64 = 1.0
 
 	for id, episode := range em.episodes {
-		if oldestID == "" || episode.CreatedAt.Before(oldestTime) || 
-		   (episode.CreatedAt.Equal(oldestTime) && episode.Importance < lowestImportance) {
+		if oldestID == "" || episode.CreatedAt.Before(oldestTime) ||
+			(episode.CreatedAt.Equal(oldestTime) && episode.Importance < lowestImportance) {
 			oldestID = id
 			oldestTime = episode.CreatedAt
 			lowestImportance = episode.Importance

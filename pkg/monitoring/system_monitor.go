@@ -109,7 +109,6 @@ type InterfaceStats struct {
 	DroppedOut      uint64 `json:"dropped_out"`
 }
 
-
 // NewSystemMonitor creates a new system monitor
 func NewSystemMonitor(config *MonitoringConfig, logger *logger.Logger) (*SystemMonitor, error) {
 	return &SystemMonitor{

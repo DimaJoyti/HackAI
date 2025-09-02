@@ -17,55 +17,43 @@ var complianceTracer = otel.Tracer("hackai/compliance/regulatory")
 
 // RegulatoryFramework manages compliance with financial regulations
 type RegulatoryFramework struct {
-	regulationEngine    *RegulationEngine
-	complianceMonitor   *ComplianceMonitor
-	reportingEngine     *ReportingEngine
-	auditTrail          *ComplianceAuditTrail
-	violationManager    *ViolationManager
-	policyEngine        *PolicyEngine
-	config              *ComplianceConfig
-	logger              *logger.Logger
-	mutex               sync.RWMutex
-}
-
-// ComplianceConfig holds compliance configuration
-type ComplianceConfig struct {
-	Jurisdictions       []string          `json:"jurisdictions"`
-	RegulationTypes     []string          `json:"regulation_types"`
-	ReportingFrequency  time.Duration     `json:"reporting_frequency"`
-	AuditRetention      time.Duration     `json:"audit_retention"`
-	AutoReporting       bool              `json:"auto_reporting"`
-	RealTimeMonitoring  bool              `json:"real_time_monitoring"`
-	AlertThresholds     map[string]float64 `json:"alert_thresholds"`
-	RequiredApprovals   map[string][]string `json:"required_approvals"`
+	regulationEngine  *RegulationEngine
+	complianceMonitor *ComplianceMonitor
+	reportingEngine   *ReportingEngine
+	auditTrail        *ComplianceAuditTrail
+	violationManager  *ViolationManager
+	policyEngine      *PolicyEngine
+	config            *RegulatoryConfig
+	logger            *logger.Logger
+	mutex             sync.RWMutex
 }
 
 // RegulationEngine manages regulatory rules and requirements
 type RegulationEngine struct {
-	regulations     map[string]*Regulation
-	rulesets        map[string]*Ruleset
-	jurisdictions   map[string]*Jurisdiction
-	logger          *logger.Logger
-	mutex           sync.RWMutex
+	regulations   map[string]*Regulation
+	rulesets      map[string]*Ruleset
+	jurisdictions map[string]*Jurisdiction
+	logger        *logger.Logger
+	mutex         sync.RWMutex
 }
 
 // ComplianceMonitor monitors compliance in real-time
 type ComplianceMonitor struct {
-	activeChecks    map[string]*ComplianceCheck
-	violations      []*ComplianceViolation
-	alerts          []*ComplianceAlert
-	metrics         *ComplianceMetrics
-	logger          *logger.Logger
-	mutex           sync.RWMutex
+	activeChecks map[string]*ComplianceCheck
+	violations   []*ComplianceViolation
+	alerts       []*ComplianceAlert
+	metrics      *ComplianceMetrics
+	logger       *logger.Logger
+	mutex        sync.RWMutex
 }
 
 // ReportingEngine generates compliance reports
 type ReportingEngine struct {
-	reportTemplates map[string]*ReportTemplate
+	reportTemplates  map[string]*ReportTemplate
 	scheduledReports map[string]*ScheduledReport
-	reportHistory   []*ComplianceReport
-	logger          *logger.Logger
-	mutex           sync.RWMutex
+	reportHistory    []*ComplianceReport
+	logger           *logger.Logger
+	mutex            sync.RWMutex
 }
 
 // ComplianceAuditTrail maintains audit trail for compliance
@@ -79,36 +67,36 @@ type ComplianceAuditTrail struct {
 
 // ViolationManager manages compliance violations
 type ViolationManager struct {
-	violations      []*ComplianceViolation
-	remediation     map[string]*RemediationPlan
-	escalation      *EscalationMatrix
-	logger          *logger.Logger
-	mutex           sync.RWMutex
+	violations  []*ComplianceViolation
+	remediation map[string]*RemediationPlan
+	escalation  *EscalationMatrix
+	logger      *logger.Logger
+	mutex       sync.RWMutex
 }
 
 // PolicyEngine manages compliance policies
 type PolicyEngine struct {
-	policies        map[string]*CompliancePolicy
-	policyGroups    map[string]*PolicyGroup
-	approvalMatrix  *ApprovalMatrix
-	logger          *logger.Logger
-	mutex           sync.RWMutex
+	policies       map[string]*CompliancePolicy
+	policyGroups   map[string]*PolicyGroup
+	approvalMatrix *ApprovalMatrix
+	logger         *logger.Logger
+	mutex          sync.RWMutex
 }
 
 // Core compliance types
 
 // Regulation represents a financial regulation
 type Regulation struct {
-	ID              string                 `json:"id"`
-	Name            string                 `json:"name"`
-	Type            string                 `json:"type"`
-	Jurisdiction    string                 `json:"jurisdiction"`
-	Description     string                 `json:"description"`
-	Requirements    []*Requirement         `json:"requirements"`
-	EffectiveDate   time.Time              `json:"effective_date"`
-	LastUpdated     time.Time              `json:"last_updated"`
-	Status          string                 `json:"status"`
-	Metadata        map[string]interface{} `json:"metadata"`
+	ID            string                 `json:"id"`
+	Name          string                 `json:"name"`
+	Type          string                 `json:"type"`
+	Jurisdiction  string                 `json:"jurisdiction"`
+	Description   string                 `json:"description"`
+	Requirements  []*Requirement         `json:"requirements"`
+	EffectiveDate time.Time              `json:"effective_date"`
+	LastUpdated   time.Time              `json:"last_updated"`
+	Status        string                 `json:"status"`
+	Metadata      map[string]interface{} `json:"metadata"`
 }
 
 // Requirement represents a specific regulatory requirement
@@ -125,35 +113,35 @@ type Requirement struct {
 
 // ValidationRule represents a validation rule
 type ValidationRule struct {
-	ID          string                 `json:"id"`
-	Type        string                 `json:"type"`
-	Expression  string                 `json:"expression"`
-	ErrorMessage string                `json:"error_message"`
-	Severity    string                 `json:"severity"`
-	Metadata    map[string]interface{} `json:"metadata"`
+	ID           string                 `json:"id"`
+	Type         string                 `json:"type"`
+	Expression   string                 `json:"expression"`
+	ErrorMessage string                 `json:"error_message"`
+	Severity     string                 `json:"severity"`
+	Metadata     map[string]interface{} `json:"metadata"`
 }
 
 // Ruleset represents a collection of rules
 type Ruleset struct {
-	ID          string                 `json:"id"`
-	Name        string                 `json:"name"`
-	Version     string                 `json:"version"`
-	Rules       []*ComplianceRule      `json:"rules"`
-	Applicability *Applicability       `json:"applicability"`
-	Metadata    map[string]interface{} `json:"metadata"`
+	ID            string                 `json:"id"`
+	Name          string                 `json:"name"`
+	Version       string                 `json:"version"`
+	Rules         []*ComplianceRule      `json:"rules"`
+	Applicability *Applicability         `json:"applicability"`
+	Metadata      map[string]interface{} `json:"metadata"`
 }
 
 // ComplianceRule represents a compliance rule
 type ComplianceRule struct {
-	ID          string                 `json:"id"`
-	Name        string                 `json:"name"`
-	Type        string                 `json:"type"`
-	Condition   string                 `json:"condition"`
-	Action      string                 `json:"action"`
-	Severity    string                 `json:"severity"`
-	Priority    int                    `json:"priority"`
-	Enabled     bool                   `json:"enabled"`
-	Metadata    map[string]interface{} `json:"metadata"`
+	ID        string                 `json:"id"`
+	Name      string                 `json:"name"`
+	Type      string                 `json:"type"`
+	Condition string                 `json:"condition"`
+	Action    string                 `json:"action"`
+	Severity  string                 `json:"severity"`
+	Priority  int                    `json:"priority"`
+	Enabled   bool                   `json:"enabled"`
+	Metadata  map[string]interface{} `json:"metadata"`
 }
 
 // Applicability defines when rules apply
@@ -184,76 +172,60 @@ type Jurisdiction struct {
 
 // ComplianceCheck represents an active compliance check
 type ComplianceCheck struct {
-	ID          string                 `json:"id"`
-	Type        string                 `json:"type"`
-	Status      string                 `json:"status"`
-	StartTime   time.Time              `json:"start_time"`
-	EndTime     *time.Time             `json:"end_time,omitempty"`
-	Result      *CheckResult           `json:"result,omitempty"`
-	Metadata    map[string]interface{} `json:"metadata"`
+	ID        string                 `json:"id"`
+	Type      string                 `json:"type"`
+	Status    string                 `json:"status"`
+	StartTime time.Time              `json:"start_time"`
+	EndTime   *time.Time             `json:"end_time,omitempty"`
+	Result    *CheckResult           `json:"result,omitempty"`
+	Metadata  map[string]interface{} `json:"metadata"`
 }
 
 // CheckResult represents the result of a compliance check
 type CheckResult struct {
-	Passed      bool                   `json:"passed"`
-	Score       float64                `json:"score"`
-	Violations  []*ComplianceViolation `json:"violations"`
-	Warnings    []string               `json:"warnings"`
-	Recommendations []string           `json:"recommendations"`
-	Metadata    map[string]interface{} `json:"metadata"`
-}
-
-// ComplianceViolation represents a compliance violation
-type ComplianceViolation struct {
-	ID              string                 `json:"id"`
-	Type            string                 `json:"type"`
-	Severity        string                 `json:"severity"`
-	RuleID          string                 `json:"rule_id"`
-	RegulationID    string                 `json:"regulation_id"`
-	Description     string                 `json:"description"`
-	Entity          string                 `json:"entity"`
-	Activity        string                 `json:"activity"`
-	DetectedAt      time.Time              `json:"detected_at"`
-	Status          string                 `json:"status"`
-	RemediationPlan *RemediationPlan       `json:"remediation_plan,omitempty"`
+	Passed          bool                   `json:"passed"`
+	Score           float64                `json:"score"`
+	Violations      []*ComplianceViolation `json:"violations"`
+	Warnings        []string               `json:"warnings"`
+	Recommendations []string               `json:"recommendations"`
 	Metadata        map[string]interface{} `json:"metadata"`
 }
 
 // ComplianceAlert represents a compliance alert
 type ComplianceAlert struct {
-	ID          string                 `json:"id"`
-	Type        string                 `json:"type"`
-	Severity    string                 `json:"severity"`
-	Message     string                 `json:"message"`
-	Source      string                 `json:"source"`
-	Timestamp   time.Time              `json:"timestamp"`
-	Acknowledged bool                  `json:"acknowledged"`
-	Metadata    map[string]interface{} `json:"metadata"`
+	ID           string                 `json:"id"`
+	Type         string                 `json:"type"`
+	Severity     string                 `json:"severity"`
+	Message      string                 `json:"message"`
+	Source       string                 `json:"source"`
+	Timestamp    time.Time              `json:"timestamp"`
+	Acknowledged bool                   `json:"acknowledged"`
+	Metadata     map[string]interface{} `json:"metadata"`
 }
 
 // ComplianceMetrics holds compliance metrics
 type ComplianceMetrics struct {
-	TotalChecks         int                    `json:"total_checks"`
-	PassedChecks        int                    `json:"passed_checks"`
-	FailedChecks        int                    `json:"failed_checks"`
-	ComplianceScore     float64                `json:"compliance_score"`
-	ViolationCount      int                    `json:"violation_count"`
-	CriticalViolations  int                    `json:"critical_violations"`
-	ResolvedViolations  int                    `json:"resolved_violations"`
-	AverageResolutionTime time.Duration        `json:"average_resolution_time"`
-	LastUpdated         time.Time              `json:"last_updated"`
-	MetricsByType       map[string]int         `json:"metrics_by_type"`
+	TotalChecks           int            `json:"total_checks"`
+	PassedChecks          int            `json:"passed_checks"`
+	FailedChecks          int            `json:"failed_checks"`
+	ComplianceScore       float64        `json:"compliance_score"`
+	ViolationCount        int            `json:"violation_count"`
+	CriticalViolations    int            `json:"critical_violations"`
+	ResolvedViolations    int            `json:"resolved_violations"`
+	AverageResolutionTime time.Duration  `json:"average_resolution_time"`
+	LastUpdated           time.Time      `json:"last_updated"`
+	MetricsByType         map[string]int `json:"metrics_by_type"`
 }
 
 // ReportTemplate represents a compliance report template
 type ReportTemplate struct {
-	ID          string                 `json:"id"`
-	Name        string                 `json:"name"`
-	Type        string                 `json:"type"`
-	Format      string                 `json:"format"`
-	Sections    []*ReportSection       `json:"sections"`
-	Parameters  map[string]interface{} `json:"parameters"`
-	Metadata    map[string]interface{} `json:"metadata"`
+	ID         string                 `json:"id"`
+	Name       string                 `json:"name"`
+	Type       string                 `json:"type"`
+	Format     string                 `json:"format"`
+	Sections   []*ReportSection       `json:"sections"`
+	Parameters map[string]interface{} `json:"parameters"`
+	Metadata   map[string]interface{} `json:"metadata"`
 }
 
 // ReportSection represents a section in a compliance report
@@ -268,14 +240,14 @@ type ReportSection struct {
 
 // ScheduledReport represents a scheduled compliance report
 type ScheduledReport struct {
-	ID          string                 `json:"id"`
-	TemplateID  string                 `json:"template_id"`
-	Schedule    string                 `json:"schedule"`
-	Recipients  []string               `json:"recipients"`
-	LastRun     *time.Time             `json:"last_run,omitempty"`
-	NextRun     time.Time              `json:"next_run"`
-	Enabled     bool                   `json:"enabled"`
-	Metadata    map[string]interface{} `json:"metadata"`
+	ID         string                 `json:"id"`
+	TemplateID string                 `json:"template_id"`
+	Schedule   string                 `json:"schedule"`
+	Recipients []string               `json:"recipients"`
+	LastRun    *time.Time             `json:"last_run,omitempty"`
+	NextRun    time.Time              `json:"next_run"`
+	Enabled    bool                   `json:"enabled"`
+	Metadata   map[string]interface{} `json:"metadata"`
 }
 
 // ComplianceReport represents a generated compliance report
@@ -300,75 +272,33 @@ type ReportPeriod struct {
 
 // ComplianceAuditEvent represents an audit event
 type ComplianceAuditEvent struct {
-	ID          string                 `json:"id"`
-	Type        string                 `json:"type"`
-	Action      string                 `json:"action"`
-	Entity      string                 `json:"entity"`
-	UserID      string                 `json:"user_id"`
-	Timestamp   time.Time              `json:"timestamp"`
-	Details     map[string]interface{} `json:"details"`
-	Result      string                 `json:"result"`
-	Metadata    map[string]interface{} `json:"metadata"`
+	ID        string                 `json:"id"`
+	Type      string                 `json:"type"`
+	Action    string                 `json:"action"`
+	Entity    string                 `json:"entity"`
+	UserID    string                 `json:"user_id"`
+	Timestamp time.Time              `json:"timestamp"`
+	Details   map[string]interface{} `json:"details"`
+	Result    string                 `json:"result"`
+	Metadata  map[string]interface{} `json:"metadata"`
 }
 
 // AuditPolicy defines audit policy
 type AuditPolicy struct {
-	ID          string                 `json:"id"`
-	Name        string                 `json:"name"`
-	Scope       []string               `json:"scope"`
-	Retention   time.Duration          `json:"retention"`
-	Encryption  bool                   `json:"encryption"`
-	Metadata    map[string]interface{} `json:"metadata"`
+	ID         string                 `json:"id"`
+	Name       string                 `json:"name"`
+	Scope      []string               `json:"scope"`
+	Retention  time.Duration          `json:"retention"`
+	Encryption bool                   `json:"encryption"`
+	Metadata   map[string]interface{} `json:"metadata"`
 }
 
 // RetentionPolicy defines data retention policy
 type RetentionPolicy struct {
-	DefaultRetention time.Duration          `json:"default_retention"`
+	DefaultRetention time.Duration            `json:"default_retention"`
 	TypeRetention    map[string]time.Duration `json:"type_retention"`
-	ArchiveAfter     time.Duration          `json:"archive_after"`
-	DeleteAfter      time.Duration          `json:"delete_after"`
-}
-
-// RemediationPlan represents a plan to remediate violations
-type RemediationPlan struct {
-	ID          string                 `json:"id"`
-	ViolationID string                 `json:"violation_id"`
-	Type        string                 `json:"type"`
-	Actions     []*RemediationAction   `json:"actions"`
-	Timeline    *RemediationTimeline   `json:"timeline"`
-	Assignee    string                 `json:"assignee"`
-	Status      string                 `json:"status"`
-	Metadata    map[string]interface{} `json:"metadata"`
-}
-
-// RemediationAction represents a remediation action
-type RemediationAction struct {
-	ID          string                 `json:"id"`
-	Type        string                 `json:"type"`
-	Description string                 `json:"description"`
-	Priority    int                    `json:"priority"`
-	DueDate     time.Time              `json:"due_date"`
-	Status      string                 `json:"status"`
-	Assignee    string                 `json:"assignee"`
-	Metadata    map[string]interface{} `json:"metadata"`
-}
-
-// RemediationTimeline represents remediation timeline
-type RemediationTimeline struct {
-	StartDate    time.Time `json:"start_date"`
-	TargetDate   time.Time `json:"target_date"`
-	ActualDate   *time.Time `json:"actual_date,omitempty"`
-	Milestones   []*Milestone `json:"milestones"`
-}
-
-// Milestone represents a remediation milestone
-type Milestone struct {
-	ID          string    `json:"id"`
-	Name        string    `json:"name"`
-	TargetDate  time.Time `json:"target_date"`
-	ActualDate  *time.Time `json:"actual_date,omitempty"`
-	Status      string    `json:"status"`
-	Description string    `json:"description"`
+	ArchiveAfter     time.Duration            `json:"archive_after"`
+	DeleteAfter      time.Duration            `json:"delete_after"`
 }
 
 // EscalationMatrix defines escalation rules
@@ -380,28 +310,28 @@ type EscalationMatrix struct {
 
 // EscalationRule represents an escalation rule
 type EscalationRule struct {
-	ID          string                 `json:"id"`
-	Condition   string                 `json:"condition"`
-	Severity    string                 `json:"severity"`
-	TimeLimit   time.Duration          `json:"time_limit"`
-	Escalatees  []string               `json:"escalatees"`
-	Actions     []string               `json:"actions"`
-	Metadata    map[string]interface{} `json:"metadata"`
+	ID         string                 `json:"id"`
+	Condition  string                 `json:"condition"`
+	Severity   string                 `json:"severity"`
+	TimeLimit  time.Duration          `json:"time_limit"`
+	Escalatees []string               `json:"escalatees"`
+	Actions    []string               `json:"actions"`
+	Metadata   map[string]interface{} `json:"metadata"`
 }
 
 // CompliancePolicy represents a compliance policy
 type CompliancePolicy struct {
-	ID          string                 `json:"id"`
-	Name        string                 `json:"name"`
-	Type        string                 `json:"type"`
-	Version     string                 `json:"version"`
-	Description string                 `json:"description"`
-	Rules       []*PolicyRule          `json:"rules"`
-	Approvals   []*ApprovalRequirement `json:"approvals"`
-	EffectiveDate time.Time            `json:"effective_date"`
-	ExpiryDate  *time.Time             `json:"expiry_date,omitempty"`
-	Status      string                 `json:"status"`
-	Metadata    map[string]interface{} `json:"metadata"`
+	ID            string                 `json:"id"`
+	Name          string                 `json:"name"`
+	Type          string                 `json:"type"`
+	Version       string                 `json:"version"`
+	Description   string                 `json:"description"`
+	Rules         []*PolicyRule          `json:"rules"`
+	Approvals     []*ApprovalRequirement `json:"approvals"`
+	EffectiveDate time.Time              `json:"effective_date"`
+	ExpiryDate    *time.Time             `json:"expiry_date,omitempty"`
+	Status        string                 `json:"status"`
+	Metadata      map[string]interface{} `json:"metadata"`
 }
 
 // PolicyRule represents a policy rule
@@ -417,11 +347,11 @@ type PolicyRule struct {
 
 // PolicyGroup represents a group of policies
 type PolicyGroup struct {
-	ID          string                 `json:"id"`
-	Name        string                 `json:"name"`
-	Policies    []string               `json:"policies"`
-	Applicability *Applicability       `json:"applicability"`
-	Metadata    map[string]interface{} `json:"metadata"`
+	ID            string                 `json:"id"`
+	Name          string                 `json:"name"`
+	Policies      []string               `json:"policies"`
+	Applicability *Applicability         `json:"applicability"`
+	Metadata      map[string]interface{} `json:"metadata"`
 }
 
 // ApprovalMatrix defines approval requirements
@@ -433,17 +363,17 @@ type ApprovalMatrix struct {
 
 // ApprovalRequirement represents an approval requirement
 type ApprovalRequirement struct {
-	ID          string                 `json:"id"`
-	Type        string                 `json:"type"`
-	Condition   string                 `json:"condition"`
-	Approvers   []string               `json:"approvers"`
-	MinApprovals int                   `json:"min_approvals"`
-	TimeLimit   time.Duration          `json:"time_limit"`
-	Metadata    map[string]interface{} `json:"metadata"`
+	ID           string                 `json:"id"`
+	Type         string                 `json:"type"`
+	Condition    string                 `json:"condition"`
+	Approvers    []string               `json:"approvers"`
+	MinApprovals int                    `json:"min_approvals"`
+	TimeLimit    time.Duration          `json:"time_limit"`
+	Metadata     map[string]interface{} `json:"metadata"`
 }
 
 // NewRegulatoryFramework creates a new regulatory framework
-func NewRegulatoryFramework(config *ComplianceConfig, logger *logger.Logger) *RegulatoryFramework {
+func NewRegulatoryFramework(config *RegulatoryConfig, logger *logger.Logger) *RegulatoryFramework {
 	return &RegulatoryFramework{
 		regulationEngine:  NewRegulationEngine(logger),
 		complianceMonitor: NewComplianceMonitor(logger),
@@ -467,16 +397,16 @@ func (rf *RegulatoryFramework) CheckCompliance(ctx context.Context, activity *Co
 	defer span.End()
 
 	result := &ComplianceResult{
-		ID:        uuid.New().String(),
+		ID:         uuid.New().String(),
 		ActivityID: activity.ID,
-		Timestamp: time.Now(),
-		Passed:    true,
+		Timestamp:  time.Now(),
+		Passed:     true,
 		Violations: make([]*ComplianceViolation, 0),
 	}
 
 	// Check applicable regulations
 	applicableRegs := rf.regulationEngine.GetApplicableRegulations(activity)
-	
+
 	for _, reg := range applicableRegs {
 		checkResult := rf.checkRegulationCompliance(ctx, activity, reg)
 		if !checkResult.Passed {
@@ -502,9 +432,9 @@ func (rf *RegulatoryFramework) CheckCompliance(ctx context.Context, activity *Co
 		Timestamp: time.Now(),
 		Result:    fmt.Sprintf("passed=%t", result.Passed),
 		Details: map[string]interface{}{
-			"activity_id":     activity.ID,
-			"violations":      len(result.Violations),
-			"regulations":     len(applicableRegs),
+			"activity_id": activity.ID,
+			"violations":  len(result.Violations),
+			"regulations": len(applicableRegs),
 		},
 	}
 	rf.auditTrail.LogEvent(auditEvent)
@@ -522,39 +452,16 @@ func (rf *RegulatoryFramework) CheckCompliance(ctx context.Context, activity *Co
 	return result, nil
 }
 
-// ComplianceActivity represents an activity to check for compliance
-type ComplianceActivity struct {
-	ID          string                 `json:"id"`
-	Type        string                 `json:"type"`
-	Entity      string                 `json:"entity"`
-	UserID      string                 `json:"user_id"`
-	Timestamp   time.Time              `json:"timestamp"`
-	Parameters  map[string]interface{} `json:"parameters"`
-	Metadata    map[string]interface{} `json:"metadata"`
-}
-
-// ComplianceResult represents the result of a compliance check
-type ComplianceResult struct {
-	ID          string                 `json:"id"`
-	ActivityID  string                 `json:"activity_id"`
-	Timestamp   time.Time              `json:"timestamp"`
-	Passed      bool                   `json:"passed"`
-	Score       float64                `json:"score"`
-	Violations  []*ComplianceViolation `json:"violations"`
-	Warnings    []string               `json:"warnings"`
-	Metadata    map[string]interface{} `json:"metadata"`
-}
-
 // checkRegulationCompliance checks compliance with a specific regulation
 func (rf *RegulatoryFramework) checkRegulationCompliance(ctx context.Context, activity *ComplianceActivity, regulation *Regulation) *CheckResult {
 	// Simplified compliance check implementation
 	result := &CheckResult{
-		Passed:      true,
-		Score:       1.0,
-		Violations:  make([]*ComplianceViolation, 0),
-		Warnings:    make([]string, 0),
+		Passed:          true,
+		Score:           1.0,
+		Violations:      make([]*ComplianceViolation, 0),
+		Warnings:        make([]string, 0),
 		Recommendations: make([]string, 0),
-		Metadata:    make(map[string]interface{}),
+		Metadata:        make(map[string]interface{}),
 	}
 
 	// Check each requirement
@@ -627,7 +534,7 @@ func NewComplianceAuditTrail(logger *logger.Logger) *ComplianceAuditTrail {
 		retentionPolicy: &RetentionPolicy{
 			DefaultRetention: 7 * 365 * 24 * time.Hour, // 7 years
 			TypeRetention:    make(map[string]time.Duration),
-			ArchiveAfter:     365 * 24 * time.Hour, // 1 year
+			ArchiveAfter:     365 * 24 * time.Hour,     // 1 year
 			DeleteAfter:      7 * 365 * 24 * time.Hour, // 7 years
 		},
 		logger: logger,

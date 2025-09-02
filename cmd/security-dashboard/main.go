@@ -61,15 +61,15 @@ func main() {
 
 	// Initialize threat intelligence engine
 	threatIntelConfig := &security.ThreatIntelligenceConfig{
-		Enabled:                true,
-		UpdateInterval:         24 * time.Hour,
-		CacheTimeout:           1 * time.Hour,
-		MaxCacheSize:           10000,
+		Enabled:        true,
+		UpdateInterval: 24 * time.Hour,
+		CacheTimeout:   1 * time.Hour,
+		MaxCacheSize:   10000,
 		// EnableReputationScoring: true, // Field doesn't exist
 		// EnableAutoBlocking:     false, // Field doesn't exist
-		IOCTypes:               []string{"ip", "domain", "hash"},
-		Sources:                []string{"internal"},
-		APIKeys:                make(map[string]string),
+		IOCTypes: []string{"ip", "domain", "hash"},
+		Sources:  []string{"internal"},
+		APIKeys:  make(map[string]string),
 	}
 
 	threatIntelEngine := security.NewThreatIntelligenceEngine(threatIntelConfig, logger)

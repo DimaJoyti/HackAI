@@ -10,10 +10,10 @@ import (
 
 // SelfReflector handles self-reflection in the ReAct cycle
 type SelfReflector struct {
-	logger            *logger.Logger
-	reflectionRules   []ReflectionRule
-	progressAnalyzer  *ProgressAnalyzer
-	qualityAssessor   *QualityAssessor
+	logger           *logger.Logger
+	reflectionRules  []ReflectionRule
+	progressAnalyzer *ProgressAnalyzer
+	qualityAssessor  *QualityAssessor
 }
 
 // ReflectionRule defines rules for self-reflection
@@ -37,10 +37,10 @@ type QualityAssessor struct {
 
 // ReflectionResult holds the result of self-reflection
 type ReflectionResult struct {
-	ShouldContinue bool    `json:"should_continue"`
-	FinalAnswer    string  `json:"final_answer"`
-	Confidence     float64 `json:"confidence"`
-	Reasoning      string  `json:"reasoning"`
+	ShouldContinue bool     `json:"should_continue"`
+	FinalAnswer    string   `json:"final_answer"`
+	Confidence     float64  `json:"confidence"`
+	Reasoning      string   `json:"reasoning"`
 	Improvements   []string `json:"improvements"`
 }
 
@@ -133,7 +133,7 @@ func (sr *SelfReflector) Reflect(ctx context.Context, thought Thought, action *A
 	for _, rule := range sr.reflectionRules {
 		if rule.Condition(thought, action, output) {
 			shouldContinue, finalAnswer, confidence := rule.Evaluate(thought, action, output)
-			
+
 			if !shouldContinue {
 				sr.logger.Info("Self-reflection decided to stop",
 					"rule", rule.Name,
@@ -146,7 +146,7 @@ func (sr *SelfReflector) Reflect(ctx context.Context, thought Thought, action *A
 
 	// If no rule decided to stop, perform detailed analysis
 	result := sr.performDetailedReflection(thought, action, output)
-	
+
 	sr.logger.Debug("Self-reflection completed",
 		"should_continue", result.ShouldContinue,
 		"confidence", result.Confidence)
@@ -158,10 +158,10 @@ func (sr *SelfReflector) Reflect(ctx context.Context, thought Thought, action *A
 func (sr *SelfReflector) performDetailedReflection(thought Thought, action *Action, output *AgentOutput) ReflectionResult {
 	// Analyze progress
 	progress := sr.progressAnalyzer.AnalyzeProgress(output.Thoughts, output.Actions)
-	
+
 	// Assess quality
 	quality := sr.qualityAssessor.AssessQuality(output.Thoughts, output.Actions)
-	
+
 	// Make decision based on combined analysis
 	shouldContinue := true
 	finalAnswer := ""
@@ -199,7 +199,7 @@ func (sr *SelfReflector) isCompleteAnswer(output interface{}) bool {
 	}
 
 	outputStr := fmt.Sprintf("%v", output)
-	
+
 	// Check for completion indicators
 	completionIndicators := []string{
 		"completed", "finished", "done", "result:", "answer:", "conclusion:",
@@ -247,16 +247,16 @@ func (sr *SelfReflector) generateSummary(thoughts []Thought, actions []Action) s
 	}
 
 	lastThought := thoughts[len(thoughts)-1]
-	
+
 	return fmt.Sprintf("After %d reasoning steps and %d actions (%d successful), my analysis suggests: %s",
 		len(thoughts), len(actions), successfulActions, lastThought.Content)
 }
 
 // ProgressAnalysis holds progress analysis results
 type ProgressAnalysis struct {
-	CompletionScore    float64 `json:"completion_score"`
-	OverallConfidence  float64 `json:"overall_confidence"`
-	Summary           string  `json:"summary"`
+	CompletionScore   float64  `json:"completion_score"`
+	OverallConfidence float64  `json:"overall_confidence"`
+	Summary           string   `json:"summary"`
 	KeyFindings       []string `json:"key_findings"`
 	RemainingTasks    []string `json:"remaining_tasks"`
 }
@@ -281,7 +281,7 @@ func (pa *ProgressAnalyzer) AnalyzeProgress(thoughts []Thought, actions []Action
 
 	// Analyze confidence trend
 	confidenceTrend := pa.calculateConfidenceTrend(thoughts)
-	
+
 	// Calculate completion score based on various factors
 	completionFactors := []float64{
 		analysis.OverallConfidence,
@@ -319,7 +319,7 @@ func (pa *ProgressAnalyzer) calculateConfidenceTrend(thoughts []Thought) float64
 
 	// Simple trend calculation: compare last half with first half
 	midpoint := len(thoughts) / 2
-	
+
 	firstHalfAvg := 0.0
 	for i := 0; i < midpoint; i++ {
 		firstHalfAvg += thoughts[i].Confidence
@@ -368,20 +368,20 @@ func (pa *ProgressAnalyzer) calculateContentQuality(thoughts []Thought) float64 
 	totalQuality := 0.0
 	for _, thought := range thoughts {
 		quality := 0.0
-		
+
 		// Length factor (reasonable length is good)
 		if len(thought.Content) > 20 && len(thought.Content) < 500 {
 			quality += 0.3
 		}
-		
+
 		// Reasoning factor (presence of reasoning)
 		if len(thought.Reasoning) > 10 {
 			quality += 0.3
 		}
-		
+
 		// Confidence factor
 		quality += thought.Confidence * 0.4
-		
+
 		totalQuality += quality
 	}
 
@@ -406,10 +406,10 @@ func (qa *QualityAssessor) AssessQuality(thoughts []Thought, actions []Action) Q
 
 	// Assess thought quality
 	thoughtQuality := qa.assessThoughtQuality(thoughts)
-	
+
 	// Assess action quality
 	actionQuality := qa.assessActionQuality(actions)
-	
+
 	// Calculate overall score
 	assessment.OverallScore = (thoughtQuality + actionQuality) / 2
 
@@ -440,20 +440,20 @@ func (qa *QualityAssessor) assessThoughtQuality(thoughts []Thought) float64 {
 	totalScore := 0.0
 	for _, thought := range thoughts {
 		score := 0.0
-		
+
 		// Content length and depth
 		if len(thought.Content) > 30 {
 			score += 0.3
 		}
-		
+
 		// Reasoning presence
 		if len(thought.Reasoning) > 10 {
 			score += 0.3
 		}
-		
+
 		// Confidence appropriateness
 		score += thought.Confidence * 0.4
-		
+
 		totalScore += score
 	}
 

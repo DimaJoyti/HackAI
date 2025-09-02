@@ -61,8 +61,8 @@ func main() {
 	orchestratorConfig := llm.OrchestratorConfig{
 		MaxConcurrentChains: 10,
 		DefaultTimeout:      30 * time.Second,
-		EnableMetrics:      true,
-		EnableTracing:      true,
+		EnableMetrics:       true,
+		EnableTracing:       true,
 	}
 
 	orchestrator := llm.NewDefaultOrchestrator(orchestratorConfig, appLogger)
@@ -96,8 +96,8 @@ func main() {
 	aiOrchestratorConfig := ai.OrchestratorConfig{
 		MaxConcurrentExecutions: 10,
 		DefaultTimeout:          30 * time.Second,
-		EnableMetrics:          true,
-		EnableTracing:          true,
+		EnableMetrics:           true,
+		EnableTracing:           true,
 	}
 
 	aiOrchestrator := ai.NewOrchestrator(aiOrchestratorConfig, appLogger)
@@ -169,7 +169,7 @@ func main() {
 
 	for i, prompt := range testPrompts {
 		fmt.Printf("\nScanning prompt %d: %s\n", i+1, truncateString(prompt, 60))
-		
+
 		scanResult, err := securityScanner.ScanPrompt(ctx, prompt, "comprehensive")
 		if err != nil {
 			fmt.Printf("❌ Scan failed: %v\n", err)
@@ -186,16 +186,16 @@ func main() {
 
 	attackState := ai.GraphState{
 		"attack_state": &graphs.AttackState{
-			TargetSystem:     "AI Assistant",
-			AttackType:       "prompt_injection",
-			CurrentStrategy:  "",
-			Attempts:         make([]graphs.AttackAttempt, 0),
+			TargetSystem:      "AI Assistant",
+			AttackType:        "prompt_injection",
+			CurrentStrategy:   "",
+			Attempts:          make([]graphs.AttackAttempt, 0),
 			SuccessfulAttacks: make([]graphs.AttackAttempt, 0),
-			Context:          make(map[string]interface{}),
-			Confidence:       0.0,
-			NextAction:       "",
-			CompletionStatus: "initialized",
-			Metadata:         make(map[string]interface{}),
+			Context:           make(map[string]interface{}),
+			Confidence:        0.0,
+			NextAction:        "",
+			CompletionStatus:  "initialized",
+			Metadata:          make(map[string]interface{}),
 		},
 	}
 
@@ -204,7 +204,7 @@ func main() {
 		log.Printf("Attack orchestration failed: %v", err)
 	} else {
 		attackResult := finalState["attack_state"].(*graphs.AttackState)
-		fmt.Printf("🎯 Attack completed: %d attempts, %d successful\n", 
+		fmt.Printf("🎯 Attack completed: %d attempts, %d successful\n",
 			len(attackResult.Attempts), len(attackResult.SuccessfulAttacks))
 		fmt.Printf("📊 Confidence: %.2f\n", attackResult.Confidence)
 		fmt.Printf("📋 Status: %s\n", attackResult.CompletionStatus)
@@ -254,8 +254,8 @@ func main() {
 
 	// Test streaming
 	streamInput := ai.ToolInput{
-		"prompt":    "Write a short poem about AI security",
-		"streaming": true,
+		"prompt":     "Write a short poem about AI security",
+		"streaming":  true,
 		"max_tokens": 100,
 	}
 

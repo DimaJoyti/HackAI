@@ -36,66 +36,66 @@ type LoadBalancer struct {
 // LoadBalancingConfig defines load balancing configuration
 type LoadBalancingConfig struct {
 	// General settings
-	Enabled         bool          `yaml:"enabled"`
-	Algorithm       string        `yaml:"algorithm"`
+	Enabled             bool          `yaml:"enabled"`
+	Algorithm           string        `yaml:"algorithm"`
 	HealthCheckInterval time.Duration `yaml:"health_check_interval"`
-	
+
 	// Backend configuration
 	Backends []BackendConfig `yaml:"backends"`
-	
+
 	// Health checking
 	HealthCheck HealthCheckConfig `yaml:"health_check"`
-	
+
 	// Circuit breaker
 	CircuitBreaker CircuitBreakerConfig `yaml:"circuit_breaker"`
-	
+
 	// Rate limiting
 	RateLimit map[string]interface{} `yaml:"rate_limit"` // Placeholder for RateLimitConfig
-	
+
 	// Session affinity
 	SessionAffinity SessionAffinityConfig `yaml:"session_affinity"`
-	
+
 	// Retry configuration
 	Retry RetryConfig `yaml:"retry"`
-	
+
 	// Timeout configuration
 	Timeout TimeoutConfig `yaml:"timeout"`
 }
 
 // BackendConfig defines backend server configuration
 type BackendConfig struct {
-	ID       string `yaml:"id"`
-	URL      string `yaml:"url"`
-	Weight   int    `yaml:"weight"`
-	Priority int    `yaml:"priority"`
-	MaxConns int    `yaml:"max_connections"`
+	ID       string                 `yaml:"id"`
+	URL      string                 `yaml:"url"`
+	Weight   int                    `yaml:"weight"`
+	Priority int                    `yaml:"priority"`
+	MaxConns int                    `yaml:"max_connections"`
 	Metadata map[string]interface{} `yaml:"metadata"`
 }
 
 // HealthCheckConfig defines health check configuration
 type HealthCheckConfig struct {
-	Enabled           bool          `yaml:"enabled"`
-	Path              string        `yaml:"path"`
-	Interval          time.Duration `yaml:"interval"`
-	Timeout           time.Duration `yaml:"timeout"`
-	HealthyThreshold  int           `yaml:"healthy_threshold"`
-	UnhealthyThreshold int          `yaml:"unhealthy_threshold"`
-	ExpectedStatus    []int         `yaml:"expected_status"`
-	ExpectedBody      string        `yaml:"expected_body"`
+	Enabled            bool          `yaml:"enabled"`
+	Path               string        `yaml:"path"`
+	Interval           time.Duration `yaml:"interval"`
+	Timeout            time.Duration `yaml:"timeout"`
+	HealthyThreshold   int           `yaml:"healthy_threshold"`
+	UnhealthyThreshold int           `yaml:"unhealthy_threshold"`
+	ExpectedStatus     []int         `yaml:"expected_status"`
+	ExpectedBody       string        `yaml:"expected_body"`
 }
 
 // CircuitBreakerConfig defines circuit breaker configuration
 type CircuitBreakerConfig struct {
-	Enabled           bool          `yaml:"enabled"`
-	FailureThreshold  int           `yaml:"failure_threshold"`
-	RecoveryTimeout   time.Duration `yaml:"recovery_timeout"`
-	HalfOpenRequests  int           `yaml:"half_open_requests"`
+	Enabled          bool          `yaml:"enabled"`
+	FailureThreshold int           `yaml:"failure_threshold"`
+	RecoveryTimeout  time.Duration `yaml:"recovery_timeout"`
+	HalfOpenRequests int           `yaml:"half_open_requests"`
 }
 
 // SessionAffinityConfig defines session affinity configuration
 type SessionAffinityConfig struct {
-	Enabled    bool   `yaml:"enabled"`
-	CookieName string `yaml:"cookie_name"`
+	Enabled    bool          `yaml:"enabled"`
+	CookieName string        `yaml:"cookie_name"`
 	TTL        time.Duration `yaml:"ttl"`
 }
 
@@ -143,13 +143,13 @@ type BackendMetrics struct {
 
 // LoadBalancerMetrics represents load balancer metrics
 type LoadBalancerMetrics struct {
-	TotalRequests     int64                    `json:"total_requests"`
-	TotalErrors       int64                    `json:"total_errors"`
-	AverageLatency    time.Duration            `json:"average_latency"`
-	BackendMetrics    map[string]*BackendMetrics `json:"backend_metrics"`
-	AlgorithmMetrics  map[string]interface{}   `json:"algorithm_metrics"`
-	LastUpdated       time.Time                `json:"last_updated"`
-	mutex             sync.RWMutex
+	TotalRequests    int64                      `json:"total_requests"`
+	TotalErrors      int64                      `json:"total_errors"`
+	AverageLatency   time.Duration              `json:"average_latency"`
+	BackendMetrics   map[string]*BackendMetrics `json:"backend_metrics"`
+	AlgorithmMetrics map[string]interface{}     `json:"algorithm_metrics"`
+	LastUpdated      time.Time                  `json:"last_updated"`
+	mutex            sync.RWMutex
 }
 
 // LoadBalancingAlgorithm interface for load balancing algorithms
@@ -265,8 +265,8 @@ func (ih *IPHashAlgorithm) UpdateMetrics(backend *Backend, latency time.Duration
 
 // ConsistentHashAlgorithm implements consistent hash load balancing
 type ConsistentHashAlgorithm struct {
-	ring map[uint32]*Backend
-	keys []uint32
+	ring  map[uint32]*Backend
+	keys  []uint32
 	mutex sync.RWMutex
 }
 
@@ -353,7 +353,7 @@ func (lb *LoadBalancer) createBackend(config BackendConfig) (*Backend, error) {
 	}
 
 	proxy := httputil.NewSingleHostReverseProxy(backendURL)
-	
+
 	// Customize proxy behavior
 	proxy.ModifyResponse = lb.modifyResponse
 	proxy.ErrorHandler = lb.errorHandler
@@ -544,7 +544,7 @@ func (lb *LoadBalancer) performHealthChecks(ctx context.Context) {
 // checkBackendHealth checks the health of a single backend
 func (lb *LoadBalancer) checkBackendHealth(ctx context.Context, backend *Backend) {
 	healthy := lb.healthChecker.CheckHealth(ctx, backend)
-	
+
 	backend.mutex.Lock()
 	backend.Healthy = healthy
 	backend.LastCheck = time.Now()

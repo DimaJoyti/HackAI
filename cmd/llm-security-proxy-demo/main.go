@@ -59,11 +59,11 @@ type LLMError struct {
 
 // SecurityStats represents security statistics
 type SecurityStats struct {
-	TotalRequests       int64   `json:"total_requests"`
-	BlockedRequests     int64   `json:"blocked_requests"`
-	ThreatScoreAverage  float64 `json:"threat_score_average"`
-	Uptime              string  `json:"uptime"`
-	Status              string  `json:"status"`
+	TotalRequests      int64   `json:"total_requests"`
+	BlockedRequests    int64   `json:"blocked_requests"`
+	ThreatScoreAverage float64 `json:"threat_score_average"`
+	Uptime             string  `json:"uptime"`
+	Status             string  `json:"status"`
 }
 
 func main() {

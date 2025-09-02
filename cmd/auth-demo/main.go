@@ -133,30 +133,30 @@ func demoPasswordSecurity(authService *auth.EnhancedAuthService) {
 	fmt.Println("  🔐 Testing password validation policies...")
 
 	passwords := []string{
-		"weak",                    // Too short
-		"password123",             // Common weak password
-		"Password123",             // Missing special character
-		"Password123!",            // Valid strong password
-		"MySecureP@ssw0rd2024",   // Very strong password
+		"weak",                 // Too short
+		"password123",          // Common weak password
+		"Password123",          // Missing special character
+		"Password123!",         // Valid strong password
+		"MySecureP@ssw0rd2024", // Very strong password
 	}
 
 	passwordManager := auth.NewPasswordManager(auth.DefaultSecurityConfig())
 
 	for i, password := range passwords {
 		fmt.Printf("  %d. Testing password: '%s'\n", i+1, password)
-		
+
 		if err := passwordManager.ValidatePassword(password); err != nil {
 			fmt.Printf("     ❌ Invalid: %s\n", err.Error())
 		} else {
 			fmt.Printf("     ✅ Valid password\n")
-			
+
 			// Hash the password
 			hash, err := passwordManager.HashPassword(password)
 			if err != nil {
 				fmt.Printf("     ❌ Hashing failed: %v\n", err)
 			} else {
 				fmt.Printf("     🔒 Password hashed successfully\n")
-				
+
 				// Verify the password
 				if passwordManager.VerifyPassword(password, hash) {
 					fmt.Printf("     ✅ Password verification successful\n")
@@ -198,7 +198,7 @@ func demoUserAuthentication(ctx context.Context, authService *auth.EnhancedAuthS
 
 	for i, req := range authRequests {
 		fmt.Printf("  %d. Authenticating user: %s\n", i+1, req.EmailOrUsername)
-		
+
 		authResp, err := authService.Authenticate(ctx, req)
 		if err != nil {
 			fmt.Printf("     ❌ Authentication failed: %s\n", err.Error())
@@ -214,7 +214,7 @@ func demoUserAuthentication(ctx context.Context, authService *auth.EnhancedAuthS
 		fmt.Printf("     👤 User: %s (%s)\n", authResp.User.Username, authResp.User.Role)
 		fmt.Printf("     🎫 Session ID: %s\n", authResp.SessionID.String()[:8])
 		fmt.Printf("     ⏰ Expires: %s\n", authResp.ExpiresAt.Format("2006-01-02 15:04:05"))
-		
+
 		if authResp.CSRFToken != "" {
 			fmt.Printf("     🛡️  CSRF Token: %s...\n", authResp.CSRFToken[:16])
 		}
@@ -234,7 +234,7 @@ func demoJWTTokens(ctx context.Context, authService *auth.EnhancedAuthService) {
 	}
 
 	fmt.Printf("  1. Generating JWT tokens for user: %s\n", authReq.EmailOrUsername)
-	
+
 	// For demo purposes, we'll create a mock successful authentication
 	userID := uuid.New()
 	claims := &auth.Claims{
@@ -298,9 +298,9 @@ func demoTwoFactorAuth(ctx context.Context, authService *auth.EnhancedAuthServic
 	fmt.Println("  📱 Demonstrating two-factor authentication...")
 
 	userID := uuid.New()
-	
+
 	fmt.Printf("  1. Enabling TOTP for user: %s\n", userID.String()[:8])
-	
+
 	secret, qrURL, err := authService.EnableTOTP(ctx, userID, "192.168.1.100", "HackAI-Demo/1.0")
 	if err != nil {
 		fmt.Printf("     ❌ TOTP enablement failed: %v\n", err)
@@ -314,7 +314,7 @@ func demoTwoFactorAuth(ctx context.Context, authService *auth.EnhancedAuthServic
 	// Simulate TOTP verification
 	fmt.Printf("  2. Simulating TOTP verification...\n")
 	totpManager := auth.NewTOTPManager(auth.DefaultSecurityConfig())
-	
+
 	// Generate a mock TOTP code
 	mockCode := "123456"
 	if totpManager.VerifyTOTP(secret, mockCode) {
@@ -350,7 +350,7 @@ func demoRoleBasedAccess(ctx context.Context, authService *auth.EnhancedAuthServ
 
 	for i, user := range users {
 		fmt.Printf("  %d. Testing permissions for %s (%s):\n", i+1, user.username, user.role)
-		
+
 		for _, res := range resources {
 			// Simulate permission check (simplified)
 			hasPermission := checkPermissionByRole(user.role, res.resource, res.action)
@@ -390,7 +390,7 @@ func demoSecurityFeatures(authService *auth.EnhancedAuthService) {
 		fmt.Printf("     ❌ CSRF token generation failed: %v\n", err)
 	} else {
 		fmt.Printf("     ✅ CSRF token generated: %s...\n", csrfToken[:16])
-		
+
 		// Validate CSRF token
 		if auth.ValidateCSRFToken(csrfToken, csrfToken) {
 			fmt.Printf("     ✅ CSRF token validation successful\n")

@@ -34,43 +34,43 @@ type LogEntry struct {
 
 // SecurityEvent represents a detected security event
 type SecurityEvent struct {
-	ID          uuid.UUID   `json:"id"`
-	Type        string      `json:"type"`        // attack_type, anomaly, etc.
-	Severity    string      `json:"severity"`    // critical, high, medium, low
-	Confidence  float64     `json:"confidence"`  // 0.0 to 1.0
-	Description string      `json:"description"`
-	Source      string      `json:"source"`
-	Timestamp   time.Time   `json:"timestamp"`
-	Evidence    []LogEntry  `json:"evidence"`
-	Indicators  []string    `json:"indicators"`
-	Remediation []string    `json:"remediation"`
+	ID          uuid.UUID  `json:"id"`
+	Type        string     `json:"type"`       // attack_type, anomaly, etc.
+	Severity    string     `json:"severity"`   // critical, high, medium, low
+	Confidence  float64    `json:"confidence"` // 0.0 to 1.0
+	Description string     `json:"description"`
+	Source      string     `json:"source"`
+	Timestamp   time.Time  `json:"timestamp"`
+	Evidence    []LogEntry `json:"evidence"`
+	Indicators  []string   `json:"indicators"`
+	Remediation []string   `json:"remediation"`
 }
 
 // AnomalyPattern represents detected anomalous patterns
 type AnomalyPattern struct {
-	Type        string    `json:"type"`
-	Pattern     string    `json:"pattern"`
-	Frequency   int       `json:"frequency"`
-	Baseline    float64   `json:"baseline"`
-	Current     float64   `json:"current"`
-	Deviation   float64   `json:"deviation"`
-	Confidence  float64   `json:"confidence"`
-	FirstSeen   time.Time `json:"first_seen"`
-	LastSeen    time.Time `json:"last_seen"`
+	Type       string    `json:"type"`
+	Pattern    string    `json:"pattern"`
+	Frequency  int       `json:"frequency"`
+	Baseline   float64   `json:"baseline"`
+	Current    float64   `json:"current"`
+	Deviation  float64   `json:"deviation"`
+	Confidence float64   `json:"confidence"`
+	FirstSeen  time.Time `json:"first_seen"`
+	LastSeen   time.Time `json:"last_seen"`
 }
 
 // LogAnalysisReport represents comprehensive log analysis results
 type LogAnalysisReport struct {
-	ID               uuid.UUID         `json:"id"`
-	TimeRange        TimeRange         `json:"time_range"`
-	TotalLogs        int               `json:"total_logs"`
-	SecurityEvents   []SecurityEvent   `json:"security_events"`
-	Anomalies        []AnomalyPattern  `json:"anomalies"`
-	TopSources       []SourceStats     `json:"top_sources"`
-	TopErrors        []ErrorStats      `json:"top_errors"`
-	ThreatSummary    ThreatSummary     `json:"threat_summary"`
-	Recommendations  []string          `json:"recommendations"`
-	GeneratedAt      time.Time         `json:"generated_at"`
+	ID              uuid.UUID        `json:"id"`
+	TimeRange       TimeRange        `json:"time_range"`
+	TotalLogs       int              `json:"total_logs"`
+	SecurityEvents  []SecurityEvent  `json:"security_events"`
+	Anomalies       []AnomalyPattern `json:"anomalies"`
+	TopSources      []SourceStats    `json:"top_sources"`
+	TopErrors       []ErrorStats     `json:"top_errors"`
+	ThreatSummary   ThreatSummary    `json:"threat_summary"`
+	Recommendations []string         `json:"recommendations"`
+	GeneratedAt     time.Time        `json:"generated_at"`
 }
 
 type TimeRange struct {
@@ -136,10 +136,10 @@ func (l *LogAnalyzerUseCase) AnalyzeLogs(ctx context.Context, logs []string, tim
 	report.Recommendations = l.generateRecommendations(securityEvents, anomalies)
 
 	l.logger.WithContext(ctx).WithFields(logger.Fields{
-		"total_logs":       len(logs),
-		"security_events":  len(securityEvents),
-		"anomalies":        len(anomalies),
-		"risk_score":       report.ThreatSummary.RiskScore,
+		"total_logs":      len(logs),
+		"security_events": len(securityEvents),
+		"anomalies":       len(anomalies),
+		"risk_score":      report.ThreatSummary.RiskScore,
 	}).Info("Log analysis completed")
 
 	return report, nil
@@ -229,7 +229,7 @@ func (l *LogAnalyzerUseCase) detectBruteForceAttacks(entries []LogEntry) []Secur
 
 	// Count failed login attempts by IP
 	failedLogins := make(map[string][]LogEntry)
-	
+
 	for _, entry := range entries {
 		if l.isFailedLoginAttempt(entry) {
 			ip := l.extractIPAddress(entry)
@@ -517,13 +517,13 @@ func (l *LogAnalyzerUseCase) parseAccessLogFormat(logLine string) *LogEntry {
 func (l *LogAnalyzerUseCase) extractLogLevel(logLine string) string {
 	levels := []string{"FATAL", "ERROR", "WARN", "INFO", "DEBUG", "TRACE"}
 	logUpper := strings.ToUpper(logLine)
-	
+
 	for _, level := range levels {
 		if strings.Contains(logUpper, level) {
 			return level
 		}
 	}
-	
+
 	return "INFO"
 }
 

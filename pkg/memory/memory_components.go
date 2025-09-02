@@ -110,7 +110,7 @@ func (hs *HierarchicalStorage) GetStats() *StorageStats {
 // NewSemanticIndexer creates a new semantic indexer
 func NewSemanticIndexer(batchSize int, logger *logger.Logger) *SemanticIndexer {
 	return &SemanticIndexer{
-		vectorIndex:   make(map[string][]float64),
+		vectorIndex: make(map[string][]float64),
 		semanticGraph: &SemanticGraph{
 			Nodes: make(map[string]*SemanticNode),
 			Edges: make(map[string]*SemanticEdge),
@@ -125,7 +125,7 @@ func NewSemanticIndexer(batchSize int, logger *logger.Logger) *SemanticIndexer {
 func (si *SemanticIndexer) GenerateVector(ctx context.Context, entry *MemoryEntry) ([]float64, error) {
 	// Simple vector generation - in production, use actual embedding models
 	vector := make([]float64, 384) // Standard embedding dimension
-	
+
 	// Generate pseudo-random but deterministic vector based on content
 	contentStr := fmt.Sprintf("%v", entry.Content)
 	hash := 0
@@ -135,7 +135,7 @@ func (si *SemanticIndexer) GenerateVector(ctx context.Context, entry *MemoryEntr
 
 	for i := range vector {
 		hash = hash*1103515245 + 12345
-		vector[i] = float64(hash%1000) / 1000.0 - 0.5 // Normalize to [-0.5, 0.5]
+		vector[i] = float64(hash%1000)/1000.0 - 0.5 // Normalize to [-0.5, 0.5]
 	}
 
 	return vector, nil
@@ -222,7 +222,7 @@ func (si *SemanticIndexer) Search(ctx context.Context, query string, agentID str
 func (si *SemanticIndexer) generateQueryVector(query string) ([]float64, error) {
 	// Simple query vector generation - in production, use actual embedding models
 	vector := make([]float64, 384)
-	
+
 	hash := 0
 	for _, char := range query {
 		hash = hash*31 + int(char)
@@ -230,7 +230,7 @@ func (si *SemanticIndexer) generateQueryVector(query string) ([]float64, error) 
 
 	for i := range vector {
 		hash = hash*1103515245 + 12345
-		vector[i] = float64(hash%1000) / 1000.0 - 0.5
+		vector[i] = float64(hash%1000)/1000.0 - 0.5
 	}
 
 	return vector, nil

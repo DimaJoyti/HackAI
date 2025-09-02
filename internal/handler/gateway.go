@@ -58,19 +58,19 @@ type ReadyResponse struct {
 // Ready handles readiness check requests
 func (h *GatewayHandler) Ready(w http.ResponseWriter, r *http.Request) {
 	components := make(map[string]string)
-	
+
 	// Check database connectivity
 	if err := h.db.Health(r.Context()); err != nil {
 		components["database"] = "unhealthy"
 		h.logger.WithError(err).Error("Database health check failed")
-		
+
 		response := ReadyResponse{
 			Status:     "not ready",
 			Timestamp:  time.Now().UTC(),
 			Service:    "api-gateway",
 			Components: components,
 		}
-		
+
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusServiceUnavailable)
 		json.NewEncoder(w).Encode(response)

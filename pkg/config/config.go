@@ -9,24 +9,24 @@ import (
 
 // Config holds all configuration for the application
 type Config struct {
-	Server   ServerConfig   `json:"server"`
-	Database DatabaseConfig `json:"database"`
-	Redis    RedisConfig    `json:"redis"`
-	JWT      JWTConfig      `json:"jwt"`
-	Security SecurityConfig `json:"security"`
+	Server        ServerConfig        `json:"server"`
+	Database      DatabaseConfig      `json:"database"`
+	Redis         RedisConfig         `json:"redis"`
+	JWT           JWTConfig           `json:"jwt"`
+	Security      SecurityConfig      `json:"security"`
 	Observability ObservabilityConfig `json:"observability"`
-	AI       AIConfig       `json:"ai"`
+	AI            AIConfig            `json:"ai"`
 }
 
 // ServerConfig holds server configuration
 type ServerConfig struct {
-	Port            string        `json:"port"`
-	Host            string        `json:"host"`
-	ReadTimeout     time.Duration `json:"read_timeout"`
-	WriteTimeout    time.Duration `json:"write_timeout"`
-	IdleTimeout     time.Duration `json:"idle_timeout"`
-	ShutdownTimeout time.Duration `json:"shutdown_timeout"`
-	CORS            CORSConfig    `json:"cors"`
+	Port            string          `json:"port"`
+	Host            string          `json:"host"`
+	ReadTimeout     time.Duration   `json:"read_timeout"`
+	WriteTimeout    time.Duration   `json:"write_timeout"`
+	IdleTimeout     time.Duration   `json:"idle_timeout"`
+	ShutdownTimeout time.Duration   `json:"shutdown_timeout"`
+	CORS            CORSConfig      `json:"cors"`
 	RateLimit       RateLimitConfig `json:"rate_limit"`
 }
 
@@ -71,15 +71,15 @@ type JWTConfig struct {
 
 // SecurityConfig holds security configuration
 type SecurityConfig struct {
-	PasswordMinLength    int           `json:"password_min_length"`
-	PasswordRequireUpper bool          `json:"password_require_upper"`
-	PasswordRequireLower bool          `json:"password_require_lower"`
-	PasswordRequireDigit bool          `json:"password_require_digit"`
-	PasswordRequireSpecial bool        `json:"password_require_special"`
-	MaxLoginAttempts     int           `json:"max_login_attempts"`
-	LoginAttemptWindow   time.Duration `json:"login_attempt_window"`
-	SessionTimeout       time.Duration `json:"session_timeout"`
-	TwoFactorRequired    bool          `json:"two_factor_required"`
+	PasswordMinLength      int           `json:"password_min_length"`
+	PasswordRequireUpper   bool          `json:"password_require_upper"`
+	PasswordRequireLower   bool          `json:"password_require_lower"`
+	PasswordRequireDigit   bool          `json:"password_require_digit"`
+	PasswordRequireSpecial bool          `json:"password_require_special"`
+	MaxLoginAttempts       int           `json:"max_login_attempts"`
+	LoginAttemptWindow     time.Duration `json:"login_attempt_window"`
+	SessionTimeout         time.Duration `json:"session_timeout"`
+	TwoFactorRequired      bool          `json:"two_factor_required"`
 }
 
 // CORSConfig holds CORS configuration
@@ -94,11 +94,11 @@ type CORSConfig struct {
 
 // RateLimitConfig holds rate limiting configuration
 type RateLimitConfig struct {
-	Enabled    bool          `json:"enabled"`
-	Requests   int           `json:"requests"`
-	Window     time.Duration `json:"window"`
-	SkipPaths  []string      `json:"skip_paths"`
-	SkipIPs    []string      `json:"skip_ips"`
+	Enabled   bool          `json:"enabled"`
+	Requests  int           `json:"requests"`
+	Window    time.Duration `json:"window"`
+	SkipPaths []string      `json:"skip_paths"`
+	SkipIPs   []string      `json:"skip_ips"`
 }
 
 // ObservabilityConfig holds observability configuration
@@ -129,18 +129,18 @@ type LoggingConfig struct {
 	Format     string `json:"format"` // json, text
 	Output     string `json:"output"` // stdout, file
 	FilePath   string `json:"file_path"`
-	MaxSize    int    `json:"max_size"`    // megabytes
+	MaxSize    int    `json:"max_size"` // megabytes
 	MaxBackups int    `json:"max_backups"`
-	MaxAge     int    `json:"max_age"`     // days
+	MaxAge     int    `json:"max_age"` // days
 	Compress   bool   `json:"compress"`
 }
 
 // AIConfig holds AI service configuration
 type AIConfig struct {
-	VulnerabilityScanner VulnScannerConfig `json:"vulnerability_scanner"`
+	VulnerabilityScanner VulnScannerConfig     `json:"vulnerability_scanner"`
 	NetworkAnalyzer      NetworkAnalyzerConfig `json:"network_analyzer"`
-	ThreatIntelligence   ThreatIntelConfig `json:"threat_intelligence"`
-	LogAnalyzer          LogAnalyzerConfig `json:"log_analyzer"`
+	ThreatIntelligence   ThreatIntelConfig     `json:"threat_intelligence"`
+	LogAnalyzer          LogAnalyzerConfig     `json:"log_analyzer"`
 }
 
 // VulnScannerConfig holds vulnerability scanner configuration
@@ -155,27 +155,27 @@ type VulnScannerConfig struct {
 
 // NetworkAnalyzerConfig holds network analyzer configuration
 type NetworkAnalyzerConfig struct {
-	Enabled         bool          `json:"enabled"`
-	MaxConcurrent   int           `json:"max_concurrent"`
-	DefaultTimeout  time.Duration `json:"default_timeout"`
-	MaxHosts        int           `json:"max_hosts"`
-	MaxPorts        int           `json:"max_ports"`
+	Enabled        bool          `json:"enabled"`
+	MaxConcurrent  int           `json:"max_concurrent"`
+	DefaultTimeout time.Duration `json:"default_timeout"`
+	MaxHosts       int           `json:"max_hosts"`
+	MaxPorts       int           `json:"max_ports"`
 }
 
 // ThreatIntelConfig holds threat intelligence configuration
 type ThreatIntelConfig struct {
-	Enabled       bool          `json:"enabled"`
-	UpdateInterval time.Duration `json:"update_interval"`
-	Sources       []string      `json:"sources"`
-	APIKeys       map[string]string `json:"api_keys"`
+	Enabled        bool              `json:"enabled"`
+	UpdateInterval time.Duration     `json:"update_interval"`
+	Sources        []string          `json:"sources"`
+	APIKeys        map[string]string `json:"api_keys"`
 }
 
 // LogAnalyzerConfig holds log analyzer configuration
 type LogAnalyzerConfig struct {
-	Enabled       bool     `json:"enabled"`
-	MaxFileSize   int64    `json:"max_file_size"`
+	Enabled          bool     `json:"enabled"`
+	MaxFileSize      int64    `json:"max_file_size"`
 	SupportedFormats []string `json:"supported_formats"`
-	MLModelPath   string   `json:"ml_model_path"`
+	MLModelPath      string   `json:"ml_model_path"`
 }
 
 // Load loads configuration from environment variables
@@ -235,15 +235,15 @@ func Load() (*Config, error) {
 			Audience:        getEnv("JWT_AUDIENCE", "hackai-users"),
 		},
 		Security: SecurityConfig{
-			PasswordMinLength:    getIntEnv("PASSWORD_MIN_LENGTH", 8),
-			PasswordRequireUpper: getBoolEnv("PASSWORD_REQUIRE_UPPER", true),
-			PasswordRequireLower: getBoolEnv("PASSWORD_REQUIRE_LOWER", true),
-			PasswordRequireDigit: getBoolEnv("PASSWORD_REQUIRE_DIGIT", true),
+			PasswordMinLength:      getIntEnv("PASSWORD_MIN_LENGTH", 8),
+			PasswordRequireUpper:   getBoolEnv("PASSWORD_REQUIRE_UPPER", true),
+			PasswordRequireLower:   getBoolEnv("PASSWORD_REQUIRE_LOWER", true),
+			PasswordRequireDigit:   getBoolEnv("PASSWORD_REQUIRE_DIGIT", true),
 			PasswordRequireSpecial: getBoolEnv("PASSWORD_REQUIRE_SPECIAL", true),
-			MaxLoginAttempts:     getIntEnv("MAX_LOGIN_ATTEMPTS", 5),
-			LoginAttemptWindow:   getDurationEnv("LOGIN_ATTEMPT_WINDOW", 15*time.Minute),
-			SessionTimeout:       getDurationEnv("SESSION_TIMEOUT", 24*time.Hour),
-			TwoFactorRequired:    getBoolEnv("TWO_FACTOR_REQUIRED", false),
+			MaxLoginAttempts:       getIntEnv("MAX_LOGIN_ATTEMPTS", 5),
+			LoginAttemptWindow:     getDurationEnv("LOGIN_ATTEMPT_WINDOW", 15*time.Minute),
+			SessionTimeout:         getDurationEnv("SESSION_TIMEOUT", 24*time.Hour),
+			TwoFactorRequired:      getBoolEnv("TWO_FACTOR_REQUIRED", false),
 		},
 		Observability: ObservabilityConfig{
 			Tracing: TracingConfig{

@@ -64,8 +64,6 @@ func (m *MockLLMSecurityRepository) GetRequestLogByRequestID(ctx context.Context
 	return args.Get(0).(*domain.LLMRequestLog), args.Error(1)
 }
 
-
-
 func (m *MockLLMSecurityRepository) GetRequestLogStats(ctx context.Context, filter domain.RequestLogFilter) (*domain.RequestLogStats, error) {
 	args := m.Called(ctx, filter)
 	return args.Get(0).(*domain.RequestLogStats), args.Error(1)
@@ -220,8 +218,6 @@ func (m *MockLLMSecurityRepository) GetProviderByName(ctx context.Context, name 
 	args := m.Called(ctx, name)
 	return args.Get(0).(*domain.LLMProvider), args.Error(1)
 }
-
-
 
 // MockAuditRepository is a mock implementation of AuditRepository
 type MockAuditRepository struct {

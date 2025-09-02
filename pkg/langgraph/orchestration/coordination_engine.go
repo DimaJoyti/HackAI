@@ -27,12 +27,12 @@ type Coordinator interface {
 
 // CoordinationStatistics holds statistics for coordination
 type CoordinationStatistics struct {
-	PhasesExecuted    int64         `json:"phases_executed"`
-	SuccessfulPhases  int64         `json:"successful_phases"`
-	FailedPhases      int64         `json:"failed_phases"`
-	AverageLatency    time.Duration `json:"average_latency"`
-	SyncPointsHit     int64         `json:"sync_points_hit"`
-	CoordinationEvents int64        `json:"coordination_events"`
+	PhasesExecuted     int64         `json:"phases_executed"`
+	SuccessfulPhases   int64         `json:"successful_phases"`
+	FailedPhases       int64         `json:"failed_phases"`
+	AverageLatency     time.Duration `json:"average_latency"`
+	SyncPointsHit      int64         `json:"sync_points_hit"`
+	CoordinationEvents int64         `json:"coordination_events"`
 }
 
 // NewCoordinationEngine creates a new coordination engine
@@ -132,7 +132,7 @@ func (lc *LooseCoordinator) ExecutePhase(ctx context.Context, phase *TaskPhase, 
 			}
 
 			actionResult, err := lc.executeAction(ctx, a, agent)
-			
+
 			mutex.Lock()
 			if err != nil {
 				errors = append(errors, err)
@@ -177,11 +177,11 @@ func (lc *LooseCoordinator) executeAction(ctx context.Context, action *PhaseActi
 	}
 
 	return &ActionResult{
-		ActionID:  action.ID,
-		Success:   true,
-		Result:    output.Result,
-		Duration:  time.Since(startTime),
-		Metadata:  make(map[string]interface{}),
+		ActionID: action.ID,
+		Success:  true,
+		Result:   output.Result,
+		Duration: time.Since(startTime),
+		Metadata: make(map[string]interface{}),
 	}, nil
 }
 
@@ -227,7 +227,7 @@ func (tc *TightCoordinator) ExecutePhase(ctx context.Context, phase *TaskPhase, 
 		if tc.isSyncPoint(i, phase.Coordination.SyncPoints) {
 			tc.logger.Debug("Hitting sync point", "phase_id", phase.ID, "action_index", i)
 			tc.stats.SyncPointsHit++
-			
+
 			// Wait for all previous actions to complete
 			if err := tc.waitForSyncPoint(ctx, result); err != nil {
 				tc.stats.FailedPhases++
@@ -277,11 +277,11 @@ func (tc *TightCoordinator) executeAction(ctx context.Context, action *PhaseActi
 	}
 
 	return &ActionResult{
-		ActionID:  action.ID,
-		Success:   true,
-		Result:    output.Result,
-		Duration:  time.Since(startTime),
-		Metadata:  make(map[string]interface{}),
+		ActionID: action.ID,
+		Success:  true,
+		Result:   output.Result,
+		Duration: time.Since(startTime),
+		Metadata: make(map[string]interface{}),
 	}, nil
 }
 
@@ -298,7 +298,7 @@ func (tc *TightCoordinator) isSyncPoint(actionIndex int, syncPoints []string) bo
 func (tc *TightCoordinator) waitForSyncPoint(ctx context.Context, result *PhaseResult) error {
 	// Wait for all actions to complete (simplified implementation)
 	timeout := time.After(tc.config.CoordinationTimeout)
-	
+
 	select {
 	case <-timeout:
 		return fmt.Errorf("sync point timeout")
@@ -405,11 +405,11 @@ func (hc *HierarchicalCoordinator) coordinateAction(ctx context.Context, action 
 	}
 
 	return &ActionResult{
-		ActionID:  action.ID,
-		Success:   true,
-		Result:    output.Result,
-		Duration:  time.Since(startTime),
-		Metadata:  map[string]interface{}{"coordinated_by": master.ID()},
+		ActionID: action.ID,
+		Success:  true,
+		Result:   output.Result,
+		Duration: time.Since(startTime),
+		Metadata: map[string]interface{}{"coordinated_by": master.ID()},
 	}, nil
 }
 
@@ -474,7 +474,7 @@ func (p2p *PeerToPeerCoordinator) ExecutePhase(ctx context.Context, phase *TaskP
 			}
 
 			actionResult, err := p2p.executeCoordinatedAction(ctx, a, agent, coordinationChannels)
-			
+
 			mutex.Lock()
 			if err != nil {
 				errors = append(errors, err)
@@ -511,7 +511,7 @@ func (p2p *PeerToPeerCoordinator) executeCoordinatedAction(ctx context.Context, 
 
 	// Coordinate with peer agents through channels
 	agentChannel := channels[agent.ID()]
-	
+
 	// Send coordination message
 	select {
 	case agentChannel <- map[string]interface{}{"action": action.ID, "status": "starting"}:
@@ -541,11 +541,11 @@ func (p2p *PeerToPeerCoordinator) executeCoordinatedAction(ctx context.Context, 
 	}
 
 	return &ActionResult{
-		ActionID:  action.ID,
-		Success:   true,
-		Result:    output.Result,
-		Duration:  time.Since(startTime),
-		Metadata:  map[string]interface{}{"coordination": "peer_to_peer"},
+		ActionID: action.ID,
+		Success:  true,
+		Result:   output.Result,
+		Duration: time.Since(startTime),
+		Metadata: map[string]interface{}{"coordination": "peer_to_peer"},
 	}, nil
 }
 

@@ -37,10 +37,10 @@ func (p *FilePersistence) SaveState(ctx context.Context, graphID string, state l
 
 	// Create state wrapper with metadata
 	stateWrapper := StateWrapper{
-		GraphID:   graphID,
-		State:     state,
-		SavedAt:   time.Now(),
-		Version:   "1.0",
+		GraphID: graphID,
+		State:   state,
+		SavedAt: time.Now(),
+		Version: "1.0",
 	}
 
 	// Marshal to JSON
@@ -128,10 +128,10 @@ func (p *FilePersistence) ListStates(ctx context.Context) ([]string, error) {
 
 // StateWrapper wraps the graph state with metadata
 type StateWrapper struct {
-	GraphID string           `json:"graph_id"`
-	State   llm.GraphState   `json:"state"`
-	SavedAt time.Time        `json:"saved_at"`
-	Version string           `json:"version"`
+	GraphID string         `json:"graph_id"`
+	State   llm.GraphState `json:"state"`
+	SavedAt time.Time      `json:"saved_at"`
+	Version string         `json:"version"`
 }
 
 // InMemoryPersistence implements StatePersistence using in-memory storage
@@ -228,7 +228,7 @@ func (p *DatabasePersistence) SaveState(ctx context.Context, graphID string, sta
 	// 2. Serialize the state to JSON
 	// 3. INSERT or UPDATE the state record
 	// 4. Handle database errors appropriately
-	
+
 	return fmt.Errorf("database persistence not implemented yet")
 }
 
@@ -240,7 +240,7 @@ func (p *DatabasePersistence) LoadState(ctx context.Context, graphID string) (ll
 	// 2. SELECT the state record by graph ID
 	// 3. Deserialize the JSON to GraphState
 	// 4. Handle not found and other database errors
-	
+
 	return llm.GraphState{}, fmt.Errorf("database persistence not implemented yet")
 }
 
@@ -251,7 +251,7 @@ func (p *DatabasePersistence) DeleteState(ctx context.Context, graphID string) e
 	// 1. Connect to the database
 	// 2. DELETE the state record by graph ID
 	// 3. Handle database errors appropriately
-	
+
 	return fmt.Errorf("database persistence not implemented yet")
 }
 
@@ -263,7 +263,7 @@ func (p *DatabasePersistence) ListStates(ctx context.Context) ([]string, error) 
 	// 2. SELECT all graph IDs from the table
 	// 3. Return the list of graph IDs
 	// 4. Handle database errors appropriately
-	
+
 	return nil, fmt.Errorf("database persistence not implemented yet")
 }
 

@@ -21,14 +21,14 @@ import (
 
 // CostOptimizerEvent represents the event structure for cost optimization
 type CostOptimizerEvent struct {
-	Source        string                 `json:"source"`
-	DetailType    string                 `json:"detail-type"`
-	Detail        map[string]interface{} `json:"detail"`
-	Function      string                 `json:"function"`
-	OptimizationType string              `json:"optimization_type"` // rightsizing, spot, reserved, unused
-	CloudProvider string                 `json:"cloud_provider"`
-	TimeRange     string                 `json:"time_range"`        // 7d, 30d, 90d
-	Threshold     float64                `json:"threshold"`         // Cost threshold for optimization
+	Source           string                 `json:"source"`
+	DetailType       string                 `json:"detail-type"`
+	Detail           map[string]interface{} `json:"detail"`
+	Function         string                 `json:"function"`
+	OptimizationType string                 `json:"optimization_type"` // rightsizing, spot, reserved, unused
+	CloudProvider    string                 `json:"cloud_provider"`
+	TimeRange        string                 `json:"time_range"` // 7d, 30d, 90d
+	Threshold        float64                `json:"threshold"`  // Cost threshold for optimization
 }
 
 // CostOptimizerResponse represents the response from cost optimization
@@ -48,21 +48,21 @@ type CostOptimizerResponse struct {
 
 // CostRecommendation represents a cost optimization recommendation
 type CostRecommendation struct {
-	ID               string                 `json:"id"`
-	Type             string                 `json:"type"`
-	Title            string                 `json:"title"`
-	Description      string                 `json:"description"`
-	Resource         string                 `json:"resource"`
-	CurrentCost      float64                `json:"current_cost"`
-	OptimizedCost    float64                `json:"optimized_cost"`
-	Savings          float64                `json:"savings"`
-	SavingsPercent   float64                `json:"savings_percent"`
-	Priority         string                 `json:"priority"`
-	Effort           string                 `json:"effort"`
-	Risk             string                 `json:"risk"`
-	Implementation   []string               `json:"implementation"`
-	AutomationLevel  string                 `json:"automation_level"`
-	Details          map[string]interface{} `json:"details"`
+	ID              string                 `json:"id"`
+	Type            string                 `json:"type"`
+	Title           string                 `json:"title"`
+	Description     string                 `json:"description"`
+	Resource        string                 `json:"resource"`
+	CurrentCost     float64                `json:"current_cost"`
+	OptimizedCost   float64                `json:"optimized_cost"`
+	Savings         float64                `json:"savings"`
+	SavingsPercent  float64                `json:"savings_percent"`
+	Priority        string                 `json:"priority"`
+	Effort          string                 `json:"effort"`
+	Risk            string                 `json:"risk"`
+	Implementation  []string               `json:"implementation"`
+	AutomationLevel string                 `json:"automation_level"`
+	Details         map[string]interface{} `json:"details"`
 }
 
 // CostOptimizationSummary provides a summary of optimization analysis
@@ -80,12 +80,12 @@ type CostOptimizationSummary struct {
 // CostOptimizer handles multi-cloud cost optimization operations
 type CostOptimizer struct {
 	costExplorerClient *costexplorer.Client
-	ec2Client         *ec2.Client
-	rdsClient         *rds.Client
-	snsClient         *sns.Client
-	region            string
-	environment       string
-	alertTopicArn     string
+	ec2Client          *ec2.Client
+	rdsClient          *rds.Client
+	snsClient          *sns.Client
+	region             string
+	environment        string
+	alertTopicArn      string
 }
 
 // NewCostOptimizer creates a new CostOptimizer instance
@@ -97,12 +97,12 @@ func NewCostOptimizer(ctx context.Context) (*CostOptimizer, error) {
 
 	return &CostOptimizer{
 		costExplorerClient: costexplorer.NewFromConfig(cfg),
-		ec2Client:         ec2.NewFromConfig(cfg),
-		rdsClient:         rds.NewFromConfig(cfg),
-		snsClient:         sns.NewFromConfig(cfg),
-		region:            os.Getenv("AWS_REGION"),
-		environment:       os.Getenv("ENVIRONMENT"),
-		alertTopicArn:     os.Getenv("COST_ALERT_TOPIC_ARN"),
+		ec2Client:          ec2.NewFromConfig(cfg),
+		rdsClient:          rds.NewFromConfig(cfg),
+		snsClient:          sns.NewFromConfig(cfg),
+		region:             os.Getenv("AWS_REGION"),
+		environment:        os.Getenv("ENVIRONMENT"),
+		alertTopicArn:      os.Getenv("COST_ALERT_TOPIC_ARN"),
 	}, nil
 }
 
@@ -183,11 +183,11 @@ func (co *CostOptimizer) performRightsizingAnalysis(ctx context.Context, event C
 				"Monitor for 48 hours",
 			},
 			Details: map[string]interface{}{
-				"current_instance_type": "m5.xlarge",
-				"recommended_type":      "m5.large",
-				"avg_cpu_utilization":   25.5,
+				"current_instance_type":  "m5.xlarge",
+				"recommended_type":       "m5.large",
+				"avg_cpu_utilization":    25.5,
 				"avg_memory_utilization": 30.2,
-				"network_utilization":   "low",
+				"network_utilization":    "low",
 			},
 		},
 		{
@@ -323,11 +323,11 @@ func (co *CostOptimizer) performReservedInstanceAnalysis(ctx context.Context, ev
 				"Monitor utilization and coverage",
 			},
 			Details: map[string]interface{}{
-				"instance_types":     []string{"m5.large", "m5.xlarge"},
-				"recommended_term":   "1-year",
-				"payment_option":     "partial-upfront",
-				"utilization_rate":   "95%",
-				"coverage_gap":       "60%",
+				"instance_types":   []string{"m5.large", "m5.xlarge"},
+				"recommended_term": "1-year",
+				"payment_option":   "partial-upfront",
+				"utilization_rate": "95%",
+				"coverage_gap":     "60%",
 			},
 		},
 	}
@@ -377,10 +377,10 @@ func (co *CostOptimizer) performUnusedResourceAnalysis(ctx context.Context, even
 				"Delete unused volume",
 			},
 			Details: map[string]interface{}{
-				"volume_size":      "100GB",
-				"volume_type":      "gp3",
-				"last_attached":    "2023-10-01",
-				"snapshot_exists":  true,
+				"volume_size":     "100GB",
+				"volume_type":     "gp3",
+				"last_attached":   "2023-10-01",
+				"snapshot_exists": true,
 			},
 		},
 	}
@@ -457,7 +457,7 @@ func (co *CostOptimizer) calculateSummary(recommendations []CostRecommendation) 
 
 	for _, rec := range recommendations {
 		summary.TotalSavings += rec.Savings
-		
+
 		switch rec.Priority {
 		case "high":
 			summary.HighPriorityCount++
@@ -487,7 +487,7 @@ func (co *CostOptimizer) sendCostAlert(ctx context.Context, subject string, resp
 	}
 
 	message, _ := json.Marshal(response)
-	
+
 	_, err := co.snsClient.Publish(ctx, &sns.PublishInput{
 		TopicArn: aws.String(co.alertTopicArn),
 		Subject:  aws.String(subject),

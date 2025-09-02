@@ -34,77 +34,77 @@ type AutoScaler struct {
 // AutoScalingConfig defines auto-scaling configuration
 type AutoScalingConfig struct {
 	// General settings
-	Enabled                bool          `yaml:"enabled"`
-	ScalingInterval        time.Duration `yaml:"scaling_interval"`
-	MetricsWindow          time.Duration `yaml:"metrics_window"`
-	CooldownPeriod         time.Duration `yaml:"cooldown_period"`
-	
+	Enabled         bool          `yaml:"enabled"`
+	ScalingInterval time.Duration `yaml:"scaling_interval"`
+	MetricsWindow   time.Duration `yaml:"metrics_window"`
+	CooldownPeriod  time.Duration `yaml:"cooldown_period"`
+
 	// Horizontal scaling settings
 	HorizontalScaling HorizontalScalingConfig `yaml:"horizontal_scaling"`
-	
+
 	// Vertical scaling settings
 	VerticalScaling VerticalScalingConfig `yaml:"vertical_scaling"`
-	
+
 	// Predictive scaling settings
 	PredictiveScaling PredictiveScalingConfig `yaml:"predictive_scaling"`
-	
+
 	// Scaling triggers
 	ScalingTriggers ScalingTriggersConfig `yaml:"scaling_triggers"`
-	
+
 	// Safety limits
 	SafetyLimits SafetyLimitsConfig `yaml:"safety_limits"`
 }
 
 // HorizontalScalingConfig defines horizontal scaling settings
 type HorizontalScalingConfig struct {
-	Enabled             bool    `yaml:"enabled"`
-	MinInstances        int     `yaml:"min_instances"`
-	MaxInstances        int     `yaml:"max_instances"`
-	TargetCPUPercent    float64 `yaml:"target_cpu_percent"`
-	TargetMemoryPercent float64 `yaml:"target_memory_percent"`
+	Enabled             bool          `yaml:"enabled"`
+	MinInstances        int           `yaml:"min_instances"`
+	MaxInstances        int           `yaml:"max_instances"`
+	TargetCPUPercent    float64       `yaml:"target_cpu_percent"`
+	TargetMemoryPercent float64       `yaml:"target_memory_percent"`
 	ScaleUpCooldown     time.Duration `yaml:"scale_up_cooldown"`
 	ScaleDownCooldown   time.Duration `yaml:"scale_down_cooldown"`
-	ScaleUpStepSize     int     `yaml:"scale_up_step_size"`
-	ScaleDownStepSize   int     `yaml:"scale_down_step_size"`
+	ScaleUpStepSize     int           `yaml:"scale_up_step_size"`
+	ScaleDownStepSize   int           `yaml:"scale_down_step_size"`
 }
 
 // VerticalScalingConfig defines vertical scaling settings
 type VerticalScalingConfig struct {
-	Enabled           bool    `yaml:"enabled"`
-	MinCPU            float64 `yaml:"min_cpu"`
-	MaxCPU            float64 `yaml:"max_cpu"`
-	MinMemory         int64   `yaml:"min_memory"`
-	MaxMemory         int64   `yaml:"max_memory"`
-	CPUStepSize       float64 `yaml:"cpu_step_size"`
-	MemoryStepSize    int64   `yaml:"memory_step_size"`
-	ScalingThreshold  float64 `yaml:"scaling_threshold"`
+	Enabled          bool    `yaml:"enabled"`
+	MinCPU           float64 `yaml:"min_cpu"`
+	MaxCPU           float64 `yaml:"max_cpu"`
+	MinMemory        int64   `yaml:"min_memory"`
+	MaxMemory        int64   `yaml:"max_memory"`
+	CPUStepSize      float64 `yaml:"cpu_step_size"`
+	MemoryStepSize   int64   `yaml:"memory_step_size"`
+	ScalingThreshold float64 `yaml:"scaling_threshold"`
 }
 
 // PredictiveScalingConfig defines predictive scaling settings
 type PredictiveScalingConfig struct {
-	Enabled              bool          `yaml:"enabled"`
-	PredictionWindow     time.Duration `yaml:"prediction_window"`
-	HistoryWindow        time.Duration `yaml:"history_window"`
-	ConfidenceThreshold  float64       `yaml:"confidence_threshold"`
-	ModelUpdateInterval  time.Duration `yaml:"model_update_interval"`
-	EnableMLPrediction   bool          `yaml:"enable_ml_prediction"`
+	Enabled             bool          `yaml:"enabled"`
+	PredictionWindow    time.Duration `yaml:"prediction_window"`
+	HistoryWindow       time.Duration `yaml:"history_window"`
+	ConfidenceThreshold float64       `yaml:"confidence_threshold"`
+	ModelUpdateInterval time.Duration `yaml:"model_update_interval"`
+	EnableMLPrediction  bool          `yaml:"enable_ml_prediction"`
 }
 
 // ScalingTriggersConfig defines scaling trigger thresholds
 type ScalingTriggersConfig struct {
-	CPUThresholds     ThresholdConfig `yaml:"cpu_thresholds"`
-	MemoryThresholds  ThresholdConfig `yaml:"memory_thresholds"`
-	LatencyThresholds ThresholdConfig `yaml:"latency_thresholds"`
-	QueueThresholds   ThresholdConfig `yaml:"queue_thresholds"`
+	CPUThresholds     ThresholdConfig       `yaml:"cpu_thresholds"`
+	MemoryThresholds  ThresholdConfig       `yaml:"memory_thresholds"`
+	LatencyThresholds ThresholdConfig       `yaml:"latency_thresholds"`
+	QueueThresholds   ThresholdConfig       `yaml:"queue_thresholds"`
 	CustomMetrics     []CustomMetricTrigger `yaml:"custom_metrics"`
 }
 
 // ThresholdConfig defines threshold configuration
 type ThresholdConfig struct {
-	ScaleUpThreshold   float64 `yaml:"scale_up_threshold"`
-	ScaleDownThreshold float64 `yaml:"scale_down_threshold"`
+	ScaleUpThreshold   float64       `yaml:"scale_up_threshold"`
+	ScaleDownThreshold float64       `yaml:"scale_down_threshold"`
 	EvaluationPeriod   time.Duration `yaml:"evaluation_period"`
-	ConsecutiveChecks  int     `yaml:"consecutive_checks"`
+	ConsecutiveChecks  int           `yaml:"consecutive_checks"`
 }
 
 // CustomMetricTrigger defines custom metric triggers
@@ -118,57 +118,57 @@ type CustomMetricTrigger struct {
 
 // SafetyLimitsConfig defines safety limits for scaling
 type SafetyLimitsConfig struct {
-	MaxScaleUpRate     float64 `yaml:"max_scale_up_rate"`
-	MaxScaleDownRate   float64 `yaml:"max_scale_down_rate"`
-	EmergencyThreshold float64 `yaml:"emergency_threshold"`
-	EnableCircuitBreaker bool  `yaml:"enable_circuit_breaker"`
+	MaxScaleUpRate       float64 `yaml:"max_scale_up_rate"`
+	MaxScaleDownRate     float64 `yaml:"max_scale_down_rate"`
+	EmergencyThreshold   float64 `yaml:"emergency_threshold"`
+	EnableCircuitBreaker bool    `yaml:"enable_circuit_breaker"`
 }
 
 // ScalingEvent represents a scaling event
 type ScalingEvent struct {
-	ID            string                 `json:"id"`
-	Timestamp     time.Time              `json:"timestamp"`
-	EventType     string                 `json:"event_type"`
-	ScalingType   string                 `json:"scaling_type"`
-	Trigger       string                 `json:"trigger"`
-	BeforeState   *ScaleState            `json:"before_state"`
-	AfterState    *ScaleState            `json:"after_state"`
-	Metrics       *ScalingMetrics        `json:"metrics"`
-	Success       bool                   `json:"success"`
-	ErrorMessage  string                 `json:"error_message,omitempty"`
-	Duration      time.Duration          `json:"duration"`
-	Metadata      map[string]interface{} `json:"metadata"`
+	ID           string                 `json:"id"`
+	Timestamp    time.Time              `json:"timestamp"`
+	EventType    string                 `json:"event_type"`
+	ScalingType  string                 `json:"scaling_type"`
+	Trigger      string                 `json:"trigger"`
+	BeforeState  *ScaleState            `json:"before_state"`
+	AfterState   *ScaleState            `json:"after_state"`
+	Metrics      *ScalingMetrics        `json:"metrics"`
+	Success      bool                   `json:"success"`
+	ErrorMessage string                 `json:"error_message,omitempty"`
+	Duration     time.Duration          `json:"duration"`
+	Metadata     map[string]interface{} `json:"metadata"`
 }
 
 // ScaleState represents the current scaling state
 type ScaleState struct {
-	Instances     int     `json:"instances"`
-	CPUAllocation float64 `json:"cpu_allocation"`
-	MemoryAllocation int64 `json:"memory_allocation"`
-	LastScaled    time.Time `json:"last_scaled"`
-	ScalingReason string  `json:"scaling_reason"`
+	Instances        int       `json:"instances"`
+	CPUAllocation    float64   `json:"cpu_allocation"`
+	MemoryAllocation int64     `json:"memory_allocation"`
+	LastScaled       time.Time `json:"last_scaled"`
+	ScalingReason    string    `json:"scaling_reason"`
 }
 
 // ScalingMetrics represents metrics used for scaling decisions
 type ScalingMetrics struct {
-	CPUUtilization    float64 `json:"cpu_utilization"`
-	MemoryUtilization float64 `json:"memory_utilization"`
-	RequestLatency    float64 `json:"request_latency"`
-	QueueDepth        int64   `json:"queue_depth"`
-	Throughput        float64 `json:"throughput"`
-	ErrorRate         float64 `json:"error_rate"`
+	CPUUtilization    float64            `json:"cpu_utilization"`
+	MemoryUtilization float64            `json:"memory_utilization"`
+	RequestLatency    float64            `json:"request_latency"`
+	QueueDepth        int64              `json:"queue_depth"`
+	Throughput        float64            `json:"throughput"`
+	ErrorRate         float64            `json:"error_rate"`
 	CustomMetrics     map[string]float64 `json:"custom_metrics"`
 }
 
 // ScalingDecision represents a scaling decision
 type ScalingDecision struct {
-	ShouldScale   bool    `json:"should_scale"`
-	ScalingType   string  `json:"scaling_type"`
-	Direction     string  `json:"direction"`
-	Magnitude     float64 `json:"magnitude"`
-	Confidence    float64 `json:"confidence"`
-	Reason        string  `json:"reason"`
-	Urgency       string  `json:"urgency"`
+	ShouldScale bool    `json:"should_scale"`
+	ScalingType string  `json:"scaling_type"`
+	Direction   string  `json:"direction"`
+	Magnitude   float64 `json:"magnitude"`
+	Confidence  float64 `json:"confidence"`
+	Reason      string  `json:"reason"`
+	Urgency     string  `json:"urgency"`
 }
 
 // NewAutoScaler creates a new auto-scaler
@@ -626,7 +626,7 @@ func (mc *MetricsCollector) CollectMetrics(ctx context.Context) (*ScalingMetrics
 func (sde *ScalingDecisionEngine) MakeDecision(ctx context.Context, metrics *ScalingMetrics, currentState *ScaleState) (*ScalingDecision, error) {
 	// Implementation would analyze metrics and make scaling decisions
 	shouldScale := metrics.CPUUtilization > 80.0 || metrics.MemoryUtilization > 85.0
-	
+
 	if shouldScale {
 		return &ScalingDecision{
 			ShouldScale: true,

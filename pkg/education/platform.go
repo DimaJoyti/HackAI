@@ -722,3 +722,67 @@ func (ep *EducationalPlatform) getUpcomingDeadlines(userID string) []*DeadlineIt
 		},
 	}
 }
+
+// GetCourseModules retrieves modules for a course
+func (ep *EducationalPlatform) GetCourseModules(ctx context.Context, courseID string) ([]*Module, error) {
+	if courseID == "" {
+		return nil, fmt.Errorf("course ID is required")
+	}
+
+	// In a real implementation, this would query the course manager
+	// For now, return mock modules
+	modules := []*Module{
+		{
+			ID:                 "mod-1",
+			Title:              "AI Security Fundamentals",
+			Description:        "Introduction to AI security concepts and threats",
+			Order:              1,
+			EstimatedTime:      45 * time.Minute,
+			Prerequisites:      []string{},
+			LearningObjectives: []string{"Understand AI threat landscape", "Learn basic security principles"},
+			Lessons:            []*Lesson{},
+			Labs:               []*Lab{},
+			Assessments:        []*Assessment{},
+			Metadata:           make(map[string]interface{}),
+		},
+		{
+			ID:                 "mod-2", 
+			Title:              "Prompt Injection Attacks",
+			Description:        "Deep dive into prompt injection vulnerabilities",
+			Order:              2,
+			EstimatedTime:      60 * time.Minute,
+			Prerequisites:      []string{"mod-1"},
+			LearningObjectives: []string{"Identify prompt injection vectors", "Implement defenses"},
+			Lessons:            []*Lesson{},
+			Labs:               []*Lab{},
+			Assessments:        []*Assessment{},
+			Metadata:           make(map[string]interface{}),
+		},
+	}
+
+	return modules, nil
+}
+
+// GetModule retrieves a specific module
+func (ep *EducationalPlatform) GetModule(ctx context.Context, moduleID string) (*Module, error) {
+	if moduleID == "" {
+		return nil, fmt.Errorf("module ID is required")
+	}
+
+	// Mock module data - in real implementation would query database
+	module := &Module{
+		ID:                 moduleID,
+		Title:              "AI Security Module",
+		Description:        "Comprehensive AI security training module",
+		Order:              1,
+		EstimatedTime:      90 * time.Minute,
+		Prerequisites:      []string{},
+		LearningObjectives: []string{"Master AI security concepts"},
+		Lessons:            []*Lesson{},
+		Labs:               []*Lab{},
+		Assessments:        []*Assessment{},
+		Metadata:           make(map[string]interface{}),
+	}
+
+	return module, nil
+}

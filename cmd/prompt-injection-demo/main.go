@@ -6,8 +6,8 @@ import (
 	"log"
 	"time"
 
-	"github.com/dimajoyti/hackai/pkg/logger"
 	"github.com/dimajoyti/hackai/pkg/ai_security"
+	"github.com/dimajoyti/hackai/pkg/logger"
 )
 
 func main() {
@@ -66,11 +66,11 @@ func demoBasicInjectionDetection(ctx context.Context, logger *logger.Logger) err
 
 	// Create prompt injection detector
 	config := ai_security.PromptInjectionConfig{
-		EnableChainAnalysis:    true,
-		EnableEvasionDetection: true,
-		MinConfidenceThreshold: 0.5,
-		MaxChainDepth:          5,
-		EnableSemanticAnalysis: true,
+		EnableChainAnalysis:      true,
+		EnableEvasionDetection:   true,
+		MinConfidenceThreshold:   0.5,
+		MaxChainDepth:            5,
+		EnableSemanticAnalysis:   true,
 		EnableBehavioralAnalysis: true,
 	}
 
@@ -184,11 +184,11 @@ func demoEvasionDetection(ctx context.Context, logger *logger.Logger) error {
 	logger.Info("🕵️ Demo 2: Evasion Technique Detection")
 
 	config := ai_security.PromptInjectionConfig{
-		EnableChainAnalysis:    true,
-		EnableEvasionDetection: true,
-		MinConfidenceThreshold: 0.4,
-		MaxChainDepth:          5,
-		EnableSemanticAnalysis: true,
+		EnableChainAnalysis:      true,
+		EnableEvasionDetection:   true,
+		MinConfidenceThreshold:   0.4,
+		MaxChainDepth:            5,
+		EnableSemanticAnalysis:   true,
 		EnableBehavioralAnalysis: true,
 	}
 
@@ -275,11 +275,11 @@ func demoAttackChainAnalysis(ctx context.Context, logger *logger.Logger) error {
 	logger.Info("🔗 Demo 3: Attack Chain Analysis")
 
 	config := ai_security.PromptInjectionConfig{
-		EnableChainAnalysis:    true,
-		EnableEvasionDetection: true,
-		MinConfidenceThreshold: 0.3,
-		MaxChainDepth:          5,
-		EnableSemanticAnalysis: true,
+		EnableChainAnalysis:      true,
+		EnableEvasionDetection:   true,
+		MinConfidenceThreshold:   0.3,
+		MaxChainDepth:            5,
+		EnableSemanticAnalysis:   true,
 		EnableBehavioralAnalysis: true,
 	}
 
@@ -366,11 +366,11 @@ func demoAdvancedAttacks(ctx context.Context, logger *logger.Logger) error {
 	logger.Info("🎯 Demo 4: Advanced Multi-Stage Attacks")
 
 	config := ai_security.PromptInjectionConfig{
-		EnableChainAnalysis:    true,
-		EnableEvasionDetection: true,
-		MinConfidenceThreshold: 0.4,
-		MaxChainDepth:          5,
-		EnableSemanticAnalysis: true,
+		EnableChainAnalysis:      true,
+		EnableEvasionDetection:   true,
+		MinConfidenceThreshold:   0.4,
+		MaxChainDepth:            5,
+		EnableSemanticAnalysis:   true,
 		EnableBehavioralAnalysis: true,
 	}
 

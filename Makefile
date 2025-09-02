@@ -43,6 +43,17 @@ build-demos: ## Build demo applications
 	go build -o bin/observability-demo ./cmd/observability-demo
 	@echo "Demo applications built successfully"
 
+build-multicloud-cli: ## Build Multi-Cloud DevOps CLI
+	@echo "Building Multi-Cloud DevOps CLI..."
+	@mkdir -p bin
+	go build -o bin/multicloud-devops-cli ./cmd/multicloud-devops-cli
+	@echo "Multi-Cloud DevOps CLI built successfully"
+
+install-multicloud-cli: build-multicloud-cli ## Install Multi-Cloud DevOps CLI to system PATH
+	@echo "Installing Multi-Cloud DevOps CLI to /usr/local/bin..."
+	sudo cp bin/multicloud-devops-cli /usr/local/bin/
+	@echo "CLI installed successfully! Run 'multicloud-devops-cli -help' to get started"
+
 # Test targets
 test: ## Run all tests
 	go test -v ./...

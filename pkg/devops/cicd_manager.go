@@ -17,17 +17,17 @@ var cicdTracer = otel.Tracer("hackai/devops/cicd")
 
 // CICDManager provides comprehensive CI/CD pipeline management
 type CICDManager struct {
-	config           *CICDConfig
-	logger           *logger.Logger
-	pipelineExecutor *PipelineExecutor
-	buildManager     *BuildManager
-	testManager      *TestManager
-	artifactManager  *ArtifactManager
+	config              *CICDConfig
+	logger              *logger.Logger
+	pipelineExecutor    *PipelineExecutor
+	buildManager        *BuildManager
+	testManager         *TestManager
+	artifactManager     *ArtifactManager
 	notificationManager *NotificationManager
-	secretManager    *SecretManager
-	activePipelines  map[string]*PipelineExecution
-	pipelineHistory  []*PipelineRecord
-	mutex            sync.RWMutex
+	secretManager       *SecretManager
+	activePipelines     map[string]*PipelineExecution
+	pipelineHistory     []*PipelineRecord
+	mutex               sync.RWMutex
 }
 
 // BuildStage defines a build stage configuration
@@ -45,47 +45,47 @@ type BuildStage struct {
 
 // TestStage defines a test stage configuration
 type TestStage struct {
-	Name         string            `yaml:"name"`
-	Type         string            `yaml:"type"`
-	Image        string            `yaml:"image"`
-	Commands     []string          `yaml:"commands"`
-	Environment  map[string]string `yaml:"environment"`
-	TestFiles    []string          `yaml:"test_files"`
-	Coverage     CoverageConfig    `yaml:"coverage"`
-	Reports      []ReportConfig    `yaml:"reports"`
-	Timeout      time.Duration     `yaml:"timeout"`
-	RetryCount   int               `yaml:"retry_count"`
-	Parallel     bool              `yaml:"parallel"`
+	Name        string            `yaml:"name"`
+	Type        string            `yaml:"type"`
+	Image       string            `yaml:"image"`
+	Commands    []string          `yaml:"commands"`
+	Environment map[string]string `yaml:"environment"`
+	TestFiles   []string          `yaml:"test_files"`
+	Coverage    CoverageConfig    `yaml:"coverage"`
+	Reports     []ReportConfig    `yaml:"reports"`
+	Timeout     time.Duration     `yaml:"timeout"`
+	RetryCount  int               `yaml:"retry_count"`
+	Parallel    bool              `yaml:"parallel"`
 }
 
 // DeploymentStage defines a deployment stage configuration
 type DeploymentStage struct {
-	Name         string            `yaml:"name"`
-	Environment  string            `yaml:"environment"`
-	Strategy     string            `yaml:"strategy"`
-	Commands     []string          `yaml:"commands"`
-	Variables    map[string]string `yaml:"variables"`
-	Approval     ApprovalConfig    `yaml:"approval"`
+	Name         string                 `yaml:"name"`
+	Environment  string                 `yaml:"environment"`
+	Strategy     string                 `yaml:"strategy"`
+	Commands     []string               `yaml:"commands"`
+	Variables    map[string]string      `yaml:"variables"`
+	Approval     ApprovalConfig         `yaml:"approval"`
 	Rollback     map[string]interface{} `yaml:"rollback"` // RollbackConfig placeholder
-	HealthChecks []HealthCheck     `yaml:"health_checks"`
-	Timeout      time.Duration     `yaml:"timeout"`
-	RetryCount   int               `yaml:"retry_count"`
+	HealthChecks []HealthCheck          `yaml:"health_checks"`
+	Timeout      time.Duration          `yaml:"timeout"`
+	RetryCount   int                    `yaml:"retry_count"`
 }
 
 // NotificationConfig defines notification configuration
 type NotificationConfig struct {
-	Enabled   bool                    `yaml:"enabled"`
-	Channels  []NotificationChannel   `yaml:"channels"`
-	Events    []string                `yaml:"events"`
-	Templates map[string]string       `yaml:"templates"`
+	Enabled   bool                  `yaml:"enabled"`
+	Channels  []NotificationChannel `yaml:"channels"`
+	Events    []string              `yaml:"events"`
+	Templates map[string]string     `yaml:"templates"`
 }
 
 // NotificationChannel defines a notification channel
 type NotificationChannel struct {
-	Type     string            `yaml:"type"`
-	Config   map[string]string `yaml:"config"`
-	Enabled  bool              `yaml:"enabled"`
-	Events   []string          `yaml:"events"`
+	Type    string            `yaml:"type"`
+	Config  map[string]string `yaml:"config"`
+	Enabled bool              `yaml:"enabled"`
+	Events  []string          `yaml:"events"`
 }
 
 // CoverageConfig defines test coverage configuration
@@ -105,21 +105,21 @@ type ReportConfig struct {
 
 // ApprovalConfig defines approval configuration
 type ApprovalConfig struct {
-	Required  bool     `yaml:"required"`
-	Approvers []string `yaml:"approvers"`
+	Required  bool          `yaml:"required"`
+	Approvers []string      `yaml:"approvers"`
 	Timeout   time.Duration `yaml:"timeout"`
 }
 
 // HealthCheck defines a health check configuration
 type HealthCheck struct {
-	Name     string        `yaml:"name"`
-	URL      string        `yaml:"url"`
-	Method   string        `yaml:"method"`
+	Name     string            `yaml:"name"`
+	URL      string            `yaml:"url"`
+	Method   string            `yaml:"method"`
 	Headers  map[string]string `yaml:"headers"`
-	Body     string        `yaml:"body"`
-	Expected int           `yaml:"expected"`
-	Timeout  time.Duration `yaml:"timeout"`
-	Retries  int           `yaml:"retries"`
+	Body     string            `yaml:"body"`
+	Expected int               `yaml:"expected"`
+	Timeout  time.Duration     `yaml:"timeout"`
+	Retries  int               `yaml:"retries"`
 }
 
 // PipelineExecution represents an active pipeline execution
@@ -151,18 +151,18 @@ type StageExecution struct {
 
 // PipelineRecord represents a completed pipeline execution
 type PipelineRecord struct {
-	ID           string                 `json:"id"`
-	Timestamp    time.Time              `json:"timestamp"`
-	Status       string                 `json:"status"`
-	Duration     time.Duration          `json:"duration"`
-	Trigger      string                 `json:"trigger"`
-	Branch       string                 `json:"branch"`
-	Commit       string                 `json:"commit"`
-	Stages       []StageExecution       `json:"stages"`
-	Artifacts    []Artifact             `json:"artifacts"`
-	TestResults  []TestResult           `json:"test_results"`
-	Coverage     *CoverageResult        `json:"coverage,omitempty"`
-	Metadata     map[string]interface{} `json:"metadata"`
+	ID          string                 `json:"id"`
+	Timestamp   time.Time              `json:"timestamp"`
+	Status      string                 `json:"status"`
+	Duration    time.Duration          `json:"duration"`
+	Trigger     string                 `json:"trigger"`
+	Branch      string                 `json:"branch"`
+	Commit      string                 `json:"commit"`
+	Stages      []StageExecution       `json:"stages"`
+	Artifacts   []Artifact             `json:"artifacts"`
+	TestResults []TestResult           `json:"test_results"`
+	Coverage    *CoverageResult        `json:"coverage,omitempty"`
+	Metadata    map[string]interface{} `json:"metadata"`
 }
 
 // TestResult represents test execution results
@@ -288,10 +288,10 @@ func (cm *CICDManager) ExecutePipeline(ctx context.Context, trigger *PipelineTri
 	)
 
 	cm.logger.WithFields(logger.Fields{
-		"pipeline_id":   record.ID,
-		"status":        record.Status,
-		"duration":      record.Duration,
-		"stages_count":  len(record.Stages),
+		"pipeline_id":  record.ID,
+		"status":       record.Status,
+		"duration":     record.Duration,
+		"stages_count": len(record.Stages),
 	}).Info("Pipeline execution completed")
 
 	return record, nil

@@ -44,15 +44,15 @@ type IncidentPlaybooks struct {
 
 // IncidentPlaybook represents an incident response playbook
 type IncidentPlaybook struct {
-	Name         string                `json:"name"`
-	Type         string                `json:"type"`
-	Description  string                `json:"description"`
-	Phases       []IncidentPhase       `json:"phases"`
-	Indicators   []string              `json:"indicators"`
-	Actions      []ResponseAction      `json:"actions"`
-	Stakeholders []string              `json:"stakeholders"`
-	Timeline     map[string]string     `json:"timeline"`
-	Escalation   EscalationProcedure   `json:"escalation"`
+	Name         string              `json:"name"`
+	Type         string              `json:"type"`
+	Description  string              `json:"description"`
+	Phases       []IncidentPhase     `json:"phases"`
+	Indicators   []string            `json:"indicators"`
+	Actions      []ResponseAction    `json:"actions"`
+	Stakeholders []string            `json:"stakeholders"`
+	Timeline     map[string]string   `json:"timeline"`
+	Escalation   EscalationProcedure `json:"escalation"`
 }
 
 // IncidentPhase represents a phase in incident response
@@ -106,7 +106,7 @@ func NewIncidentAnalyzer(
 					Criteria:    []string{"Systems restored", "Operations normalized"},
 				},
 			},
-			Indicators: []string{"unauthorized access", "data exfiltration", "credential compromise"},
+			Indicators:   []string{"unauthorized access", "data exfiltration", "credential compromise"},
 			Stakeholders: []string{"CISO", "Legal", "PR", "IT", "Management"},
 		},
 		AIModelAttack: IncidentPlaybook{
@@ -136,7 +136,7 @@ func NewIncidentAnalyzer(
 					Criteria:    []string{"Model operational", "Defenses enhanced"},
 				},
 			},
-			Indicators: []string{"prompt injection", "model extraction", "adversarial inputs", "data poisoning"},
+			Indicators:   []string{"prompt injection", "model extraction", "adversarial inputs", "data poisoning"},
 			Stakeholders: []string{"AI Team", "Security Team", "Data Science", "Engineering"},
 		},
 	}
@@ -403,9 +403,9 @@ func (ia *IncidentAnalyzer) enrichIncidentWithResponse(incident *SecurityInciden
 			},
 		},
 		Containment: ContainmentStrategy{
-			Type:     "immediate",
-			Actions:  []string{"Isolate affected systems", "Preserve evidence", "Notify stakeholders"},
-			Timeline: "1-4 hours",
+			Type:      "immediate",
+			Actions:   []string{"Isolate affected systems", "Preserve evidence", "Notify stakeholders"},
+			Timeline:  "1-4 hours",
 			Resources: []string{"Security team", "IT operations", "Management"},
 		},
 		Recovery: RecoveryPlan{
@@ -417,11 +417,11 @@ func (ia *IncidentAnalyzer) enrichIncidentWithResponse(incident *SecurityInciden
 					Timeline:    "1-2 hours",
 				},
 				{
-					ID:          "recovery_2",
-					Description: "Implement recovery procedures",
-					Status:      "pending",
+					ID:           "recovery_2",
+					Description:  "Implement recovery procedures",
+					Status:       "pending",
 					Dependencies: []string{"recovery_1"},
-					Timeline:    "2-8 hours",
+					Timeline:     "2-8 hours",
 				},
 			},
 			Timeline:   "1-3 days",
@@ -488,8 +488,8 @@ func (ia *IncidentAnalyzer) extractIncidentFromDocument(doc retrieval.ScoredDocu
 				},
 			},
 			Metadata: map[string]interface{}{
-				"source_doc": doc.ID,
-				"score":      doc.FinalScore,
+				"source_doc":  doc.ID,
+				"score":       doc.FinalScore,
 				"detected_at": time.Now(),
 			},
 		}

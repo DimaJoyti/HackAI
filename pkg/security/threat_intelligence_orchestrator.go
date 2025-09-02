@@ -293,8 +293,8 @@ type Trend struct {
 	EndDate   time.Time `json:"end_date"`
 }
 
-// ThreatPrediction represents a threat prediction
-type ThreatPrediction struct {
+// OrchestratorThreatPrediction represents a threat prediction from orchestrator
+type OrchestratorThreatPrediction struct {
 	Name        string   `json:"name"`
 	Description string   `json:"description"`
 	Probability float64  `json:"probability"`

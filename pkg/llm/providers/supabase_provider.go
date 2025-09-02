@@ -26,11 +26,11 @@ type SupabaseProvider struct {
 
 // SupabaseConfig configures the Supabase provider
 type SupabaseConfig struct {
-	URL       string `json:"url"`
-	APIKey    string `json:"api_key"`
-	Table     string `json:"table"`
-	Timeout   time.Duration `json:"timeout"`
-	MaxRetries int `json:"max_retries"`
+	URL        string        `json:"url"`
+	APIKey     string        `json:"api_key"`
+	Table      string        `json:"table"`
+	Timeout    time.Duration `json:"timeout"`
+	MaxRetries int           `json:"max_retries"`
 }
 
 // SupabaseDocument represents a document in Supabase
@@ -45,9 +45,9 @@ type SupabaseDocument struct {
 
 // SupabaseSearchRequest represents a vector search request
 type SupabaseSearchRequest struct {
-	QueryEmbedding []float64 `json:"query_embedding"`
-	MatchThreshold float64   `json:"match_threshold"`
-	MatchCount     int       `json:"match_count"`
+	QueryEmbedding []float64              `json:"query_embedding"`
+	MatchThreshold float64                `json:"match_threshold"`
+	MatchCount     int                    `json:"match_count"`
 	Filter         map[string]interface{} `json:"filter,omitempty"`
 }
 
@@ -113,8 +113,8 @@ func (sp *SupabaseProvider) Embed(ctx context.Context, text string) ([]float64, 
 		return nil, fmt.Errorf("failed to marshal embed request: %w", err)
 	}
 
-	req, err := http.NewRequestWithContext(ctx, "POST", 
-		fmt.Sprintf("%s/functions/v1/embed", sp.config.URL), 
+	req, err := http.NewRequestWithContext(ctx, "POST",
+		fmt.Sprintf("%s/functions/v1/embed", sp.config.URL),
 		strings.NewReader(string(embedData)))
 	if err != nil {
 		span.RecordError(err)
@@ -228,9 +228,9 @@ func (sp *SupabaseProvider) SearchSimilar(ctx context.Context, searchReq Supabas
 
 	// Call Supabase RPC function for vector similarity search
 	rpcRequest := map[string]interface{}{
-		"query_embedding":  searchReq.QueryEmbedding,
-		"match_threshold":  searchReq.MatchThreshold,
-		"match_count":      searchReq.MatchCount,
+		"query_embedding": searchReq.QueryEmbedding,
+		"match_threshold": searchReq.MatchThreshold,
+		"match_count":     searchReq.MatchCount,
 	}
 
 	if searchReq.Filter != nil {

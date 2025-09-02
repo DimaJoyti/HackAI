@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/dimajoyti/hackai/pkg/education"
 	"github.com/dimajoyti/hackai/pkg/logger"
@@ -330,18 +331,42 @@ func (h *EducationHandler) GetCourseModules(w http.ResponseWriter, r *http.Reque
 	vars := mux.Vars(r)
 	courseID := vars["id"]
 
+	// Validate courseID
+	if courseID == "" {
+		h.logger.Error("Course ID is required")
+		http.Error(w, "Course ID is required", http.StatusBadRequest)
+		return
+	}
+
 	modules, err := h.platform.GetCourseModules(ctx, courseID)
 	if err != nil {
 		h.logger.WithError(err).WithField("course_id", courseID).Error("Failed to get course modules")
+		
+		// Handle specific error types
+		if strings.Contains(err.Error(), "not found") {
+			http.Error(w, "Course not found", http.StatusNotFound)
+			return
+		}
+		
 		http.Error(w, "Failed to retrieve modules", http.StatusInternalServerError)
 		return
 	}
 
+	// Set response headers
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]interface{}{
+	w.WriteHeader(http.StatusOK)
+
+	// Encode response with error handling
+	response := map[string]any{
 		"modules": modules,
 		"total":   len(modules),
-	})
+	}
+
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		h.logger.WithError(err).Error("Failed to encode response")
+		// At this point headers are already written, so we can't change the status code
+		// Just log the error for monitoring
+	}
 }
 
 // GetModule handles GET /api/education/courses/{courseId}/modules/{moduleId}

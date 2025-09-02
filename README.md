@@ -22,6 +22,7 @@ HackAI is a dual-purpose AI security platform that provides both comprehensive s
 ### 🎯 Key Features
 
 #### 🎓 Training Platform Features
+
 - **🔒 Advanced AI Security Framework**: MITRE ATLAS integration, OWASP AI Top 10 compliance
 - **🧠 Interactive Learning Modules**: 13 comprehensive modules covering all aspects of AI security
 - **🥽 Hands-on Labs**: Real-world scenarios in isolated, safe environments
@@ -40,6 +41,7 @@ HackAI is a dual-purpose AI security platform that provides both comprehensive s
 - **🔗 Seamless Integration**: Native support for OLAMA models alongside cloud providers
 
 #### 🛡️ LLM Security Proxy Features
+
 - **🚀 Real-time Protection**: Intercept and analyze all LLM requests/responses
 - **🔍 Content Filtering**: Block malicious prompts, PII, toxic content, and prompt injections
 - **📊 Threat Scoring**: AI-powered threat assessment with configurable thresholds
@@ -242,6 +244,34 @@ graph TB
 - **Monitoring**: Grafana, Prometheus
 - **Logging**: Structured JSON logging
 
+## 🛠️ Multi-Cloud DevOps CLI
+
+HackAI includes a powerful **Multi-Cloud Multi-Agent DevOps CLI** for enterprise-grade infrastructure orchestration:
+
+```bash
+# Build the CLI
+make build-multicloud-cli
+
+# Deploy to AWS with security validation
+./bin/multicloud-devops-cli -command deploy -cloud aws -agents infrastructure,security
+
+# Monitor all clouds with intelligent agents
+./bin/multicloud-devops-cli -command monitor -cloud aws,gcp,azure -agents monitoring,security
+
+# Optimize costs with AI recommendations
+./bin/multicloud-devops-cli -command optimize -agents cost,monitoring -verbose
+```
+
+### 🌟 CLI Features
+
+- **Multi-Cloud Management**: AWS, GCP, Azure infrastructure orchestration
+- **Intelligent Agents**: 11+ specialized DevOps agents with AI-powered collaboration
+- **Advanced Workflows**: Parallel, sequential, and consensus-based execution modes
+- **Security-First**: Automated security assessments and compliance validation
+- **Cost Optimization**: AI-driven cost analysis and optimization recommendations
+
+[**📖 Full CLI Documentation**](cmd/multicloud-devops-cli/README.md)
+
 ## 📚 Documentation
 
 ### 📖 User Guides
@@ -320,7 +350,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📞 Support
 
-- **Documentation**: [docs.hackai.com](https://docs.hackai.com)
+- **Documentation**: <https://docs.hackai.com>
 - **Community**: [Discord](https://discord.gg/hackai)
 - **Issues**: [GitHub Issues](https://github.com/dimajoyti/hackai/issues)
 - **Email**: support@hackai.com
@@ -329,7 +359,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 <div align="center">
 
-**🛡️ Securing AI, One Training at a Time 🛡️**
+## 🛡️ Securing AI, One Training at a Time 🛡️
 
 [Website](https://hackai.com) • [Documentation](https://docs.hackai.com) • [Community](https://discord.gg/hackai) • [Blog](https://blog.hackai.com)
 

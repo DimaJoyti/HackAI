@@ -16,37 +16,37 @@ var memoryTracer = otel.Tracer("hackai/langgraph/memory")
 
 // AgentMemory provides comprehensive memory capabilities for agents
 type AgentMemory struct {
-	agentID         string
-	workingMemory   *WorkingMemory
-	episodicMemory  *EpisodicMemory
-	semanticMemory  *SemanticMemory
+	agentID          string
+	workingMemory    *WorkingMemory
+	episodicMemory   *EpisodicMemory
+	semanticMemory   *SemanticMemory
 	proceduralMemory *ProceduralMemory
-	vectorMemory    *VectorMemory
-	memoryManager   *MemoryManager
-	config          *MemoryConfig
-	logger          *logger.Logger
-	mutex           sync.RWMutex
+	vectorMemory     *VectorMemory
+	memoryManager    *MemoryManager
+	config           *MemoryConfig
+	logger           *logger.Logger
+	mutex            sync.RWMutex
 }
 
 // MemoryConfig holds configuration for agent memory
 type MemoryConfig struct {
-	AgentID                string        `json:"agent_id"`
-	WorkingMemorySize      int           `json:"working_memory_size"`
-	EpisodicMemorySize     int           `json:"episodic_memory_size"`
-	SemanticMemorySize     int           `json:"semantic_memory_size"`
-	ProceduralMemorySize   int           `json:"procedural_memory_size"`
-	VectorMemorySize       int           `json:"vector_memory_size"`
-	ConsolidationInterval  time.Duration `json:"consolidation_interval"`
-	RetentionPeriod        time.Duration `json:"retention_period"`
-	CompressionThreshold   int           `json:"compression_threshold"`
-	EnablePersistence      bool          `json:"enable_persistence"`
-	EnableCompression      bool          `json:"enable_compression"`
-	EnableEncryption       bool          `json:"enable_encryption"`
-	EnableIndexing         bool          `json:"enable_indexing"`
-	EnableAnalytics        bool          `json:"enable_analytics"`
-	PersistenceBackend     string        `json:"persistence_backend"`
-	VectorDimensions       int           `json:"vector_dimensions"`
-	SimilarityThreshold    float64       `json:"similarity_threshold"`
+	AgentID               string        `json:"agent_id"`
+	WorkingMemorySize     int           `json:"working_memory_size"`
+	EpisodicMemorySize    int           `json:"episodic_memory_size"`
+	SemanticMemorySize    int           `json:"semantic_memory_size"`
+	ProceduralMemorySize  int           `json:"procedural_memory_size"`
+	VectorMemorySize      int           `json:"vector_memory_size"`
+	ConsolidationInterval time.Duration `json:"consolidation_interval"`
+	RetentionPeriod       time.Duration `json:"retention_period"`
+	CompressionThreshold  int           `json:"compression_threshold"`
+	EnablePersistence     bool          `json:"enable_persistence"`
+	EnableCompression     bool          `json:"enable_compression"`
+	EnableEncryption      bool          `json:"enable_encryption"`
+	EnableIndexing        bool          `json:"enable_indexing"`
+	EnableAnalytics       bool          `json:"enable_analytics"`
+	PersistenceBackend    string        `json:"persistence_backend"`
+	VectorDimensions      int           `json:"vector_dimensions"`
+	SimilarityThreshold   float64       `json:"similarity_threshold"`
 }
 
 // MemoryEntry represents a basic memory entry
@@ -85,11 +85,11 @@ type MemoryQuery struct {
 
 // MemoryResult represents memory query results
 type MemoryResult struct {
-	Entries     []*MemoryEntry         `json:"entries"`
-	TotalCount  int                    `json:"total_count"`
-	QueryTime   time.Duration          `json:"query_time"`
-	Relevance   []float64              `json:"relevance"`
-	Metadata    map[string]interface{} `json:"metadata"`
+	Entries    []*MemoryEntry         `json:"entries"`
+	TotalCount int                    `json:"total_count"`
+	QueryTime  time.Duration          `json:"query_time"`
+	Relevance  []float64              `json:"relevance"`
+	Metadata   map[string]interface{} `json:"metadata"`
 }
 
 // TimeRange represents a time range for queries
@@ -534,25 +534,25 @@ func (am *AgentMemory) getTotalEntries() int {
 
 // MemoryStatistics holds statistics for agent memory
 type MemoryStatistics struct {
-	AgentID           string                    `json:"agent_id"`
-	WorkingMemory     *MemoryTypeStatistics     `json:"working_memory"`
-	EpisodicMemory    *MemoryTypeStatistics     `json:"episodic_memory"`
-	SemanticMemory    *MemoryTypeStatistics     `json:"semantic_memory"`
-	ProceduralMemory  *MemoryTypeStatistics     `json:"procedural_memory"`
-	VectorMemory      *MemoryTypeStatistics     `json:"vector_memory"`
-	TotalEntries      int                       `json:"total_entries"`
-	LastConsolidation time.Time                 `json:"last_consolidation"`
-	LastMaintenance   time.Time                 `json:"last_maintenance"`
+	AgentID           string                `json:"agent_id"`
+	WorkingMemory     *MemoryTypeStatistics `json:"working_memory"`
+	EpisodicMemory    *MemoryTypeStatistics `json:"episodic_memory"`
+	SemanticMemory    *MemoryTypeStatistics `json:"semantic_memory"`
+	ProceduralMemory  *MemoryTypeStatistics `json:"procedural_memory"`
+	VectorMemory      *MemoryTypeStatistics `json:"vector_memory"`
+	TotalEntries      int                   `json:"total_entries"`
+	LastConsolidation time.Time             `json:"last_consolidation"`
+	LastMaintenance   time.Time             `json:"last_maintenance"`
 }
 
 // MemoryTypeStatistics holds statistics for a specific memory type
 type MemoryTypeStatistics struct {
-	EntryCount      int           `json:"entry_count"`
-	TotalSize       int64         `json:"total_size"`
-	AverageSize     float64       `json:"average_size"`
-	OldestEntry     time.Time     `json:"oldest_entry"`
-	NewestEntry     time.Time     `json:"newest_entry"`
-	AccessCount     int64         `json:"access_count"`
-	LastAccess      time.Time     `json:"last_access"`
-	CompressionRate float64       `json:"compression_rate"`
+	EntryCount      int       `json:"entry_count"`
+	TotalSize       int64     `json:"total_size"`
+	AverageSize     float64   `json:"average_size"`
+	OldestEntry     time.Time `json:"oldest_entry"`
+	NewestEntry     time.Time `json:"newest_entry"`
+	AccessCount     int64     `json:"access_count"`
+	LastAccess      time.Time `json:"last_access"`
+	CompressionRate float64   `json:"compression_rate"`
 }

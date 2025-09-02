@@ -191,21 +191,21 @@ func (mb *MessageBuffer) GetBufferStats() *BufferStats {
 	defer mb.mutex.RUnlock()
 
 	stats := &BufferStats{
-		TotalMessages:    len(mb.buffer),
+		TotalMessages:     len(mb.buffer),
 		PriorityBreakdown: make(map[Priority]int),
-		OldestMessage:    time.Now(),
-		AverageRetries:   0,
+		OldestMessage:     time.Now(),
+		AverageRetries:    0,
 	}
 
 	totalRetries := 0
 	for _, bufferedMsg := range mb.buffer {
 		priority := bufferedMsg.Message.Priority
 		stats.PriorityBreakdown[priority]++
-		
+
 		if bufferedMsg.CreatedAt.Before(stats.OldestMessage) {
 			stats.OldestMessage = bufferedMsg.CreatedAt
 		}
-		
+
 		totalRetries += bufferedMsg.Attempts
 	}
 
@@ -218,10 +218,10 @@ func (mb *MessageBuffer) GetBufferStats() *BufferStats {
 
 // BufferStats represents buffer statistics
 type BufferStats struct {
-	TotalMessages     int                `json:"total_messages"`
-	PriorityBreakdown map[Priority]int   `json:"priority_breakdown"`
-	OldestMessage     time.Time          `json:"oldest_message"`
-	AverageRetries    float64            `json:"average_retries"`
+	TotalMessages     int              `json:"total_messages"`
+	PriorityBreakdown map[Priority]int `json:"priority_breakdown"`
+	OldestMessage     time.Time        `json:"oldest_message"`
+	AverageRetries    float64          `json:"average_retries"`
 }
 
 // CleanupExpiredMessages removes expired messages from the buffer
@@ -242,7 +242,7 @@ func (mb *MessageBuffer) CleanupExpiredMessages(maxAge time.Duration) int {
 	for _, messageID := range expiredIDs {
 		bufferedMsg := mb.buffer[messageID]
 		delete(mb.buffer, messageID)
-		
+
 		if mb.config.EnablePriority {
 			mb.removeFromPriorityQueue(bufferedMsg)
 		}
@@ -274,12 +274,12 @@ type ReliabilityManager struct {
 
 // DeliveryTracking tracks message delivery status
 type DeliveryTracking struct {
-	MessageID    string                 `json:"message_id"`
-	Status       DeliveryStatus         `json:"status"`
-	Attempts     int                    `json:"attempts"`
-	LastAttempt  time.Time              `json:"last_attempt"`
-	Acknowledgments map[string]time.Time `json:"acknowledgments"`
-	Metadata     map[string]interface{} `json:"metadata"`
+	MessageID       string                 `json:"message_id"`
+	Status          DeliveryStatus         `json:"status"`
+	Attempts        int                    `json:"attempts"`
+	LastAttempt     time.Time              `json:"last_attempt"`
+	Acknowledgments map[string]time.Time   `json:"acknowledgments"`
+	Metadata        map[string]interface{} `json:"metadata"`
 }
 
 // DeliveryStatus represents message delivery status

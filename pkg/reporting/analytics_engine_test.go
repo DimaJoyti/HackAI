@@ -6,9 +6,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/dimajoyti/hackai/pkg/logger"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/dimajoyti/hackai/pkg/logger"
 )
 
 func createTestAnalyticsLogger() *logger.Logger {
@@ -216,10 +216,10 @@ func TestReportManager_StoreReport(t *testing.T) {
 		Version:     1,
 		Data: &ReportData{
 			Summary: &ReportSummary{
-				Title:           "Test Summary",
+				Title:            "Test Summary",
 				ExecutiveSummary: "This is a test summary",
-				KeyFindings:     []string{"Finding 1", "Finding 2"},
-				KeyMetrics:      map[string]interface{}{"metric1": 100},
+				KeyFindings:      []string{"Finding 1", "Finding 2"},
+				KeyMetrics:       map[string]interface{}{"metric1": 100},
 			},
 			Sections:        []*ReportSection{},
 			Charts:          []*ReportChart{},

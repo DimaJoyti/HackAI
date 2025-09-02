@@ -222,15 +222,15 @@ func (ts *ToolSelector) calculateToolScore(thought Thought, tool tools.Tool) flo
 // checkPatternMatches checks for specific patterns that indicate tool usage
 func (ts *ToolSelector) checkPatternMatches(thoughtLower string, tool tools.Tool) float64 {
 	toolID := strings.ToLower(tool.ID())
-	
+
 	patterns := map[string][]string{
-		"calculator": {"calculate", "compute", "math", "number", "score", "sum"},
-		"web_search": {"search", "find", "look up", "google", "information"},
+		"calculator":    {"calculate", "compute", "math", "number", "score", "sum"},
+		"web_search":    {"search", "find", "look up", "google", "information"},
 		"security_scan": {"scan", "security", "vulnerability", "check", "analyze"},
-		"database": {"query", "database", "data", "select", "insert", "update"},
-		"file": {"file", "read", "write", "save", "load", "document"},
-		"api": {"api", "request", "call", "endpoint", "service"},
-		"report": {"report", "generate", "create", "document", "summary"},
+		"database":      {"query", "database", "data", "select", "insert", "update"},
+		"file":          {"file", "read", "write", "save", "load", "document"},
+		"api":           {"api", "request", "call", "endpoint", "service"},
+		"report":        {"report", "generate", "create", "document", "summary"},
 	}
 
 	for toolType, keywords := range patterns {
@@ -252,7 +252,7 @@ func (ig *InputGenerator) GenerateInput(thought Thought, tool tools.Tool, agentI
 
 	// Extract relevant information from the thought
 	thoughtContent := thought.Content
-	
+
 	// Add basic context
 	input["query"] = thoughtContent
 	input["step"] = thought.Step
@@ -267,7 +267,7 @@ func (ig *InputGenerator) GenerateInput(thought Thought, tool tools.Tool, agentI
 
 	// Tool-specific input generation
 	toolID := strings.ToLower(tool.ID())
-	
+
 	switch {
 	case strings.Contains(toolID, "calculator"):
 		ig.generateCalculatorInput(input, thoughtContent)
@@ -316,7 +316,7 @@ func (ig *InputGenerator) generateSecurityInput(input map[string]interface{}, co
 	} else {
 		input["target"] = ig.extractTarget(content)
 	}
-	
+
 	input["scan_type"] = "comprehensive"
 	input["include_details"] = true
 }
@@ -338,7 +338,7 @@ func (ig *InputGenerator) generateReportInput(input map[string]interface{}, cont
 	input["report_type"] = "summary"
 	input["format"] = "text"
 	input["include_details"] = true
-	
+
 	// Include all context for report generation
 	if agentInput.Context != nil {
 		input["context"] = agentInput.Context
@@ -356,13 +356,13 @@ func (ig *InputGenerator) extractSearchTerms(content string) []string {
 	// Simple extraction - in practice, this could be more sophisticated
 	words := strings.Fields(content)
 	terms := make([]string, 0)
-	
+
 	for _, word := range words {
 		if len(word) > 3 && !ig.isStopWord(word) {
 			terms = append(terms, word)
 		}
 	}
-	
+
 	return terms
 }
 
@@ -371,8 +371,8 @@ func (ig *InputGenerator) extractTarget(content string) string {
 	// Look for URLs, IP addresses, or domain names
 	words := strings.Fields(content)
 	for _, word := range words {
-		if strings.Contains(word, ".com") || strings.Contains(word, ".org") || 
-		   strings.Contains(word, ".net") || strings.Contains(word, "http") {
+		if strings.Contains(word, ".com") || strings.Contains(word, ".org") ||
+			strings.Contains(word, ".net") || strings.Contains(word, "http") {
 			return word
 		}
 	}
