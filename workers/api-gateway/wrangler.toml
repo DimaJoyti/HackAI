@@ -1,0 +1,30 @@
+name = "hackai-api-gateway"
+main = "src/index.ts"
+compatibility_date = "2025-03-25"
+compatibility_flags = ["nodejs_compat"]
+
+[[d1_databases]]
+binding = "HACKAI_DB"
+database_name = "admin_dashboard_db"
+database_id = "4b775c28-70aa-496f-9efc-0ce51488da20"
+
+[[r2_buckets]]
+binding = "LOGS_BUCKET"
+bucket_name = "hackai-logs"
+
+[[r2_buckets]]
+binding = "UPLOADS_BUCKET"
+bucket_name = "hackai-uploads"
+
+[[kv_namespaces]]
+binding = "NEXT_CACHE_KV"
+id = "aba73777a2b247cfbb15b23ce76eb633"
+
+[vars]
+JWT_SECRET = "your-jwt-secret-key"
+
+[env.production.vars]
+JWT_SECRET = "production-jwt-secret-key"
+
+[env.staging.vars]
+JWT_SECRET = "staging-jwt-secret-key"

@@ -34,3 +34,4 @@ yarn-debug.log*
 yarn-error.log*
 workers/api-gateway/.wrangler
 workers/auth-service/.wrangler
+web/.open-next

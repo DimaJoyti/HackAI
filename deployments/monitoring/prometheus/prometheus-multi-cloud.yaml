@@ -1,0 +1,342 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'hackai-multi-cloud'
+    environment: 'production'
+    region: 'multi-region'
+
+rule_files:
+  - "/etc/prometheus/rules/*.yml"
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          - alertmanager:9093
+      path_prefix: /
+      scheme: http
+
+scrape_configs:
+  # Prometheus itself
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+    scrape_interval: 30s
+    metrics_path: /metrics
+
+  # OpenTelemetry Collector
+  - job_name: 'otel-collector'
+    kubernetes_sd_configs:
+      - role: pod
+        namespaces:
+          names:
+            - monitoring
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_label_app_kubernetes_io_name]
+        action: keep
+        regex: opentelemetry-collector
+      - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+        action: keep
+        regex: true
+      - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
+        action: replace
+        target_label: __metrics_path__
+        regex: (.+)
+      - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
+        action: replace
+        regex: ([^:]+)(?::\d+)?;(\d+)
+        replacement: $1:$2
+        target_label: __address__
+      - action: labelmap
+        regex: __meta_kubernetes_pod_label_(.+)
+      - source_labels: [__meta_kubernetes_namespace]
+        action: replace
+        target_label: kubernetes_namespace
+      - source_labels: [__meta_kubernetes_pod_name]
+        action: replace
+        target_label: kubernetes_pod_name
+
+  # HackAI Application Services
+  - job_name: 'hackai-services'
+    kubernetes_sd_configs:
+      - role: endpoints
+        namespaces:
+          names:
+            - hackai
+            - hackai-development
+            - hackai-staging
+            - hackai-production
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_service_annotation_prometheus_io_scrape]
+        action: keep
+        regex: true
+      - source_labels: [__meta_kubernetes_service_annotation_prometheus_io_path]
+        action: replace
+        target_label: __metrics_path__
+        regex: (.+)
+      - source_labels: [__address__, __meta_kubernetes_service_annotation_prometheus_io_port]
+        action: replace
+        regex: ([^:]+)(?::\d+)?;(\d+)
+        replacement: $1:$2
+        target_label: __address__
+      - action: labelmap
+        regex: __meta_kubernetes_service_label_(.+)
+      - source_labels: [__meta_kubernetes_namespace]
+        action: replace
+        target_label: kubernetes_namespace
+      - source_labels: [__meta_kubernetes_service_name]
+        action: replace
+        target_label: kubernetes_service_name
+      - source_labels: [__meta_kubernetes_pod_node_name]
+        action: replace
+        target_label: kubernetes_node
+      # Add cloud provider label based on node labels
+      - source_labels: [__meta_kubernetes_pod_node_name]
+        target_label: cloud_provider
+        regex: '.*aws.*'
+        replacement: 'aws'
+      - source_labels: [__meta_kubernetes_pod_node_name]
+        target_label: cloud_provider
+        regex: '.*gcp.*'
+        replacement: 'gcp'
+      - source_labels: [__meta_kubernetes_pod_node_name]
+        target_label: cloud_provider
+        regex: '.*azure.*'
+        replacement: 'azure'
+
+  # Kubernetes API Server
+  - job_name: 'kubernetes-apiservers'
+    kubernetes_sd_configs:
+      - role: endpoints
+    scheme: https
+    tls_config:
+      ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+    bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_namespace, __meta_kubernetes_service_name, __meta_kubernetes_endpoint_port_name]
+        action: keep
+        regex: default;kubernetes;https
+
+  # Kubernetes Nodes
+  - job_name: 'kubernetes-nodes'
+    kubernetes_sd_configs:
+      - role: node
+    scheme: https
+    tls_config:
+      ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+    bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+    relabel_configs:
+      - action: labelmap
+        regex: __meta_kubernetes_node_label_(.+)
+      - target_label: __address__
+        replacement: kubernetes.default.svc:443
+      - source_labels: [__meta_kubernetes_node_name]
+        regex: (.+)
+        target_label: __metrics_path__
+        replacement: /api/v1/nodes/${1}/proxy/metrics
+      # Add cloud provider labels
+      - source_labels: [__meta_kubernetes_node_label_node_kubernetes_io_instance_type]
+        target_label: cloud_provider
+        regex: '(m5|c5|r5|t3)\..*'
+        replacement: 'aws'
+      - source_labels: [__meta_kubernetes_node_label_node_kubernetes_io_instance_type]
+        target_label: cloud_provider
+        regex: '(n1|n2|e2|c2).*'
+        replacement: 'gcp'
+      - source_labels: [__meta_kubernetes_node_label_node_kubernetes_io_instance_type]
+        target_label: cloud_provider
+        regex: 'Standard_.*'
+        replacement: 'azure'
+
+  # Kubernetes Pods
+  - job_name: 'kubernetes-pods'
+    kubernetes_sd_configs:
+      - role: pod
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+        action: keep
+        regex: true
+      - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
+        action: replace
+        target_label: __metrics_path__
+        regex: (.+)
+      - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
+        action: replace
+        regex: ([^:]+)(?::\d+)?;(\d+)
+        replacement: $1:$2
+        target_label: __address__
+      - action: labelmap
+        regex: __meta_kubernetes_pod_label_(.+)
+      - source_labels: [__meta_kubernetes_namespace]
+        action: replace
+        target_label: kubernetes_namespace
+      - source_labels: [__meta_kubernetes_pod_name]
+        action: replace
+        target_label: kubernetes_pod_name
+      - source_labels: [__meta_kubernetes_pod_node_name]
+        action: replace
+        target_label: kubernetes_node
+      # Add cloud provider label
+      - source_labels: [__meta_kubernetes_pod_node_name]
+        target_label: cloud_provider
+        regex: '.*aws.*'
+        replacement: 'aws'
+      - source_labels: [__meta_kubernetes_pod_node_name]
+        target_label: cloud_provider
+        regex: '.*gcp.*'
+        replacement: 'gcp'
+      - source_labels: [__meta_kubernetes_pod_node_name]
+        target_label: cloud_provider
+        regex: '.*azure.*'
+        replacement: 'azure'
+
+  # cAdvisor for container metrics
+  - job_name: 'kubernetes-cadvisor'
+    kubernetes_sd_configs:
+      - role: node
+    scheme: https
+    tls_config:
+      ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+    bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+    relabel_configs:
+      - action: labelmap
+        regex: __meta_kubernetes_node_label_(.+)
+      - target_label: __address__
+        replacement: kubernetes.default.svc:443
+      - source_labels: [__meta_kubernetes_node_name]
+        regex: (.+)
+        target_label: __metrics_path__
+        replacement: /api/v1/nodes/${1}/proxy/metrics/cadvisor
+      # Add cloud provider labels
+      - source_labels: [__meta_kubernetes_node_label_node_kubernetes_io_instance_type]
+        target_label: cloud_provider
+        regex: '(m5|c5|r5|t3)\..*'
+        replacement: 'aws'
+      - source_labels: [__meta_kubernetes_node_label_node_kubernetes_io_instance_type]
+        target_label: cloud_provider
+        regex: '(n1|n2|e2|c2).*'
+        replacement: 'gcp'
+      - source_labels: [__meta_kubernetes_node_label_node_kubernetes_io_instance_type]
+        target_label: cloud_provider
+        regex: 'Standard_.*'
+        replacement: 'azure'
+
+  # AWS CloudWatch Exporter (when running on AWS)
+  - job_name: 'aws-cloudwatch'
+    static_configs:
+      - targets: ['cloudwatch-exporter:9106']
+    scrape_interval: 60s
+    metrics_path: /metrics
+    relabel_configs:
+      - target_label: cloud_provider
+        replacement: 'aws'
+
+  # GCP Monitoring Exporter (when running on GCP)
+  - job_name: 'gcp-monitoring'
+    static_configs:
+      - targets: ['stackdriver-exporter:9255']
+    scrape_interval: 60s
+    metrics_path: /metrics
+    relabel_configs:
+      - target_label: cloud_provider
+        replacement: 'gcp'
+
+  # Azure Monitor Exporter (when running on Azure)
+  - job_name: 'azure-monitor'
+    static_configs:
+      - targets: ['azure-exporter:9276']
+    scrape_interval: 60s
+    metrics_path: /metrics
+    relabel_configs:
+      - target_label: cloud_provider
+        replacement: 'azure'
+
+  # Serverless Functions Metrics
+  - job_name: 'serverless-functions'
+    static_configs:
+      - targets: ['lambda-exporter:9090']
+        labels:
+          cloud_provider: 'aws'
+          service_type: 'serverless'
+      - targets: ['cloud-functions-exporter:9090']
+        labels:
+          cloud_provider: 'gcp'
+          service_type: 'serverless'
+      - targets: ['azure-functions-exporter:9090']
+        labels:
+          cloud_provider: 'azure'
+          service_type: 'serverless'
+    scrape_interval: 30s
+
+  # Database Metrics
+  - job_name: 'databases'
+    static_configs:
+      - targets: ['postgres-exporter:9187']
+        labels:
+          database_type: 'postgresql'
+          cloud_provider: 'multi'
+      - targets: ['redis-exporter:9121']
+        labels:
+          database_type: 'redis'
+          cloud_provider: 'multi'
+    scrape_interval: 30s
+
+  # Load Balancer Metrics
+  - job_name: 'load-balancers'
+    static_configs:
+      - targets: ['nginx-exporter:9113']
+        labels:
+          lb_type: 'nginx'
+          cloud_provider: 'multi'
+    scrape_interval: 30s
+
+  # Security Metrics
+  - job_name: 'security-scanners'
+    kubernetes_sd_configs:
+      - role: pod
+        namespaces:
+          names:
+            - security
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_label_app_kubernetes_io_component]
+        action: keep
+        regex: security-scanner
+      - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+        action: keep
+        regex: true
+      - action: labelmap
+        regex: __meta_kubernetes_pod_label_(.+)
+      - source_labels: [__meta_kubernetes_namespace]
+        action: replace
+        target_label: kubernetes_namespace
+      - source_labels: [__meta_kubernetes_pod_name]
+        action: replace
+        target_label: kubernetes_pod_name
+
+  # Cost Optimization Metrics
+  - job_name: 'cost-optimization'
+    static_configs:
+      - targets: ['cost-exporter:9090']
+    scrape_interval: 300s  # 5 minutes
+    metrics_path: /metrics
+    relabel_configs:
+      - target_label: service_type
+        replacement: 'cost-optimization'
+
+# Remote write configuration for long-term storage
+remote_write:
+  - url: "https://prometheus-remote-write.monitoring.svc.cluster.local/api/v1/write"
+    queue_config:
+      max_samples_per_send: 1000
+      max_shards: 200
+      capacity: 2500
+    write_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'go_.*|process_.*|prometheus_.*'
+        action: drop
+
+# Remote read configuration
+remote_read:
+  - url: "https://prometheus-remote-read.monitoring.svc.cluster.local/api/v1/read"
+    read_recent: true

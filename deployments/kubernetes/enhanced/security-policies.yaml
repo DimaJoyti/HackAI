@@ -1,0 +1,469 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: hackai
+  labels:
+    name: hackai
+    pod-security.kubernetes.io/enforce: restricted
+    pod-security.kubernetes.io/audit: restricted
+    pod-security.kubernetes.io/warn: restricted
+  annotations:
+    scheduler.alpha.kubernetes.io/node-selector: "node-type=general"
+
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+  namespace: hackai
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-api-gateway
+  namespace: hackai
+spec:
+  podSelector:
+    matchLabels:
+      app: api-gateway
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: istio-system
+    - namespaceSelector:
+        matchLabels:
+          name: ingress-nginx
+    - podSelector:
+        matchLabels:
+          app: prometheus
+    ports:
+    - protocol: TCP
+      port: 8080
+    - protocol: TCP
+      port: 9090
+  egress:
+  - to:
+    - podSelector:
+        matchLabels:
+          app: user-service
+    - podSelector:
+        matchLabels:
+          app: threat-service
+    - podSelector:
+        matchLabels:
+          app: scanner-service
+    ports:
+    - protocol: TCP
+      port: 8080
+  - to:
+    - podSelector:
+        matchLabels:
+          app: postgres
+    ports:
+    - protocol: TCP
+      port: 5432
+  - to:
+    - podSelector:
+        matchLabels:
+          app: redis
+    ports:
+    - protocol: TCP
+      port: 6379
+  - to: []
+    ports:
+    - protocol: TCP
+      port: 53
+    - protocol: UDP
+      port: 53
+  - to: []
+    ports:
+    - protocol: TCP
+      port: 443
+
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-backend-services
+  namespace: hackai
+spec:
+  podSelector:
+    matchLabels:
+      tier: service
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app: api-gateway
+    - podSelector:
+        matchLabels:
+          app: prometheus
+    ports:
+    - protocol: TCP
+      port: 8080
+    - protocol: TCP
+      port: 9090
+  egress:
+  - to:
+    - podSelector:
+        matchLabels:
+          app: postgres
+    ports:
+    - protocol: TCP
+      port: 5432
+  - to:
+    - podSelector:
+        matchLabels:
+          app: redis
+    ports:
+    - protocol: TCP
+      port: 6379
+  - to: []
+    ports:
+    - protocol: TCP
+      port: 53
+    - protocol: UDP
+      port: 53
+  - to: []
+    ports:
+    - protocol: TCP
+      port: 443
+
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-database
+  namespace: hackai
+spec:
+  podSelector:
+    matchLabels:
+      app: postgres
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          tier: service
+    - podSelector:
+        matchLabels:
+          app: api-gateway
+    ports:
+    - protocol: TCP
+      port: 5432
+
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-redis
+  namespace: hackai
+spec:
+  podSelector:
+    matchLabels:
+      app: redis
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          tier: service
+    - podSelector:
+        matchLabels:
+          app: api-gateway
+    ports:
+    - protocol: TCP
+      port: 6379
+
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-monitoring
+  namespace: hackai
+spec:
+  podSelector:
+    matchLabels:
+      app: prometheus
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: monitoring
+    - podSelector:
+        matchLabels:
+          app: grafana
+    ports:
+    - protocol: TCP
+      port: 9090
+  egress:
+  - to:
+    - podSelector: {}
+    ports:
+    - protocol: TCP
+      port: 9090
+    - protocol: TCP
+      port: 8080
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: hackai
+  name: hackai-pod-reader
+rules:
+- apiGroups: [""]
+  resources: ["pods", "services", "endpoints"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["apps"]
+  resources: ["deployments", "replicasets"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["metrics.k8s.io"]
+  resources: ["pods", "nodes"]
+  verbs: ["get", "list"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: hackai-pod-reader-binding
+  namespace: hackai
+subjects:
+- kind: ServiceAccount
+  name: api-gateway-sa
+  namespace: hackai
+- kind: ServiceAccount
+  name: threat-service-sa
+  namespace: hackai
+- kind: ServiceAccount
+  name: user-service-sa
+  namespace: hackai
+- kind: ServiceAccount
+  name: scanner-service-sa
+  namespace: hackai
+roleRef:
+  kind: Role
+  name: hackai-pod-reader
+  apiGroup: rbac.authorization.k8s.io
+
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: hackai-quota
+  namespace: hackai
+spec:
+  hard:
+    requests.cpu: "8"
+    requests.memory: 16Gi
+    requests.storage: 100Gi
+    limits.cpu: "16"
+    limits.memory: 32Gi
+    persistentvolumeclaims: "10"
+    services: "20"
+    secrets: "20"
+    configmaps: "20"
+    pods: "50"
+
+---
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: hackai-limits
+  namespace: hackai
+spec:
+  limits:
+  - default:
+      cpu: "500m"
+      memory: "512Mi"
+      ephemeral-storage: "1Gi"
+    defaultRequest:
+      cpu: "100m"
+      memory: "128Mi"
+      ephemeral-storage: "500Mi"
+    type: Container
+  - default:
+      storage: "1Gi"
+    type: PersistentVolumeClaim
+
+---
+apiVersion: security.istio.io/v1beta1
+kind: PeerAuthentication
+metadata:
+  name: default
+  namespace: hackai
+spec:
+  mtls:
+    mode: STRICT
+
+---
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: api-gateway-authz
+  namespace: hackai
+spec:
+  selector:
+    matchLabels:
+      app: api-gateway
+  rules:
+  - from:
+    - source:
+        namespaces: ["istio-system", "ingress-nginx"]
+  - to:
+    - operation:
+        methods: ["GET", "POST", "PUT", "DELETE"]
+        paths: ["/api/*", "/health/*", "/metrics"]
+
+---
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: backend-services-authz
+  namespace: hackai
+spec:
+  selector:
+    matchLabels:
+      tier: service
+  rules:
+  - from:
+    - source:
+        principals: ["cluster.local/ns/hackai/sa/api-gateway-sa"]
+  - to:
+    - operation:
+        methods: ["GET", "POST", "PUT", "DELETE"]
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: ghcr-secret
+  namespace: hackai
+  labels:
+    app: hackai
+type: kubernetes.io/dockerconfigjson
+data:
+  .dockerconfigjson: eyJhdXRocyI6eyJnaGNyLmlvIjp7InVzZXJuYW1lIjoiZ2l0aHViLXVzZXIiLCJwYXNzd29yZCI6ImdpdGh1Yi10b2tlbiIsImF1dGgiOiJaMmwwYUhWaUxYVnpaWEk2WjJsMGFIVmlMWFJ2YTJWdSJ9fX0=
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: security-config
+  namespace: hackai
+  labels:
+    app: hackai
+    component: security
+data:
+  security.yaml: |
+    security:
+      authentication:
+        jwt:
+          issuer: "hackai"
+          audience: "hackai-users"
+          algorithm: "RS256"
+          expiration: "24h"
+        oauth:
+          providers:
+            - name: "github"
+              client_id: "${GITHUB_CLIENT_ID}"
+              client_secret: "${GITHUB_CLIENT_SECRET}"
+              redirect_url: "https://hackai.dev/auth/github/callback"
+      authorization:
+        rbac:
+          enabled: true
+          default_role: "user"
+          roles:
+            - name: "admin"
+              permissions: ["*"]
+            - name: "user"
+              permissions: ["read", "scan"]
+            - name: "analyst"
+              permissions: ["read", "scan", "analyze"]
+      encryption:
+        algorithm: "AES-256-GCM"
+        key_rotation_interval: "30d"
+      rate_limiting:
+        global:
+          requests_per_minute: 1000
+        per_user:
+          requests_per_minute: 100
+        per_ip:
+          requests_per_minute: 200
+      audit:
+        enabled: true
+        log_level: "info"
+        retention_days: 90
+        events:
+          - "authentication"
+          - "authorization"
+          - "data_access"
+          - "configuration_change"
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: monitoring-config
+  namespace: hackai
+  labels:
+    app: hackai
+    component: monitoring
+data:
+  monitoring.yaml: |
+    monitoring:
+      metrics:
+        enabled: true
+        interval: "15s"
+        retention: "30d"
+        exporters:
+          - prometheus
+          - datadog
+      tracing:
+        enabled: true
+        sampling_rate: 0.1
+        exporters:
+          - jaeger
+          - zipkin
+      logging:
+        enabled: true
+        level: "info"
+        format: "json"
+        outputs:
+          - stdout
+          - file
+          - elasticsearch
+      alerting:
+        enabled: true
+        channels:
+          - slack
+          - email
+          - pagerduty
+        rules:
+          - name: "high_error_rate"
+            condition: "error_rate > 0.05"
+            severity: "critical"
+          - name: "high_latency"
+            condition: "p99_latency > 1000ms"
+            severity: "warning"
+          - name: "low_availability"
+            condition: "availability < 0.99"
+            severity: "critical"

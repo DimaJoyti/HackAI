@@ -1,0 +1,361 @@
+{
+  "dashboard": {
+    "id": null,
+    "title": "HackAI Observability & Monitoring Stack",
+    "tags": ["hackai", "observability", "monitoring"],
+    "style": "dark",
+    "timezone": "browser",
+    "refresh": "30s",
+    "time": {
+      "from": "now-1h",
+      "to": "now"
+    },
+    "panels": [
+      {
+        "id": 1,
+        "title": "System Overview",
+        "type": "stat",
+        "gridPos": {"h": 8, "w": 24, "x": 0, "y": 0},
+        "targets": [
+          {
+            "expr": "up",
+            "legendFormat": "Services Up",
+            "refId": "A"
+          },
+          {
+            "expr": "rate(http_requests_total[5m])",
+            "legendFormat": "Requests/sec",
+            "refId": "B"
+          },
+          {
+            "expr": "rate(http_requests_total{status=~\"5..\"}[5m]) / rate(http_requests_total[5m])",
+            "legendFormat": "Error Rate",
+            "refId": "C"
+          },
+          {
+            "expr": "histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m]))",
+            "legendFormat": "95th Percentile Latency",
+            "refId": "D"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "palette-classic"},
+            "custom": {"displayMode": "list", "orientation": "horizontal"},
+            "mappings": [],
+            "thresholds": {
+              "steps": [
+                {"color": "green", "value": null},
+                {"color": "red", "value": 80}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 2,
+        "title": "Request Rate",
+        "type": "graph",
+        "gridPos": {"h": 9, "w": 12, "x": 0, "y": 8},
+        "targets": [
+          {
+            "expr": "rate(http_requests_total[5m])",
+            "legendFormat": "{{service}} - {{method}}",
+            "refId": "A"
+          }
+        ],
+        "yAxes": [
+          {"label": "Requests/sec", "min": 0},
+          {"show": false}
+        ],
+        "xAxis": {"show": true},
+        "legend": {"show": true, "values": false, "min": false, "max": false, "current": false, "total": false, "avg": false}
+      },
+      {
+        "id": 3,
+        "title": "Error Rate",
+        "type": "graph",
+        "gridPos": {"h": 9, "w": 12, "x": 12, "y": 8},
+        "targets": [
+          {
+            "expr": "rate(http_requests_total{status=~\"5..\"}[5m]) / rate(http_requests_total[5m])",
+            "legendFormat": "{{service}} Error Rate",
+            "refId": "A"
+          }
+        ],
+        "yAxes": [
+          {"label": "Error Rate", "min": 0, "max": 1},
+          {"show": false}
+        ],
+        "alert": {
+          "conditions": [
+            {
+              "evaluator": {"params": [0.05], "type": "gt"},
+              "operator": {"type": "and"},
+              "query": {"params": ["A", "5m", "now"]},
+              "reducer": {"params": [], "type": "avg"},
+              "type": "query"
+            }
+          ],
+          "executionErrorState": "alerting",
+          "for": "5m",
+          "frequency": "10s",
+          "handler": 1,
+          "name": "High Error Rate Alert",
+          "noDataState": "no_data",
+          "notifications": []
+        }
+      },
+      {
+        "id": 4,
+        "title": "Response Time Distribution",
+        "type": "heatmap",
+        "gridPos": {"h": 9, "w": 24, "x": 0, "y": 17},
+        "targets": [
+          {
+            "expr": "rate(http_request_duration_seconds_bucket[5m])",
+            "legendFormat": "{{le}}",
+            "refId": "A"
+          }
+        ],
+        "heatmap": {
+          "xAxis": {"show": true},
+          "yAxis": {"show": true, "logBase": 1, "min": null, "max": null},
+          "yBucketBound": "auto"
+        }
+      },
+      {
+        "id": 5,
+        "title": "System Resources",
+        "type": "graph",
+        "gridPos": {"h": 9, "w": 12, "x": 0, "y": 26},
+        "targets": [
+          {
+            "expr": "process_resident_memory_bytes / 1024 / 1024",
+            "legendFormat": "Memory Usage (MB)",
+            "refId": "A"
+          },
+          {
+            "expr": "rate(process_cpu_seconds_total[5m]) * 100",
+            "legendFormat": "CPU Usage (%)",
+            "refId": "B"
+          },
+          {
+            "expr": "go_goroutines",
+            "legendFormat": "Goroutines",
+            "refId": "C"
+          }
+        ],
+        "yAxes": [
+          {"label": "Usage", "min": 0},
+          {"show": false}
+        ]
+      },
+      {
+        "id": 6,
+        "title": "Security Metrics",
+        "type": "graph",
+        "gridPos": {"h": 9, "w": 12, "x": 12, "y": 26},
+        "targets": [
+          {
+            "expr": "rate(security_threats_detected_total[5m])",
+            "legendFormat": "Threats Detected/sec",
+            "refId": "A"
+          },
+          {
+            "expr": "rate(auth_failed_attempts_total[5m])",
+            "legendFormat": "Failed Auth/sec",
+            "refId": "B"
+          },
+          {
+            "expr": "rate(http_requests_total{status=\"401\"}[5m])",
+            "legendFormat": "Unauthorized Requests/sec",
+            "refId": "C"
+          }
+        ],
+        "yAxes": [
+          {"label": "Events/sec", "min": 0},
+          {"show": false}
+        ]
+      },
+      {
+        "id": 7,
+        "title": "AI Model Performance",
+        "type": "graph",
+        "gridPos": {"h": 9, "w": 12, "x": 0, "y": 35},
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, rate(ai_model_inference_duration_seconds_bucket[5m]))",
+            "legendFormat": "{{model}} - 95th Percentile Latency",
+            "refId": "A"
+          },
+          {
+            "expr": "ai_model_accuracy_score",
+            "legendFormat": "{{model}} - Accuracy",
+            "refId": "B"
+          }
+        ],
+        "yAxes": [
+          {"label": "Latency (s) / Accuracy", "min": 0},
+          {"show": false}
+        ]
+      },
+      {
+        "id": 8,
+        "title": "Business Metrics",
+        "type": "graph",
+        "gridPos": {"h": 9, "w": 12, "x": 12, "y": 35},
+        "targets": [
+          {
+            "expr": "rate(user_actions_total[5m])",
+            "legendFormat": "User Actions/sec",
+            "refId": "A"
+          },
+          {
+            "expr": "rate(education_sessions_started_total[5m])",
+            "legendFormat": "Education Sessions Started/sec",
+            "refId": "B"
+          },
+          {
+            "expr": "rate(education_sessions_completed_total[5m])",
+            "legendFormat": "Education Sessions Completed/sec",
+            "refId": "C"
+          }
+        ],
+        "yAxes": [
+          {"label": "Events/sec", "min": 0},
+          {"show": false}
+        ]
+      },
+      {
+        "id": 9,
+        "title": "Database Performance",
+        "type": "graph",
+        "gridPos": {"h": 9, "w": 12, "x": 0, "y": 44},
+        "targets": [
+          {
+            "expr": "rate(database_queries_total[5m])",
+            "legendFormat": "Queries/sec",
+            "refId": "A"
+          },
+          {
+            "expr": "histogram_quantile(0.95, rate(database_query_duration_seconds_bucket[5m]))",
+            "legendFormat": "95th Percentile Query Time",
+            "refId": "B"
+          },
+          {
+            "expr": "database_connections_active",
+            "legendFormat": "Active Connections",
+            "refId": "C"
+          }
+        ],
+        "yAxes": [
+          {"label": "Queries/sec & Connections", "min": 0},
+          {"label": "Query Time (s)", "min": 0}
+        ]
+      },
+      {
+        "id": 10,
+        "title": "Infrastructure Health",
+        "type": "table",
+        "gridPos": {"h": 9, "w": 12, "x": 12, "y": 44},
+        "targets": [
+          {
+            "expr": "up",
+            "legendFormat": "",
+            "refId": "A",
+            "instant": true
+          }
+        ],
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {
+              "excludeByName": {},
+              "indexByName": {},
+              "renameByName": {
+                "instance": "Instance",
+                "job": "Service",
+                "Value": "Status"
+              }
+            }
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "custom": {
+              "align": "auto",
+              "displayMode": "auto"
+            },
+            "mappings": [
+              {
+                "options": {
+                  "0": {"text": "Down", "color": "red"},
+                  "1": {"text": "Up", "color": "green"}
+                },
+                "type": "value"
+              }
+            ],
+            "thresholds": {
+              "steps": [
+                {"color": "green", "value": null},
+                {"color": "red", "value": 0.5}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 11,
+        "title": "Log Volume",
+        "type": "graph",
+        "gridPos": {"h": 9, "w": 24, "x": 0, "y": 53},
+        "targets": [
+          {
+            "expr": "rate(log_entries_total[5m])",
+            "legendFormat": "{{level}} - {{service}}",
+            "refId": "A"
+          }
+        ],
+        "yAxes": [
+          {"label": "Log Entries/sec", "min": 0},
+          {"show": false}
+        ],
+        "stack": true
+      }
+    ],
+    "templating": {
+      "list": [
+        {
+          "name": "service",
+          "type": "query",
+          "query": "label_values(up, job)",
+          "refresh": 1,
+          "includeAll": true,
+          "multi": true
+        },
+        {
+          "name": "instance",
+          "type": "query",
+          "query": "label_values(up{job=~\"$service\"}, instance)",
+          "refresh": 1,
+          "includeAll": true,
+          "multi": true
+        }
+      ]
+    },
+    "annotations": {
+      "list": [
+        {
+          "name": "Deployments",
+          "datasource": "prometheus",
+          "enable": true,
+          "expr": "changes(process_start_time_seconds[1m]) > 0",
+          "iconColor": "green",
+          "titleFormat": "Deployment",
+          "textFormat": "Service restarted"
+        }
+      ]
+    }
+  }
+}

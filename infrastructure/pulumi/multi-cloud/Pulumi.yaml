@@ -1,0 +1,39 @@
+name: hackai-multi-cloud
+runtime: go
+description: HackAI Multi-Cloud Infrastructure with Pulumi
+
+template:
+  config:
+    projectName:
+      description: Name of the project
+      default: hackai
+    environment:
+      description: Environment (development, staging, production)
+      default: production
+    enableAWS:
+      description: Enable AWS infrastructure
+      default: true
+    enableGCP:
+      description: Enable GCP infrastructure
+      default: true
+    enableAzure:
+      description: Enable Azure infrastructure
+      default: true
+    primaryCloud:
+      description: Primary cloud provider
+      default: aws
+    awsRegion:
+      description: AWS region
+      default: us-west-2
+    gcpRegion:
+      description: GCP region
+      default: us-central1
+    azureLocation:
+      description: Azure location
+      default: East US
+    kubernetesVersion:
+      description: Kubernetes version
+      default: "1.28"
+
+backend:
+  url: s3://hackai-pulumi-state-multi-cloud

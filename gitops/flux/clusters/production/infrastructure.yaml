@@ -1,0 +1,372 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: flux-system
+---
+apiVersion: source.toolkit.fluxcd.io/v1beta2
+kind: GitRepository
+metadata:
+  name: hackai-infrastructure
+  namespace: flux-system
+spec:
+  interval: 1m
+  ref:
+    branch: main
+  url: https://github.com/DimaJoyti/HackAI.git
+  secretRef:
+    name: flux-system
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+kind: Kustomization
+metadata:
+  name: infrastructure-controllers
+  namespace: flux-system
+spec:
+  interval: 10m
+  path: "./gitops/flux/infrastructure/controllers"
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: hackai-infrastructure
+  healthChecks:
+    - apiVersion: apps/v1
+      kind: Deployment
+      name: helm-controller
+      namespace: flux-system
+    - apiVersion: apps/v1
+      kind: Deployment
+      name: source-controller
+      namespace: flux-system
+    - apiVersion: apps/v1
+      kind: Deployment
+      name: kustomize-controller
+      namespace: flux-system
+  timeout: 5m
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+kind: Kustomization
+metadata:
+  name: infrastructure-configs
+  namespace: flux-system
+spec:
+  dependsOn:
+    - name: infrastructure-controllers
+  interval: 10m
+  path: "./gitops/flux/infrastructure/configs"
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: hackai-infrastructure
+  patches:
+    - patch: |
+        - op: replace
+          path: /spec/values/global/environment
+          value: production
+      target:
+        kind: HelmRelease
+        name: ".*"
+  timeout: 5m
+---
+apiVersion: notification.toolkit.fluxcd.io/v1beta1
+kind: Provider
+metadata:
+  name: slack
+  namespace: flux-system
+spec:
+  type: slack
+  channel: deployments
+  secretRef:
+    name: slack-webhook
+---
+apiVersion: notification.toolkit.fluxcd.io/v1beta1
+kind: Alert
+metadata:
+  name: infrastructure-alerts
+  namespace: flux-system
+spec:
+  providerRef:
+    name: slack
+  eventSeverity: info
+  eventSources:
+    - kind: GitRepository
+      name: '*'
+    - kind: Kustomization
+      name: '*'
+    - kind: HelmRelease
+      name: '*'
+  summary: "Infrastructure deployment status for HackAI Multi-Cloud"
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRepository
+metadata:
+  name: bitnami
+  namespace: flux-system
+spec:
+  interval: 24h
+  url: https://charts.bitnami.com/bitnami
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRepository
+metadata:
+  name: prometheus-community
+  namespace: flux-system
+spec:
+  interval: 24h
+  url: https://prometheus-community.github.io/helm-charts
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRepository
+metadata:
+  name: grafana
+  namespace: flux-system
+spec:
+  interval: 24h
+  url: https://grafana.github.io/helm-charts
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRepository
+metadata:
+  name: jaeger
+  namespace: flux-system
+spec:
+  interval: 24h
+  url: https://jaegertracing.github.io/helm-charts
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: prometheus-stack
+  namespace: monitoring
+spec:
+  interval: 30m
+  chart:
+    spec:
+      chart: kube-prometheus-stack
+      version: ">=45.0.0"
+      sourceRef:
+        kind: HelmRepository
+        name: prometheus-community
+        namespace: flux-system
+  values:
+    prometheus:
+      prometheusSpec:
+        retention: 30d
+        storageSpec:
+          volumeClaimTemplate:
+            spec:
+              storageClassName: fast-ssd
+              accessModes: ["ReadWriteOnce"]
+              resources:
+                requests:
+                  storage: 50Gi
+        additionalScrapeConfigs:
+          - job_name: 'hackai-services'
+            kubernetes_sd_configs:
+              - role: endpoints
+                namespaces:
+                  names:
+                    - hackai
+            relabel_configs:
+              - source_labels: [__meta_kubernetes_service_annotation_prometheus_io_scrape]
+                action: keep
+                regex: true
+    grafana:
+      adminPassword: admin
+      persistence:
+        enabled: true
+        storageClassName: fast-ssd
+        size: 10Gi
+      dashboardProviders:
+        dashboardproviders.yaml:
+          apiVersion: 1
+          providers:
+            - name: 'hackai'
+              orgId: 1
+              folder: 'HackAI'
+              type: file
+              disableDeletion: false
+              editable: true
+              options:
+                path: /var/lib/grafana/dashboards/hackai
+      dashboards:
+        hackai:
+          multi-cloud-overview:
+            gnetId: 15757
+            revision: 1
+            datasource: Prometheus
+          kubernetes-cluster:
+            gnetId: 7249
+            revision: 1
+            datasource: Prometheus
+    alertmanager:
+      alertmanagerSpec:
+        storage:
+          volumeClaimTemplate:
+            spec:
+              storageClassName: fast-ssd
+              accessModes: ["ReadWriteOnce"]
+              resources:
+                requests:
+                  storage: 10Gi
+  install:
+    createNamespace: true
+  upgrade:
+    remediation:
+      retries: 3
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: jaeger
+  namespace: monitoring
+spec:
+  interval: 30m
+  chart:
+    spec:
+      chart: jaeger
+      version: ">=0.71.0"
+      sourceRef:
+        kind: HelmRepository
+        name: jaeger
+        namespace: flux-system
+  values:
+    provisionDataStore:
+      cassandra: false
+      elasticsearch: true
+    elasticsearch:
+      replicas: 3
+      minimumMasterNodes: 2
+      resources:
+        requests:
+          cpu: 500m
+          memory: 2Gi
+        limits:
+          cpu: 1000m
+          memory: 4Gi
+      volumeClaimTemplate:
+        accessModes: ["ReadWriteOnce"]
+        storageClassName: fast-ssd
+        resources:
+          requests:
+            storage: 50Gi
+    agent:
+      enabled: true
+    collector:
+      enabled: true
+      replicaCount: 3
+      resources:
+        requests:
+          cpu: 200m
+          memory: 256Mi
+        limits:
+          cpu: 500m
+          memory: 512Mi
+    query:
+      enabled: true
+      replicaCount: 2
+      resources:
+        requests:
+          cpu: 200m
+          memory: 256Mi
+        limits:
+          cpu: 500m
+          memory: 512Mi
+  install:
+    createNamespace: true
+  upgrade:
+    remediation:
+      retries: 3
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+kind: Kustomization
+metadata:
+  name: hackai-apps
+  namespace: flux-system
+spec:
+  dependsOn:
+    - name: infrastructure-configs
+  interval: 5m
+  path: "./gitops/flux/apps/production"
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: hackai-infrastructure
+  healthChecks:
+    - apiVersion: apps/v1
+      kind: Deployment
+      name: api-gateway
+      namespace: hackai
+    - apiVersion: apps/v1
+      kind: Deployment
+      name: user-service
+      namespace: hackai
+  timeout: 10m
+  postBuild:
+    substitute:
+      environment: "production"
+      cloud_provider: "multi-cloud"
+      image_tag: "latest"
+---
+apiVersion: image.toolkit.fluxcd.io/v1beta2
+kind: ImageRepository
+metadata:
+  name: hackai-api-gateway
+  namespace: flux-system
+spec:
+  image: ghcr.io/hackai/api-gateway
+  interval: 1m
+---
+apiVersion: image.toolkit.fluxcd.io/v1beta2
+kind: ImagePolicy
+metadata:
+  name: hackai-api-gateway
+  namespace: flux-system
+spec:
+  imageRepositoryRef:
+    name: hackai-api-gateway
+  policy:
+    semver:
+      range: '>=1.0.0'
+---
+apiVersion: image.toolkit.fluxcd.io/v1beta2
+kind: ImageUpdateAutomation
+metadata:
+  name: hackai-apps
+  namespace: flux-system
+spec:
+  interval: 30m
+  sourceRef:
+    kind: GitRepository
+    name: hackai-infrastructure
+  git:
+    checkout:
+      ref:
+        branch: main
+    commit:
+      author:
+        email: fluxcdbot@users.noreply.github.com
+        name: fluxcdbot
+      messageTemplate: |
+        Automated image update
+
+        Automation name: {{ .AutomationObject }}
+
+        Files:
+        {{ range $filename, $_ := .Updated.Files -}}
+        - {{ $filename }}
+        {{ end -}}
+
+        Objects:
+        {{ range $resource, $_ := .Updated.Objects -}}
+        - {{ $resource.Kind }} {{ $resource.Name }}
+        {{ end -}}
+
+        Images:
+        {{ range .Updated.Images -}}
+        - {{.}}
+        {{ end -}}
+    push:
+      branch: main
+  update:
+    path: "./deployments"
+    strategy: Setters

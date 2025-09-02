@@ -1,0 +1,732 @@
+# HackAI Comprehensive Production Deployment & DevOps Configuration
+# Enterprise-grade deployment, CI/CD, and DevOps automation settings
+
+# Global DevOps Settings
+global:
+  project_name: "hackai"
+  environment: "production"
+  version: "1.0.0"
+  namespace: "hackai-prod"
+  enable_monitoring: true
+  enable_security: true
+  enable_backup: true
+  enable_disaster_recovery: true
+
+# CI/CD Pipeline Configuration
+cicd:
+  enabled: true
+  provider: "github_actions"
+  repository: "DimaJoyti/HackAI"
+  branch: "main"
+  trigger_events:
+    - "push"
+    - "pull_request"
+    - "release"
+    - "schedule"
+  
+  # Build Stages
+  build_stages:
+    - name: "code_quality"
+      image: "golang:1.21-alpine"
+      commands:
+        - "go mod download"
+        - "go vet ./..."
+        - "golangci-lint run"
+        - "go fmt ./..."
+      environment:
+        CGO_ENABLED: "0"
+        GOOS: "linux"
+      artifacts:
+        - "coverage.out"
+        - "lint-report.xml"
+      timeout: "10m"
+      retry_count: 2
+      parallel: false
+    
+    - name: "security_scan"
+      image: "securecodewarrior/docker-gosec"
+      commands:
+        - "gosec -fmt json -out gosec-report.json ./..."
+        - "nancy sleuth"
+      artifacts:
+        - "gosec-report.json"
+        - "nancy-report.json"
+      timeout: "15m"
+      retry_count: 1
+      parallel: true
+    
+    - name: "build_binaries"
+      image: "golang:1.21-alpine"
+      commands:
+        - "go mod download"
+        - "go build -o bin/api-gateway cmd/api-gateway/main.go"
+        - "go build -o bin/user-service cmd/user-service/main.go"
+        - "go build -o bin/scanner-service cmd/scanner-service/main.go"
+        - "go build -o bin/threat-service cmd/threat-service/main.go"
+      environment:
+        CGO_ENABLED: "0"
+        GOOS: "linux"
+        GOARCH: "amd64"
+      artifacts:
+        - "bin/*"
+      timeout: "20m"
+      retry_count: 2
+      parallel: false
+    
+    - name: "build_containers"
+      image: "docker:24-dind"
+      commands:
+        - "docker build -t hackai/api-gateway:${VERSION} -f deployments/docker/Dockerfile.api-gateway ."
+        - "docker build -t hackai/user-service:${VERSION} -f deployments/docker/Dockerfile.user-service ."
+        - "docker build -t hackai/scanner-service:${VERSION} -f deployments/docker/Dockerfile.scanner-service ."
+        - "docker build -t hackai/threat-service:${VERSION} -f deployments/docker/Dockerfile.threat-service ."
+      environment:
+        DOCKER_BUILDKIT: "1"
+      artifacts:
+        - "container-images.txt"
+      timeout: "30m"
+      retry_count: 1
+      parallel: false
+  
+  # Test Stages
+  test_stages:
+    - name: "unit_tests"
+      type: "unit"
+      image: "golang:1.21-alpine"
+      commands:
+        - "go mod download"
+        - "go test -v -race -coverprofile=coverage.out ./..."
+        - "go tool cover -html=coverage.out -o coverage.html"
+      environment:
+        CGO_ENABLED: "1"
+      test_files:
+        - "**/*_test.go"
+      coverage:
+        enabled: true
+        threshold: 80.0
+        format: "html"
+        output_path: "coverage.html"
+      reports:
+        - type: "junit"
+          format: "xml"
+          output_path: "test-results.xml"
+      timeout: "15m"
+      retry_count: 2
+      parallel: false
+    
+    - name: "integration_tests"
+      type: "integration"
+      image: "golang:1.21-alpine"
+      commands:
+        - "go mod download"
+        - "go test -v -tags=integration ./test/integration/..."
+      environment:
+        DATABASE_URL: "postgres://test:test@postgres:5432/hackai_test"
+        REDIS_URL: "redis://redis:6379"
+      timeout: "20m"
+      retry_count: 1
+      parallel: false
+    
+    - name: "e2e_tests"
+      type: "e2e"
+      image: "cypress/included:12.17.4"
+      commands:
+        - "npm ci"
+        - "npm run test:e2e"
+      environment:
+        CYPRESS_baseUrl: "http://localhost:8080"
+      timeout: "30m"
+      retry_count: 1
+      parallel: false
+    
+    - name: "performance_tests"
+      type: "performance"
+      image: "grafana/k6:latest"
+      commands:
+        - "k6 run --out json=performance-results.json test/performance/load-test.js"
+      timeout: "25m"
+      retry_count: 1
+      parallel: true
+  
+  # Deployment Stages
+  deployment_stages:
+    - name: "deploy_staging"
+      environment: "staging"
+      strategy: "rolling"
+      commands:
+        - "helm upgrade --install hackai-staging ./deployments/helm/hackai --namespace hackai-staging --values ./deployments/helm/hackai/values-staging.yaml"
+      variables:
+        ENVIRONMENT: "staging"
+        REPLICAS: "2"
+      approval:
+        required: false
+      rollback:
+        enabled: true
+        auto_rollback_on_failure: true
+      health_checks:
+        - name: "api_health"
+          url: "https://staging-api.hackai.dev/health"
+          method: "GET"
+          expected: 200
+          timeout: "30s"
+          retries: 3
+      timeout: "15m"
+      retry_count: 1
+    
+    - name: "deploy_production"
+      environment: "production"
+      strategy: "blue_green"
+      commands:
+        - "helm upgrade --install hackai-prod ./deployments/helm/hackai --namespace hackai-prod --values ./deployments/helm/hackai/values-production.yaml"
+      variables:
+        ENVIRONMENT: "production"
+        REPLICAS: "5"
+      approval:
+        required: true
+        approvers:
+          - "admin@hackai.dev"
+          - "devops@hackai.dev"
+        timeout: "24h"
+      rollback:
+        enabled: true
+        auto_rollback_on_failure: true
+      health_checks:
+        - name: "api_health"
+          url: "https://api.hackai.dev/health"
+          method: "GET"
+          expected: 200
+          timeout: "30s"
+          retries: 5
+        - name: "database_health"
+          url: "https://api.hackai.dev/health/database"
+          method: "GET"
+          expected: 200
+          timeout: "10s"
+          retries: 3
+      timeout: "30m"
+      retry_count: 1
+  
+  # Notification Configuration
+  notifications:
+    enabled: true
+    channels:
+      - type: "slack"
+        config:
+          webhook_url: "${SLACK_WEBHOOK_URL}"
+          channel: "#deployments"
+        enabled: true
+        events:
+          - "pipeline_started"
+          - "pipeline_completed"
+          - "pipeline_failed"
+          - "deployment_started"
+          - "deployment_completed"
+          - "deployment_failed"
+      - type: "email"
+        config:
+          smtp_host: "${SMTP_HOST}"
+          smtp_port: "587"
+          username: "${SMTP_USERNAME}"
+          password: "${SMTP_PASSWORD}"
+          from: "devops@hackai.dev"
+          to: "team@hackai.dev"
+        enabled: true
+        events:
+          - "pipeline_failed"
+          - "deployment_failed"
+      - type: "discord"
+        config:
+          webhook_url: "${DISCORD_WEBHOOK_URL}"
+        enabled: false
+        events:
+          - "deployment_completed"
+    events:
+      - "pipeline_started"
+      - "pipeline_completed"
+      - "pipeline_failed"
+      - "deployment_started"
+      - "deployment_completed"
+      - "deployment_failed"
+    templates:
+      pipeline_started: "🚀 Pipeline started for ${BRANCH} (${COMMIT})"
+      pipeline_completed: "✅ Pipeline completed successfully for ${BRANCH}"
+      pipeline_failed: "❌ Pipeline failed for ${BRANCH}: ${ERROR}"
+      deployment_started: "🔄 Deployment started to ${ENVIRONMENT}"
+      deployment_completed: "🎉 Deployment completed to ${ENVIRONMENT}"
+      deployment_failed: "💥 Deployment failed to ${ENVIRONMENT}: ${ERROR}"
+  
+  # Secrets Configuration
+  secrets:
+    DATABASE_PASSWORD: "${DATABASE_PASSWORD}"
+    JWT_SECRET: "${JWT_SECRET}"
+    ENCRYPTION_KEY: "${ENCRYPTION_KEY}"
+    DOCKER_REGISTRY_TOKEN: "${DOCKER_REGISTRY_TOKEN}"
+    SLACK_WEBHOOK_URL: "${SLACK_WEBHOOK_URL}"
+    SMTP_PASSWORD: "${SMTP_PASSWORD}"
+  
+  # Variables Configuration
+  variables:
+    PROJECT_NAME: "hackai"
+    DOCKER_REGISTRY: "ghcr.io"
+    HELM_CHART_VERSION: "1.0.0"
+    KUBERNETES_VERSION: "1.28"
+
+# Container Configuration
+container:
+  registry: "ghcr.io"
+  repository: "dimajoyti/hackai"
+  tag: "${VERSION:-latest}"
+  build_context: "."
+  dockerfile: "deployments/docker/Dockerfile"
+  build_args:
+    VERSION: "${VERSION}"
+    BUILD_TIME: "${BUILD_TIME}"
+    COMMIT_HASH: "${COMMIT_HASH}"
+  labels:
+    maintainer: "HackAI DevOps Team"
+    version: "${VERSION}"
+    environment: "${ENVIRONMENT}"
+  security_scanning: true
+  vulnerability_threshold: "high"
+
+# Kubernetes Configuration
+kubernetes:
+  enabled: true
+  cluster_name: "hackai-prod"
+  context: "hackai-prod"
+  namespace: "hackai-prod"
+  manifest_path: "deployments/k8s"
+  
+  # Resource Configuration
+  resources:
+    api_gateway:
+      requests:
+        cpu: "500m"
+        memory: "1Gi"
+      limits:
+        cpu: "2"
+        memory: "4Gi"
+    user_service:
+      requests:
+        cpu: "250m"
+        memory: "512Mi"
+      limits:
+        cpu: "1"
+        memory: "2Gi"
+    scanner_service:
+      requests:
+        cpu: "1"
+        memory: "2Gi"
+      limits:
+        cpu: "4"
+        memory: "8Gi"
+    threat_service:
+      requests:
+        cpu: "500m"
+        memory: "1Gi"
+      limits:
+        cpu: "2"
+        memory: "4Gi"
+  
+  # Autoscaling Configuration
+  autoscaling:
+    enabled: true
+    min_replicas: 3
+    max_replicas: 20
+    target_cpu_utilization: 70
+    target_memory_utilization: 80
+    scale_up_stabilization: "60s"
+    scale_down_stabilization: "300s"
+  
+  # Service Mesh Configuration
+  service_mesh:
+    enabled: true
+    provider: "istio"
+    version: "1.19"
+    features:
+      - "traffic_management"
+      - "security"
+      - "observability"
+  
+  # Network Policies
+  network_policies:
+    - name: "deny-all"
+      spec:
+        podSelector: {}
+        policyTypes:
+          - "Ingress"
+          - "Egress"
+    - name: "allow-api-gateway"
+      spec:
+        podSelector:
+          matchLabels:
+            app: "api-gateway"
+        ingress:
+          - from:
+              - podSelector:
+                  matchLabels:
+                    app: "nginx-ingress"
+            ports:
+              - protocol: "TCP"
+                port: 8080
+  
+  # RBAC Configuration
+  rbac:
+    enabled: true
+    service_accounts:
+      - name: "hackai-api-gateway"
+        namespace: "hackai-prod"
+      - name: "hackai-user-service"
+        namespace: "hackai-prod"
+    cluster_roles:
+      - name: "hackai-reader"
+        rules:
+          - apiGroups: [""]
+            resources: ["pods", "services"]
+            verbs: ["get", "list", "watch"]
+    role_bindings:
+      - name: "hackai-api-gateway-binding"
+        subjects:
+          - kind: "ServiceAccount"
+            name: "hackai-api-gateway"
+            namespace: "hackai-prod"
+        roleRef:
+          kind: "ClusterRole"
+          name: "hackai-reader"
+
+# Terraform Configuration
+terraform:
+  enabled: true
+  version: "1.6.0"
+  backend:
+    type: "s3"
+    config:
+      bucket: "hackai-terraform-state"
+      key: "production/terraform.tfstate"
+      region: "us-west-2"
+      encrypt: true
+      dynamodb_table: "hackai-terraform-locks"
+  
+  # Provider Configuration
+  providers:
+    aws:
+      region: "us-west-2"
+      version: "~> 5.0"
+    kubernetes:
+      version: "~> 2.23"
+    helm:
+      version: "~> 2.11"
+  
+  # Module Configuration
+  modules:
+    vpc:
+      source: "./modules/aws/vpc"
+      cidr: "10.0.0.0/16"
+      availability_zones: ["us-west-2a", "us-west-2b", "us-west-2c"]
+    eks:
+      source: "./modules/aws/eks"
+      cluster_version: "1.28"
+      node_groups:
+        - name: "general"
+          instance_types: ["m5.large"]
+          min_size: 3
+          max_size: 20
+          desired_size: 5
+    rds:
+      source: "./modules/aws/rds"
+      engine: "postgres"
+      engine_version: "15.4"
+      instance_class: "db.r5.xlarge"
+      allocated_storage: 100
+      backup_retention_period: 30
+
+# Helm Configuration
+helm:
+  enabled: true
+  version: "3.13.0"
+  chart_path: "deployments/helm/hackai"
+  release_name: "hackai"
+  namespace: "hackai-prod"
+  
+  # Values Configuration
+  values:
+    global:
+      imageRegistry: "ghcr.io"
+      imageTag: "${VERSION}"
+      environment: "production"
+    
+    ingress:
+      enabled: true
+      className: "nginx"
+      annotations:
+        cert-manager.io/cluster-issuer: "letsencrypt-prod"
+        nginx.ingress.kubernetes.io/ssl-redirect: "true"
+      hosts:
+        - host: "api.hackai.dev"
+          paths:
+            - path: "/"
+              pathType: "Prefix"
+      tls:
+        - secretName: "hackai-tls"
+          hosts:
+            - "api.hackai.dev"
+    
+    autoscaling:
+      enabled: true
+      minReplicas: 3
+      maxReplicas: 20
+      targetCPUUtilizationPercentage: 70
+      targetMemoryUtilizationPercentage: 80
+    
+    monitoring:
+      enabled: true
+      prometheus:
+        enabled: true
+      grafana:
+        enabled: true
+      jaeger:
+        enabled: true
+    
+    security:
+      podSecurityPolicy:
+        enabled: true
+      networkPolicy:
+        enabled: true
+      rbac:
+        enabled: true
+
+# Monitoring Configuration
+monitoring:
+  enabled: true
+  stack: "prometheus"
+  
+  # Prometheus Configuration
+  prometheus:
+    enabled: true
+    retention: "30d"
+    storage_size: "100Gi"
+    scrape_interval: "15s"
+    evaluation_interval: "15s"
+  
+  # Grafana Configuration
+  grafana:
+    enabled: true
+    admin_password: "${GRAFANA_ADMIN_PASSWORD}"
+    persistence:
+      enabled: true
+      size: "10Gi"
+    dashboards:
+      - "kubernetes-cluster"
+      - "application-metrics"
+      - "business-metrics"
+  
+  # Jaeger Configuration
+  jaeger:
+    enabled: true
+    strategy: "production"
+    storage: "elasticsearch"
+  
+  # Alerting Configuration
+  alerting:
+    enabled: true
+    alertmanager:
+      enabled: true
+      config:
+        global:
+          smtp_smarthost: "${SMTP_HOST}:587"
+          smtp_from: "alerts@hackai.dev"
+        route:
+          group_by: ["alertname"]
+          group_wait: "10s"
+          group_interval: "10s"
+          repeat_interval: "1h"
+          receiver: "web.hook"
+        receivers:
+          - name: "web.hook"
+            slack_configs:
+              - api_url: "${SLACK_WEBHOOK_URL}"
+                channel: "#alerts"
+                title: "HackAI Alert"
+                text: "{{ range .Alerts }}{{ .Annotations.summary }}{{ end }}"
+
+# Security Configuration
+security:
+  enabled: true
+  
+  # Container Security
+  container_security:
+    image_scanning: true
+    vulnerability_threshold: "high"
+    runtime_security: true
+    admission_controller: true
+  
+  # Network Security
+  network_security:
+    network_policies: true
+    service_mesh: true
+    tls_everywhere: true
+    ingress_security: true
+  
+  # Secret Management
+  secret_management:
+    provider: "kubernetes"
+    encryption_at_rest: true
+    rotation_enabled: true
+    rotation_interval: "90d"
+  
+  # Compliance
+  compliance:
+    enabled: true
+    standards:
+      - "SOC2"
+      - "ISO27001"
+      - "GDPR"
+    scanning_interval: "24h"
+    reporting: true
+
+# Backup Configuration
+backup:
+  enabled: true
+  
+  # Database Backup
+  database:
+    enabled: true
+    schedule: "0 2 * * *"  # Daily at 2 AM
+    retention: "30d"
+    encryption: true
+    compression: true
+    storage:
+      type: "s3"
+      bucket: "hackai-backups"
+      region: "us-west-2"
+  
+  # Application Backup
+  application:
+    enabled: true
+    schedule: "0 3 * * *"  # Daily at 3 AM
+    retention: "7d"
+    include:
+      - "persistent_volumes"
+      - "secrets"
+      - "configmaps"
+  
+  # Cross-Region Backup
+  cross_region:
+    enabled: true
+    regions:
+      - "us-east-1"
+      - "eu-west-1"
+    schedule: "0 4 * * 0"  # Weekly on Sunday at 4 AM
+
+# Disaster Recovery Configuration
+disaster_recovery:
+  enabled: true
+  
+  # RTO/RPO Targets
+  targets:
+    rto: "4h"  # Recovery Time Objective
+    rpo: "1h"  # Recovery Point Objective
+  
+  # Multi-Region Setup
+  multi_region:
+    enabled: true
+    primary_region: "us-west-2"
+    secondary_regions:
+      - "us-east-1"
+      - "eu-west-1"
+    replication: "async"
+  
+  # Failover Configuration
+  failover:
+    automatic: false
+    manual_approval: true
+    health_checks:
+      - "database_connectivity"
+      - "application_health"
+      - "network_connectivity"
+  
+  # Recovery Testing
+  testing:
+    enabled: true
+    schedule: "0 0 1 * *"  # Monthly on 1st at midnight
+    scenarios:
+      - "database_failure"
+      - "region_failure"
+      - "complete_disaster"
+
+# Environment-Specific Configurations
+environments:
+  development:
+    kubernetes:
+      autoscaling:
+        enabled: false
+        min_replicas: 1
+        max_replicas: 3
+    monitoring:
+      enabled: false
+    security:
+      enabled: false
+    backup:
+      enabled: false
+    disaster_recovery:
+      enabled: false
+  
+  staging:
+    kubernetes:
+      autoscaling:
+        enabled: true
+        min_replicas: 2
+        max_replicas: 10
+    monitoring:
+      enabled: true
+    security:
+      enabled: true
+    backup:
+      enabled: true
+      database:
+        retention: "7d"
+    disaster_recovery:
+      enabled: false
+  
+  production:
+    kubernetes:
+      autoscaling:
+        enabled: true
+        min_replicas: 5
+        max_replicas: 50
+    monitoring:
+      enabled: true
+    security:
+      enabled: true
+    backup:
+      enabled: true
+    disaster_recovery:
+      enabled: true
+
+# Release Management Configuration
+release:
+  strategy: "blue_green"
+  approval_required: true
+  rollback_enabled: true
+  canary_percentage: 10
+  health_check_timeout: "5m"
+  
+  # Release Gates
+  gates:
+    - name: "security_scan"
+      required: true
+      timeout: "10m"
+    - name: "performance_test"
+      required: true
+      timeout: "15m"
+    - name: "integration_test"
+      required: true
+      timeout: "20m"
+
+# Rollback Configuration
+rollback:
+  enabled: true
+  auto_rollback_on_failure: true
+  rollback_timeout: "10m"
+  health_check_retries: 5
+  preserve_data: true

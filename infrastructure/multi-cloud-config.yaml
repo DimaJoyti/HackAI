@@ -1,0 +1,365 @@
+project_name: hackai
+environment: production
+
+# AWS Configuration
+aws:
+  enabled: true
+  region: us-west-2
+  profile: default
+  
+  eks:
+    cluster_name: hackai-production-eks
+    version: "1.28"
+    enable_logging: true
+    node_groups:
+      - name: general
+        instance_type: m5.large
+        min_size: 2
+        max_size: 10
+        desired_size: 3
+        labels:
+          node-type: general
+          environment: production
+      - name: compute-intensive
+        instance_type: c5.xlarge
+        min_size: 1
+        max_size: 5
+        desired_size: 2
+        labels:
+          node-type: compute
+          workload: ai-training
+        taints:
+          - key: workload
+            value: ai-training
+            effect: NoSchedule
+  
+  rds:
+    instance_class: db.t3.medium
+    engine: postgres
+    version: "15.4"
+    multi_az: true
+    backup_retention_period: 7
+    deletion_protection: true
+  
+  elasticache:
+    node_type: cache.t3.micro
+    num_nodes: 2
+    parameter_group_name: default.redis7
+
+# GCP Configuration
+gcp:
+  enabled: false
+  project_id: hackai-production
+  region: us-central1
+  zone: us-central1-a
+  
+  gke:
+    cluster_name: hackai-production-gke
+    version: "1.28"
+    enable_autopilot: false
+    node_pools:
+      - name: general
+        machine_type: e2-standard-4
+        min_count: 2
+        max_count: 10
+        initial_count: 3
+        labels:
+          node-type: general
+          environment: production
+      - name: gpu-nodes
+        machine_type: n1-standard-4
+        min_count: 0
+        max_count: 3
+        initial_count: 0
+        accelerator_count: 1
+        accelerator_type: nvidia-tesla-t4
+        labels:
+          node-type: gpu
+          workload: ai-inference
+  
+  cloud_sql:
+    tier: db-standard-2
+    version: POSTGRES_15
+    high_availability: true
+    backup_enabled: true
+
+# Azure Configuration
+azure:
+  enabled: false
+  subscription_id: your-azure-subscription-id
+  location: East US
+  
+  aks:
+    cluster_name: hackai-production-aks
+    version: "1.28"
+    node_pools:
+      - name: general
+        machine_type: Standard_D4s_v3
+        min_count: 2
+        max_count: 10
+        initial_count: 3
+        labels:
+          node-type: general
+          environment: production
+      - name: memory-optimized
+        machine_type: Standard_E4s_v3
+        min_count: 1
+        max_count: 5
+        initial_count: 1
+        labels:
+          node-type: memory-optimized
+          workload: data-processing
+  
+  postgresql:
+    sku: Standard_D4s_v3
+    version: "15"
+    high_availability: true
+
+# Global Monitoring Configuration
+monitoring:
+  enabled: true
+  prometheus: true
+  grafana: true
+  jaeger: true
+  loki: true
+  alert_manager: true
+  
+  # Monitoring stack configuration
+  prometheus:
+    retention: 30d
+    storage_size: 100Gi
+    replicas: 2
+  
+  grafana:
+    admin_password: admin123
+    persistence_enabled: true
+    storage_size: 10Gi
+  
+  jaeger:
+    strategy: production
+    storage_type: elasticsearch
+    retention: 7d
+  
+  loki:
+    retention_period: 30d
+    storage_size: 50Gi
+  
+  alert_manager:
+    replicas: 3
+    retention: 120h
+    slack_webhook_url: ""
+    email_enabled: false
+
+# Security Configuration
+security:
+  enable_pod_security_policy: true
+  enable_network_policy: true
+  enable_rbac: true
+  enable_opa: true
+  
+  # Pod Security Standards
+  pod_security_standards:
+    enforce: restricted
+    audit: restricted
+    warn: restricted
+  
+  # Network Policies
+  network_policies:
+    default_deny_all: true
+    allow_dns: true
+    allow_monitoring: true
+  
+  # RBAC Configuration
+  rbac:
+    enable_cluster_admin: false
+    custom_roles:
+      - name: developer
+        rules:
+          - apiGroups: [""]
+            resources: ["pods", "services", "configmaps"]
+            verbs: ["get", "list", "create", "update", "patch"]
+      - name: operator
+        rules:
+          - apiGroups: ["apps"]
+            resources: ["deployments", "replicasets"]
+            verbs: ["*"]
+
+# Networking Configuration
+networking:
+  enable_service_mesh: true
+  service_mesh_type: istio
+  enable_ingress: true
+  ingress_class: nginx
+  
+  # Service Mesh Configuration
+  istio:
+    version: 1.19.0
+    enable_tracing: true
+    enable_metrics: true
+    enable_access_logs: true
+    mtls_mode: STRICT
+  
+  # Ingress Configuration
+  ingress:
+    enable_ssl: true
+    ssl_redirect: true
+    cert_manager_enabled: true
+    default_backend: true
+  
+  # Load Balancer Configuration
+  load_balancer:
+    type: application
+    scheme: internet-facing
+    enable_waf: true
+    enable_shield: true
+
+# Application Configuration
+applications:
+  # HackAI Core Services
+  api_gateway:
+    replicas: 3
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+    autoscaling:
+      enabled: true
+      min_replicas: 3
+      max_replicas: 10
+      target_cpu: 70
+  
+  user_service:
+    replicas: 2
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        cpu: 500m
+        memory: 1Gi
+    autoscaling:
+      enabled: true
+      min_replicas: 2
+      max_replicas: 8
+      target_cpu: 80
+  
+  scanner_service:
+    replicas: 2
+    resources:
+      requests:
+        cpu: 200m
+        memory: 512Mi
+      limits:
+        cpu: 1000m
+        memory: 2Gi
+    autoscaling:
+      enabled: true
+      min_replicas: 2
+      max_replicas: 6
+      target_cpu: 75
+  
+  threat_service:
+    replicas: 2
+    resources:
+      requests:
+        cpu: 200m
+        memory: 512Mi
+      limits:
+        cpu: 1000m
+        memory: 2Gi
+    autoscaling:
+      enabled: true
+      min_replicas: 2
+      max_replicas: 6
+      target_cpu: 75
+
+# Backup and Disaster Recovery
+backup:
+  enabled: true
+  schedule: "0 2 * * *"  # Daily at 2 AM
+  retention_days: 30
+  
+  # Database Backups
+  database:
+    enabled: true
+    encryption: true
+    cross_region_backup: true
+  
+  # Persistent Volume Backups
+  volumes:
+    enabled: true
+    snapshot_schedule: "0 */6 * * *"  # Every 6 hours
+    retention_count: 7
+  
+  # Configuration Backups
+  configs:
+    enabled: true
+    include_secrets: false
+    git_backup: true
+
+# Cost Optimization
+cost_optimization:
+  enabled: true
+  
+  # Auto-scaling policies
+  auto_scaling:
+    scale_down_delay: 10m
+    scale_up_delay: 3m
+    utilization_threshold: 70
+  
+  # Spot instances
+  spot_instances:
+    enabled: true
+    max_percentage: 50
+    instance_types:
+      - m5.large
+      - m5a.large
+      - m5d.large
+  
+  # Resource quotas
+  resource_quotas:
+    cpu_limit: 100
+    memory_limit: 200Gi
+    storage_limit: 1Ti
+  
+  # Scheduled scaling
+  scheduled_scaling:
+    enabled: true
+    business_hours:
+      start: "08:00"
+      end: "18:00"
+      timezone: "UTC"
+      scale_factor: 1.5
+
+# Compliance and Governance
+compliance:
+  enabled: true
+  
+  # Compliance frameworks
+  frameworks:
+    - SOC2
+    - GDPR
+    - HIPAA
+  
+  # Policy enforcement
+  policies:
+    require_labels: true
+    require_resource_limits: true
+    require_security_context: true
+    block_privileged_containers: true
+  
+  # Audit logging
+  audit:
+    enabled: true
+    retention_days: 365
+    log_level: Metadata
+  
+  # Vulnerability scanning
+  vulnerability_scanning:
+    enabled: true
+    schedule: "0 3 * * *"  # Daily at 3 AM
+    fail_on_high: true
+    fail_on_critical: true

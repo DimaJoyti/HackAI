@@ -1,0 +1,33 @@
+{
+  "name": "hackai-api-gateway",
+  "version": "1.0.0",
+  "description": "HackAI API Gateway - Cloudflare Worker",
+  "main": "src/index.ts",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "deploy:staging": "wrangler deploy --env staging",
+    "deploy:production": "wrangler deploy --env production",
+    "tail": "wrangler tail",
+    "types": "wrangler types"
+  },
+  "keywords": [
+    "cloudflare",
+    "workers",
+    "api",
+    "gateway",
+    "hackai",
+    "security"
+  ],
+  "author": "HackAI Team",
+  "license": "MIT",
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20240909.0",
+    "typescript": "^5.0.0",
+    "wrangler": "^3.0.0"
+  },
+  "dependencies": {
+    "@types/node": "^20.0.0"
+  },
+  "type": "commonjs"
+}

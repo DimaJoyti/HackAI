@@ -1,0 +1,351 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: hackai-multi-cloud
+  namespace: argocd
+  labels:
+    app.kubernetes.io/name: hackai
+    app.kubernetes.io/component: multi-cloud
+    app.kubernetes.io/part-of: hackai-platform
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+    notifications.argoproj.io/subscribe.on-sync-succeeded.slack: deployments
+    notifications.argoproj.io/subscribe.on-sync-failed.slack: alerts
+spec:
+  project: hackai
+  source:
+    repoURL: https://github.com/DimaJoyti/HackAI.git
+    targetRevision: HEAD
+    path: deployments/helm/hackai
+    helm:
+      valueFiles:
+        - values.yaml
+        - values-production.yaml
+      parameters:
+        - name: app.environment
+          value: production
+        - name: global.cloudProvider
+          value: multi-cloud
+        - name: autoscaling.enabled
+          value: "true"
+        - name: monitoring.enabled
+          value: "true"
+        - name: security.enabled
+          value: "true"
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: hackai
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+      - CreateNamespace=true
+      - PrunePropagationPolicy=foreground
+      - PruneLast=true
+      - RespectIgnoreDifferences=true
+      - ApplyOutOfSyncOnly=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+  revisionHistoryLimit: 10
+  ignoreDifferences:
+    - group: apps
+      kind: Deployment
+      jsonPointers:
+        - /spec/replicas
+    - group: ""
+      kind: Service
+      jsonPointers:
+        - /spec/clusterIP
+  info:
+    - name: 'Environment'
+      value: 'Production Multi-Cloud'
+    - name: 'Owner'
+      value: 'Platform Team'
+    - name: 'Documentation'
+      value: 'https://docs.hackai.com/deployment'
+
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: hackai-aws
+  namespace: argocd
+  labels:
+    app.kubernetes.io/name: hackai
+    app.kubernetes.io/component: aws
+    app.kubernetes.io/part-of: hackai-platform
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  project: hackai
+  source:
+    repoURL: https://github.com/DimaJoyti/HackAI.git
+    targetRevision: HEAD
+    path: deployments/multi-cloud/aws
+    kustomize:
+      images:
+        - ghcr.io/hackai/api-gateway:latest
+        - ghcr.io/hackai/user-service:latest
+        - ghcr.io/hackai/scanner-service:latest
+  destination:
+    server: https://aws-eks-cluster-endpoint
+    namespace: hackai
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - RespectIgnoreDifferences=true
+
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: hackai-gcp
+  namespace: argocd
+  labels:
+    app.kubernetes.io/name: hackai
+    app.kubernetes.io/component: gcp
+    app.kubernetes.io/part-of: hackai-platform
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  project: hackai
+  source:
+    repoURL: https://github.com/DimaJoyti/HackAI.git
+    targetRevision: HEAD
+    path: deployments/multi-cloud/gcp
+    kustomize:
+      images:
+        - ghcr.io/hackai/api-gateway:latest
+        - ghcr.io/hackai/user-service:latest
+        - ghcr.io/hackai/scanner-service:latest
+  destination:
+    server: https://gcp-gke-cluster-endpoint
+    namespace: hackai
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - RespectIgnoreDifferences=true
+
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: hackai-azure
+  namespace: argocd
+  labels:
+    app.kubernetes.io/name: hackai
+    app.kubernetes.io/component: azure
+    app.kubernetes.io/part-of: hackai-platform
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  project: hackai
+  source:
+    repoURL: https://github.com/DimaJoyti/HackAI.git
+    targetRevision: HEAD
+    path: deployments/multi-cloud/azure
+    kustomize:
+      images:
+        - ghcr.io/hackai/api-gateway:latest
+        - ghcr.io/hackai/user-service:latest
+        - ghcr.io/hackai/scanner-service:latest
+  destination:
+    server: https://azure-aks-cluster-endpoint
+    namespace: hackai
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - RespectIgnoreDifferences=true
+
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: hackai-monitoring
+  namespace: argocd
+  labels:
+    app.kubernetes.io/name: hackai-monitoring
+    app.kubernetes.io/component: observability
+    app.kubernetes.io/part-of: hackai-platform
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  project: hackai
+  source:
+    repoURL: https://github.com/DimaJoyti/HackAI.git
+    targetRevision: HEAD
+    path: deployments/monitoring
+    helm:
+      valueFiles:
+        - values.yaml
+        - values-multi-cloud.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: monitoring
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: hackai-security
+  namespace: argocd
+  labels:
+    app.kubernetes.io/name: hackai-security
+    app.kubernetes.io/component: security
+    app.kubernetes.io/part-of: hackai-platform
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  project: hackai
+  source:
+    repoURL: https://github.com/DimaJoyti/HackAI.git
+    targetRevision: HEAD
+    path: deployments/security
+    helm:
+      valueFiles:
+        - values.yaml
+        - values-multi-cloud.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: security
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+
+---
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: hackai
+  namespace: argocd
+  labels:
+    app.kubernetes.io/name: hackai-project
+spec:
+  description: HackAI Multi-Cloud Platform Project
+  sourceRepos:
+    - 'https://github.com/DimaJoyti/HackAI.git'
+    - 'https://charts.bitnami.com/bitnami'
+    - 'https://prometheus-community.github.io/helm-charts'
+    - 'https://grafana.github.io/helm-charts'
+    - 'https://jaegertracing.github.io/helm-charts'
+  destinations:
+    - namespace: 'hackai*'
+      server: '*'
+    - namespace: 'monitoring'
+      server: '*'
+    - namespace: 'security'
+      server: '*'
+    - namespace: 'argocd'
+      server: '*'
+  clusterResourceWhitelist:
+    - group: ''
+      kind: Namespace
+    - group: ''
+      kind: PersistentVolume
+    - group: 'rbac.authorization.k8s.io'
+      kind: ClusterRole
+    - group: 'rbac.authorization.k8s.io'
+      kind: ClusterRoleBinding
+    - group: 'apiextensions.k8s.io'
+      kind: CustomResourceDefinition
+    - group: 'admissionregistration.k8s.io'
+      kind: MutatingWebhookConfiguration
+    - group: 'admissionregistration.k8s.io'
+      kind: ValidatingWebhookConfiguration
+    - group: 'networking.k8s.io'
+      kind: NetworkPolicy
+    - group: 'policy'
+      kind: PodSecurityPolicy
+    - group: 'security.istio.io'
+      kind: '*'
+    - group: 'networking.istio.io'
+      kind: '*'
+  namespaceResourceWhitelist:
+    - group: ''
+      kind: '*'
+    - group: 'apps'
+      kind: '*'
+    - group: 'extensions'
+      kind: '*'
+    - group: 'networking.k8s.io'
+      kind: '*'
+    - group: 'autoscaling'
+      kind: '*'
+    - group: 'batch'
+      kind: '*'
+    - group: 'metrics.k8s.io'
+      kind: '*'
+    - group: 'monitoring.coreos.com'
+      kind: '*'
+    - group: 'jaegertracing.io'
+      kind: '*'
+  roles:
+    - name: admin
+      description: Admin access to HackAI project
+      policies:
+        - p, proj:hackai:admin, applications, *, hackai/*, allow
+        - p, proj:hackai:admin, repositories, *, *, allow
+        - p, proj:hackai:admin, clusters, *, *, allow
+      groups:
+        - hackai:admins
+    - name: developer
+      description: Developer access to HackAI project
+      policies:
+        - p, proj:hackai:developer, applications, get, hackai/*, allow
+        - p, proj:hackai:developer, applications, sync, hackai/*, allow
+        - p, proj:hackai:developer, repositories, get, *, allow
+      groups:
+        - hackai:developers
+    - name: readonly
+      description: Read-only access to HackAI project
+      policies:
+        - p, proj:hackai:readonly, applications, get, hackai/*, allow
+        - p, proj:hackai:readonly, repositories, get, *, allow
+      groups:
+        - hackai:viewers
+  syncWindows:
+    - kind: allow
+      schedule: '0 2 * * *'
+      duration: 2h
+      applications:
+        - '*'
+      manualSync: true
+    - kind: deny
+      schedule: '0 12 * * 1-5'
+      duration: 1h
+      applications:
+        - 'hackai-production'
+      manualSync: false
+  orphanedResources:
+    warn: true
+    ignore:
+      - group: ''
+        kind: Secret
+        name: '*-token-*'
+      - group: ''
+        kind: ConfigMap
+        name: 'kube-root-ca.crt'

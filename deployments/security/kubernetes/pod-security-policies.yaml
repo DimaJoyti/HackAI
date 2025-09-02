@@ -1,0 +1,442 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: security
+  labels:
+    name: security
+    pod-security.kubernetes.io/enforce: restricted
+    pod-security.kubernetes.io/audit: restricted
+    pod-security.kubernetes.io/warn: restricted
+
+---
+apiVersion: policy/v1beta1
+kind: PodSecurityPolicy
+metadata:
+  name: hackai-restricted
+  namespace: security
+  annotations:
+    seccomp.security.alpha.kubernetes.io/allowedProfileNames: 'docker/default,runtime/default'
+    apparmor.security.beta.kubernetes.io/allowedProfileNames: 'runtime/default'
+    seccomp.security.alpha.kubernetes.io/defaultProfileName: 'runtime/default'
+    apparmor.security.beta.kubernetes.io/defaultProfileName: 'runtime/default'
+spec:
+  privileged: false
+  allowPrivilegeEscalation: false
+  requiredDropCapabilities:
+    - ALL
+  volumes:
+    - 'configMap'
+    - 'emptyDir'
+    - 'projected'
+    - 'secret'
+    - 'downwardAPI'
+    - 'persistentVolumeClaim'
+  hostNetwork: false
+  hostIPC: false
+  hostPID: false
+  runAsUser:
+    rule: 'MustRunAsNonRoot'
+  supplementalGroups:
+    rule: 'MustRunAs'
+    ranges:
+      - min: 1
+        max: 65535
+  fsGroup:
+    rule: 'MustRunAs'
+    ranges:
+      - min: 1
+        max: 65535
+  readOnlyRootFilesystem: false
+
+---
+apiVersion: policy/v1beta1
+kind: PodSecurityPolicy
+metadata:
+  name: hackai-baseline
+  namespace: security
+spec:
+  privileged: false
+  allowPrivilegeEscalation: false
+  allowedCapabilities:
+    - 'CHOWN'
+    - 'DAC_OVERRIDE'
+    - 'FSETID'
+    - 'FOWNER'
+    - 'MKNOD'
+    - 'NET_RAW'
+    - 'SETGID'
+    - 'SETUID'
+    - 'SETFCAP'
+    - 'SETPCAP'
+    - 'NET_BIND_SERVICE'
+    - 'SYS_CHROOT'
+    - 'KILL'
+    - 'AUDIT_WRITE'
+  volumes:
+    - 'configMap'
+    - 'emptyDir'
+    - 'projected'
+    - 'secret'
+    - 'downwardAPI'
+    - 'persistentVolumeClaim'
+    - 'hostPath'
+  allowedHostPaths:
+    - pathPrefix: "/etc/ssl/certs"
+      readOnly: true
+    - pathPrefix: "/etc/ca-certificates"
+      readOnly: true
+    - pathPrefix: "/etc/pki"
+      readOnly: true
+  hostNetwork: false
+  hostIPC: false
+  hostPID: false
+  runAsUser:
+    rule: 'RunAsAny'
+  supplementalGroups:
+    rule: 'RunAsAny'
+  fsGroup:
+    rule: 'RunAsAny'
+  readOnlyRootFilesystem: false
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: hackai-psp-restricted
+rules:
+- apiGroups: ['policy']
+  resources: ['podsecuritypolicies']
+  verbs: ['use']
+  resourceNames:
+  - hackai-restricted
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: hackai-psp-baseline
+rules:
+- apiGroups: ['policy']
+  resources: ['podsecuritypolicies']
+  verbs: ['use']
+  resourceNames:
+  - hackai-baseline
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: hackai-psp-restricted
+roleRef:
+  kind: ClusterRole
+  name: hackai-psp-restricted
+  apiGroup: rbac.authorization.k8s.io
+subjects:
+- kind: ServiceAccount
+  name: default
+  namespace: hackai
+- kind: ServiceAccount
+  name: default
+  namespace: hackai-production
+- kind: ServiceAccount
+  name: default
+  namespace: hackai-staging
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: hackai-psp-baseline
+roleRef:
+  kind: ClusterRole
+  name: hackai-psp-baseline
+  apiGroup: rbac.authorization.k8s.io
+subjects:
+- kind: ServiceAccount
+  name: default
+  namespace: hackai-development
+- kind: ServiceAccount
+  name: default
+  namespace: monitoring
+- kind: ServiceAccount
+  name: default
+  namespace: security
+
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: hackai-default-deny-all
+  namespace: hackai
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: hackai-allow-internal
+  namespace: hackai
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/part-of: hackai
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: hackai
+    - namespaceSelector:
+        matchLabels:
+          name: monitoring
+    - namespaceSelector:
+        matchLabels:
+          name: security
+  egress:
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: hackai
+    - namespaceSelector:
+        matchLabels:
+          name: monitoring
+    - namespaceSelector:
+        matchLabels:
+          name: security
+  - to: []
+    ports:
+    - protocol: TCP
+      port: 53
+    - protocol: UDP
+      port: 53
+    - protocol: TCP
+      port: 443
+    - protocol: TCP
+      port: 80
+
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: hackai-allow-ingress
+  namespace: hackai
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/component: api-gateway
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: ingress-nginx
+    ports:
+    - protocol: TCP
+      port: 8080
+
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: hackai-allow-database
+  namespace: hackai
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/component: database
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/part-of: hackai
+    ports:
+    - protocol: TCP
+      port: 5432
+
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: hackai-allow-redis
+  namespace: hackai
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/component: cache
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/part-of: hackai
+    ports:
+    - protocol: TCP
+      port: 6379
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: hackai-security-scanner
+  namespace: security
+  labels:
+    app.kubernetes.io/name: security-scanner
+    app.kubernetes.io/component: security
+    app.kubernetes.io/part-of: hackai-platform
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: hackai-security-scanner
+rules:
+- apiGroups: [""]
+  resources: ["pods", "services", "endpoints", "persistentvolumeclaims", "events", "configmaps", "secrets"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["apps"]
+  resources: ["deployments", "daemonsets", "replicasets", "statefulsets"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["networking.k8s.io"]
+  resources: ["networkpolicies", "ingresses"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["policy"]
+  resources: ["podsecuritypolicies"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["rbac.authorization.k8s.io"]
+  resources: ["roles", "rolebindings", "clusterroles", "clusterrolebindings"]
+  verbs: ["get", "list", "watch"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: hackai-security-scanner
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: hackai-security-scanner
+subjects:
+- kind: ServiceAccount
+  name: hackai-security-scanner
+  namespace: security
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: security-scan-config
+  namespace: security
+data:
+  config.yaml: |
+    scanner:
+      enabled: true
+      schedule: "0 2 * * *"  # Daily at 2 AM
+      timeout: "30m"
+      
+    checks:
+      pod_security_policies: true
+      network_policies: true
+      rbac_policies: true
+      secret_scanning: true
+      image_scanning: true
+      compliance_checks: true
+      
+    compliance:
+      frameworks:
+        - SOC2
+        - ISO27001
+        - GDPR
+        - CIS_Kubernetes
+        
+    notifications:
+      slack:
+        enabled: true
+        webhook_url: "${SLACK_WEBHOOK_URL}"
+        channel: "#security-alerts"
+      email:
+        enabled: true
+        recipients:
+          - security-team@hackai.com
+          - platform-team@hackai.com
+          
+    reporting:
+      format: "json"
+      storage:
+        type: "s3"
+        bucket: "hackai-security-reports"
+        prefix: "kubernetes-scans/"
+
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: security-scan-job
+  namespace: security
+spec:
+  schedule: "0 2 * * *"
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app.kubernetes.io/name: security-scanner
+            app.kubernetes.io/component: security
+        spec:
+          serviceAccountName: hackai-security-scanner
+          restartPolicy: OnFailure
+          containers:
+          - name: security-scanner
+            image: aquasec/trivy:latest
+            command:
+            - /bin/sh
+            - -c
+            - |
+              echo "Starting Kubernetes security scan..."
+              
+              # Scan cluster configuration
+              trivy k8s cluster --report summary
+              
+              # Scan specific namespaces
+              for ns in hackai hackai-production hackai-staging monitoring security; do
+                echo "Scanning namespace: $ns"
+                trivy k8s namespace $ns --report summary
+              done
+              
+              # Generate compliance report
+              trivy k8s cluster --compliance k8s-cis --report summary
+              
+              echo "Security scan completed"
+            env:
+            - name: TRIVY_CACHE_DIR
+              value: /tmp/trivy-cache
+            - name: TRIVY_DB_REPOSITORY
+              value: ghcr.io/aquasecurity/trivy-db
+            volumeMounts:
+            - name: cache
+              mountPath: /tmp/trivy-cache
+            - name: config
+              mountPath: /etc/scanner
+              readOnly: true
+            resources:
+              requests:
+                memory: 256Mi
+                cpu: 200m
+              limits:
+                memory: 512Mi
+                cpu: 500m
+          volumes:
+          - name: cache
+            emptyDir: {}
+          - name: config
+            configMap:
+              name: security-scan-config

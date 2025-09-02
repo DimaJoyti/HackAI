@@ -1,0 +1,195 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'hackai-observability'
+    environment: 'production'
+
+rule_files:
+  - "rules.yml"
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          - alertmanager:9093
+
+scrape_configs:
+  # Observability Server
+  - job_name: 'observability-server'
+    static_configs:
+      - targets: ['observability-server:8091']
+    metrics_path: /metrics
+    scrape_interval: 15s
+    scrape_timeout: 10s
+
+  # Prometheus itself
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # Node Exporter for system metrics
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['node-exporter:9100']
+    scrape_interval: 15s
+
+  # cAdvisor for container metrics
+  - job_name: 'cadvisor'
+    static_configs:
+      - targets: ['cadvisor:8080']
+    scrape_interval: 15s
+
+  # AlertManager
+  - job_name: 'alertmanager'
+    static_configs:
+      - targets: ['alertmanager:9093']
+
+  # Grafana
+  - job_name: 'grafana'
+    static_configs:
+      - targets: ['grafana:3000']
+    metrics_path: /metrics
+
+  # Jaeger
+  - job_name: 'jaeger'
+    static_configs:
+      - targets: ['jaeger:14269']
+    metrics_path: /metrics
+
+  # Loki
+  - job_name: 'loki'
+    static_configs:
+      - targets: ['loki:3100']
+    metrics_path: /metrics
+
+  # Redis
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis:6379']
+
+  # HackAI Main Application (when running)
+  - job_name: 'hackai-api'
+    static_configs:
+      - targets: ['host.docker.internal:8080']
+    metrics_path: /metrics
+    scrape_interval: 15s
+    scrape_timeout: 10s
+
+  # HackAI Education Service
+  - job_name: 'hackai-education'
+    static_configs:
+      - targets: ['host.docker.internal:8081']
+    metrics_path: /metrics
+    scrape_interval: 15s
+
+  # HackAI Security Service
+  - job_name: 'hackai-security'
+    static_configs:
+      - targets: ['host.docker.internal:8082']
+    metrics_path: /metrics
+    scrape_interval: 15s
+
+  # HackAI Security Dashboard
+  - job_name: 'hackai-security-dashboard'
+    static_configs:
+      - targets: ['host.docker.internal:8083']
+    metrics_path: /metrics
+    scrape_interval: 15s
+
+  # Custom metrics endpoints
+  - job_name: 'custom-metrics'
+    static_configs:
+      - targets: ['observability-server:8091']
+    metrics_path: /metrics/custom
+    scrape_interval: 30s
+
+  # System metrics
+  - job_name: 'system-metrics'
+    static_configs:
+      - targets: ['observability-server:8091']
+    metrics_path: /metrics/system
+    scrape_interval: 30s
+
+  # Health checks
+  - job_name: 'health-checks'
+    static_configs:
+      - targets: 
+        - 'observability-server:8090'
+        - 'host.docker.internal:8080'
+        - 'host.docker.internal:8081'
+        - 'host.docker.internal:8082'
+        - 'host.docker.internal:8083'
+    metrics_path: /health
+    scrape_interval: 30s
+
+  # Blackbox exporter for external monitoring
+  - job_name: 'blackbox'
+    metrics_path: /probe
+    params:
+      module: [http_2xx]
+    static_configs:
+      - targets:
+        - http://observability-server:8090/health
+        - http://grafana:3000/api/health
+        - http://prometheus:9090/-/healthy
+        - http://jaeger:16686/
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: blackbox-exporter:9115
+
+  # Service discovery for dynamic targets
+  - job_name: 'kubernetes-pods'
+    kubernetes_sd_configs:
+      - role: pod
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+        action: keep
+        regex: true
+      - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
+        action: replace
+        target_label: __metrics_path__
+        regex: (.+)
+      - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
+        action: replace
+        regex: ([^:]+)(?::\d+)?;(\d+)
+        replacement: $1:$2
+        target_label: __address__
+      - action: labelmap
+        regex: __meta_kubernetes_pod_label_(.+)
+      - source_labels: [__meta_kubernetes_namespace]
+        action: replace
+        target_label: kubernetes_namespace
+      - source_labels: [__meta_kubernetes_pod_name]
+        action: replace
+        target_label: kubernetes_pod_name
+
+  # Docker service discovery
+  - job_name: 'docker'
+    dockerswarm_sd_configs:
+      - host: unix:///var/run/docker.sock
+        role: tasks
+    relabel_configs:
+      - source_labels: [__meta_dockerswarm_task_label_prometheus_job]
+        target_label: job
+      - source_labels: [__meta_dockerswarm_task_label_prometheus_port]
+        target_label: __address__
+        regex: (.+)
+        replacement: ${1}
+
+# Remote write configuration (for long-term storage)
+remote_write:
+  - url: "http://prometheus-remote-storage:9201/write"
+    queue_config:
+      max_samples_per_send: 1000
+      max_shards: 200
+      capacity: 2500
+
+# Remote read configuration
+remote_read:
+  - url: "http://prometheus-remote-storage:9201/read"
+    read_recent: true
