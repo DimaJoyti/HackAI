@@ -17,6 +17,13 @@ type User struct {
 	Role      UserRole   `json:"role" gorm:"default:'user'"`
 	Status    UserStatus `json:"status" gorm:"default:'active'"`
 
+	// Firebase integration
+	FirebaseUID   string `json:"firebase_uid" gorm:"uniqueIndex"`
+	DisplayName   string `json:"display_name"`
+	PhoneNumber   string `json:"phone_number"`
+	EmailVerified bool   `json:"email_verified" gorm:"default:false"`
+	Organization  string `json:"organization"`
+
 	// Profile information
 	Avatar   string `json:"avatar"`
 	Bio      string `json:"bio"`
@@ -53,6 +60,7 @@ const (
 	UserStatusInactive  UserStatus = "inactive"
 	UserStatusSuspended UserStatus = "suspended"
 	UserStatusPending   UserStatus = "pending"
+	UserStatusDeleted   UserStatus = "deleted"
 )
 
 // UserSession represents an active user session
@@ -111,6 +119,11 @@ type UserRepository interface {
 	Delete(id uuid.UUID) error
 	List(limit, offset int) ([]*User, error)
 	Search(query string, limit, offset int) ([]*User, error)
+
+	// Firebase integration
+	GetByFirebaseUID(firebaseUID string) (*User, error)
+	UpdateFirebaseUID(userID uuid.UUID, firebaseUID string) error
+	ListUsersWithoutFirebaseUID(limit, offset int) ([]*User, error)
 
 	// Session management
 	CreateSession(session *UserSession) error

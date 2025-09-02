@@ -1,0 +1,237 @@
+# Firebase Configuration for HackAI Platform
+# Environment-specific Firebase settings
+
+# Development Environment
+development:
+  firebase:
+    project_id: "hackai-dev"
+    api_key: "${FIREBASE_API_KEY_DEV}"
+    auth_domain: "hackai-dev.firebaseapp.com"
+    storage_bucket: "hackai-dev.appspot.com"
+    messaging_sender_id: "${FIREBASE_MESSAGING_SENDER_ID_DEV}"
+    app_id: "${FIREBASE_APP_ID_DEV}"
+    measurement_id: "${FIREBASE_MEASUREMENT_ID_DEV}"
+    
+    # Admin SDK Configuration
+    admin:
+      service_account_path: "./configs/firebase/service-accounts/hackai-dev-service-account.json"
+      database_url: "https://hackai-dev-default-rtdb.firebaseio.com"
+    
+    # Authentication Configuration
+    auth:
+      enabled_providers:
+        - "email"
+        - "google.com"
+        - "github.com"
+        - "phone"
+      
+      # Email/Password Settings
+      email_password:
+        enabled: true
+        require_email_verification: false  # Relaxed for dev
+        password_policy:
+          min_length: 6
+          require_uppercase: false
+          require_lowercase: false
+          require_numbers: false
+          require_special_chars: false
+      
+      # OAuth Providers
+      oauth_providers:
+        google:
+          enabled: true
+          client_id: "${GOOGLE_OAUTH_CLIENT_ID_DEV}"
+          client_secret: "${GOOGLE_OAUTH_CLIENT_SECRET_DEV}"
+        github:
+          enabled: true
+          client_id: "${GITHUB_OAUTH_CLIENT_ID_DEV}"
+          client_secret: "${GITHUB_OAUTH_CLIENT_SECRET_DEV}"
+      
+      # Phone Authentication
+      phone_auth:
+        enabled: true
+        test_phone_numbers:
+          "+1234567890": "123456"  # Test number for development
+      
+      # Multi-Factor Authentication
+      mfa:
+        enabled: false  # Disabled for dev
+        enforcement: "optional"
+        allowed_providers: ["phone", "totp"]
+      
+      # Session Management
+      session:
+        timeout: "24h"
+        refresh_token_ttl: "30d"
+        revoke_refresh_tokens_on_password_change: true
+      
+      # Security Settings
+      security:
+        enable_anonymous_users: false
+        block_functions_trigger: false
+        enable_email_enumeration_protection: false  # Relaxed for dev
+
+# Staging Environment
+staging:
+  firebase:
+    project_id: "hackai-staging"
+    api_key: "${FIREBASE_API_KEY_STAGING}"
+    auth_domain: "hackai-staging.firebaseapp.com"
+    storage_bucket: "hackai-staging.appspot.com"
+    messaging_sender_id: "${FIREBASE_MESSAGING_SENDER_ID_STAGING}"
+    app_id: "${FIREBASE_APP_ID_STAGING}"
+    measurement_id: "${FIREBASE_MEASUREMENT_ID_STAGING}"
+    
+    admin:
+      service_account_path: "./configs/firebase/service-accounts/hackai-staging-service-account.json"
+      database_url: "https://hackai-staging-default-rtdb.firebaseio.com"
+    
+    auth:
+      enabled_providers:
+        - "email"
+        - "google.com"
+        - "github.com"
+        - "phone"
+      
+      email_password:
+        enabled: true
+        require_email_verification: true
+        password_policy:
+          min_length: 8
+          require_uppercase: true
+          require_lowercase: true
+          require_numbers: true
+          require_special_chars: false
+      
+      oauth_providers:
+        google:
+          enabled: true
+          client_id: "${GOOGLE_OAUTH_CLIENT_ID_STAGING}"
+          client_secret: "${GOOGLE_OAUTH_CLIENT_SECRET_STAGING}"
+        github:
+          enabled: true
+          client_id: "${GITHUB_OAUTH_CLIENT_ID_STAGING}"
+          client_secret: "${GITHUB_OAUTH_CLIENT_SECRET_STAGING}"
+      
+      phone_auth:
+        enabled: true
+        test_phone_numbers: {}
+      
+      mfa:
+        enabled: true
+        enforcement: "optional"
+        allowed_providers: ["phone", "totp"]
+      
+      session:
+        timeout: "12h"
+        refresh_token_ttl: "7d"
+        revoke_refresh_tokens_on_password_change: true
+      
+      security:
+        enable_anonymous_users: false
+        block_functions_trigger: false
+        enable_email_enumeration_protection: true
+
+# Production Environment
+production:
+  firebase:
+    project_id: "hackai-prod"
+    api_key: "${FIREBASE_API_KEY_PROD}"
+    auth_domain: "hackai-prod.firebaseapp.com"
+    storage_bucket: "hackai-prod.appspot.com"
+    messaging_sender_id: "${FIREBASE_MESSAGING_SENDER_ID_PROD}"
+    app_id: "${FIREBASE_APP_ID_PROD}"
+    measurement_id: "${FIREBASE_MEASUREMENT_ID_PROD}"
+    
+    admin:
+      service_account_path: "./configs/firebase/service-accounts/hackai-prod-service-account.json"
+      database_url: "https://hackai-prod-default-rtdb.firebaseio.com"
+    
+    auth:
+      enabled_providers:
+        - "email"
+        - "google.com"
+        - "github.com"
+        - "phone"
+      
+      email_password:
+        enabled: true
+        require_email_verification: true
+        password_policy:
+          min_length: 12
+          require_uppercase: true
+          require_lowercase: true
+          require_numbers: true
+          require_special_chars: true
+      
+      oauth_providers:
+        google:
+          enabled: true
+          client_id: "${GOOGLE_OAUTH_CLIENT_ID_PROD}"
+          client_secret: "${GOOGLE_OAUTH_CLIENT_SECRET_PROD}"
+        github:
+          enabled: true
+          client_id: "${GITHUB_OAUTH_CLIENT_ID_PROD}"
+          client_secret: "${GITHUB_OAUTH_CLIENT_SECRET_PROD}"
+      
+      phone_auth:
+        enabled: true
+        test_phone_numbers: {}
+      
+      mfa:
+        enabled: true
+        enforcement: "required"  # Required in production
+        allowed_providers: ["phone", "totp"]
+      
+      session:
+        timeout: "8h"
+        refresh_token_ttl: "7d"
+        revoke_refresh_tokens_on_password_change: true
+      
+      security:
+        enable_anonymous_users: false
+        block_functions_trigger: true
+        enable_email_enumeration_protection: true
+
+# Common Configuration
+common:
+  # Integration Settings
+  integration:
+    # Sync with existing PostgreSQL database
+    database_sync:
+      enabled: true
+      sync_on_create: true
+      sync_on_update: true
+      sync_on_delete: false  # Soft delete instead
+    
+    # Custom Claims
+    custom_claims:
+      role_claim: "role"
+      permissions_claim: "permissions"
+      organization_claim: "organization"
+    
+    # Webhooks
+    webhooks:
+      user_created: "${WEBHOOK_USER_CREATED_URL}"
+      user_updated: "${WEBHOOK_USER_UPDATED_URL}"
+      user_deleted: "${WEBHOOK_USER_DELETED_URL}"
+  
+  # Monitoring and Logging
+  monitoring:
+    enable_auth_logging: true
+    log_level: "info"
+    metrics:
+      enabled: true
+      export_interval: "60s"
+  
+  # Rate Limiting
+  rate_limiting:
+    sign_in_attempts:
+      max_attempts: 5
+      window: "15m"
+      block_duration: "1h"
+    
+    sign_up_attempts:
+      max_attempts: 3
+      window: "1h"
+      block_duration: "24h"
