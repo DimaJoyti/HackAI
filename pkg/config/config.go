@@ -214,6 +214,11 @@ type LogAnalyzerConfig struct {
 
 // Load loads configuration from environment variables
 func Load() (*Config, error) {
+	// Validate secure configuration first
+	if err := LoadSecureConfig(); err != nil {
+		return nil, fmt.Errorf("security validation failed: %w", err)
+	}
+
 	config := &Config{
 		Server: ServerConfig{
 			Port:            getEnv("PORT", "8080"),
@@ -238,36 +243,9 @@ func Load() (*Config, error) {
 				SkipIPs:   getSliceEnv("RATE_LIMIT_SKIP_IPS", []string{}),
 			},
 		},
-		Database: DatabaseConfig{
-			Host:            getEnv("DB_HOST", "localhost"),
-			Port:            getEnv("DB_PORT", "5432"),
-			Name:            getEnv("DB_NAME", "hackai"),
-			User:            getEnv("DB_USER", "hackai"),
-			Password:        getEnv("DB_PASSWORD", "hackai_password"),
-			SSLMode:         getEnv("DB_SSL_MODE", "disable"),
-			MaxOpenConns:    getIntEnv("DB_MAX_OPEN_CONNS", 25),
-			MaxIdleConns:    getIntEnv("DB_MAX_IDLE_CONNS", 5),
-			ConnMaxLifetime: getDurationEnv("DB_CONN_MAX_LIFETIME", 5*time.Minute),
-			ConnMaxIdleTime: getDurationEnv("DB_CONN_MAX_IDLE_TIME", 5*time.Minute),
-		},
-		Redis: RedisConfig{
-			Host:         getEnv("REDIS_HOST", "localhost"),
-			Port:         getEnv("REDIS_PORT", "6379"),
-			Password:     getEnv("REDIS_PASSWORD", ""),
-			DB:           getIntEnv("REDIS_DB", 0),
-			PoolSize:     getIntEnv("REDIS_POOL_SIZE", 10),
-			MinIdleConns: getIntEnv("REDIS_MIN_IDLE_CONNS", 2),
-			DialTimeout:  getDurationEnv("REDIS_DIAL_TIMEOUT", 5*time.Second),
-			ReadTimeout:  getDurationEnv("REDIS_READ_TIMEOUT", 3*time.Second),
-			WriteTimeout: getDurationEnv("REDIS_WRITE_TIMEOUT", 3*time.Second),
-		},
-		JWT: JWTConfig{
-			Secret:          getEnv("JWT_SECRET", "your-super-secret-jwt-key-change-this-in-production"),
-			AccessTokenTTL:  getDurationEnv("JWT_ACCESS_TOKEN_TTL", 15*time.Minute),
-			RefreshTokenTTL: getDurationEnv("JWT_REFRESH_TOKEN_TTL", 7*24*time.Hour),
-			Issuer:          getEnv("JWT_ISSUER", "hackai"),
-			Audience:        getEnv("JWT_AUDIENCE", "hackai-users"),
-		},
+		Database: GetDatabaseConfig(),
+		Redis: GetRedisConfig(),
+		JWT: GetJWTConfig(),
 		Security: SecurityConfig{
 			PasswordMinLength:      getIntEnv("PASSWORD_MIN_LENGTH", 8),
 			PasswordRequireUpper:   getBoolEnv("PASSWORD_REQUIRE_UPPER", true),
