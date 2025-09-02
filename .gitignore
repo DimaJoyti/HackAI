@@ -1,5 +1,6 @@
 PROMT.md
 web/node_modules
+web.open-next
 web/.next
 bin
 .env
@@ -9,3 +10,27 @@ web/.env.local
 .env.development
 .env.production
 .env.staging
+
+.terraform/
+*.tfstate
+*.tfstate.backup
+web/.open-next
+web/.wrangler
+workers/auth-service/.wrangler
+workers/api-gateway/.wrangler
+workers/api-gateway/node_modules# Terraform providers and large files
+infrastructure/terraform/**/.terraform/
+infrastructure/terraform/**/.terraform.lock.hcl
+*.tfstate
+*.tfstate.backup
+.terraform/
+.terraform.lock.hcl
+
+# Node modules
+node_modules/
+**/node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+workers/api-gateway/.wrangler
+workers/auth-service/.wrangler
