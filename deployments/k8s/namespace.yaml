@@ -9,18 +9,42 @@ metadata:
     app.kubernetes.io/component: platform
     app.kubernetes.io/part-of: hackai-platform
 ---
+# 🔒 SECURITY WARNING: This is a template file!
+#
+# DO NOT use these hardcoded secrets in production!
+#
+# For production deployment:
+# 1. Use external secret management (AWS Secrets Manager, Azure Key Vault, etc.)
+# 2. Use Kubernetes External Secrets Operator
+# 3. Use Helm with values files that reference external secrets
+# 4. Generate secrets using: kubectl create secret generic hackai-secrets --from-env-file=.env
+#
+# Example production secret creation:
+# kubectl create secret generic hackai-secrets \
+#   --from-literal=db-password="$(openssl rand -base64 32)" \
+#   --from-literal=redis-password="$(openssl rand -base64 32)" \
+#   --from-literal=jwt-secret="$(openssl rand -base64 32)" \
+#   --from-literal=ai-api-key="${OPENAI_API_KEY}" \
+#   --namespace=hackai
+
 apiVersion: v1
 kind: Secret
 metadata:
   name: hackai-secrets
   namespace: hackai
+  annotations:
+    # Use external secret management in production
+    external-secrets.io/backend: "vault"
+    external-secrets.io/key: "hackai/secrets"
 type: Opaque
 data:
-  # Base64 encoded values
-  db-password: aGFja2FpX3Bhc3N3b3Jk  # hackai_password
-  redis-password: cmVkaXNfcGFzc3dvcmQ=  # redis_password
-  jwt-secret: eW91ci1zdXBlci1zZWNyZXQtand0LWtleQ==  # your-super-secret-jwt-key
-  ai-api-key: eW91ci1vcGVuYWktYXBpLWtleQ==  # your-openai-api-key
+  # 🔒 TEMPLATE VALUES - REPLACE IN PRODUCTION!
+  # Generate real secrets using: echo -n "your-secret" | base64
+  db-password: ""          # Set via: kubectl patch secret hackai-secrets -p '{"data":{"db-password":"'$(echo -n "$DB_PASSWORD" | base64)'"}}'
+  redis-password: ""       # Set via: kubectl patch secret hackai-secrets -p '{"data":{"redis-password":"'$(echo -n "$REDIS_PASSWORD" | base64)'"}}'
+  jwt-secret: ""           # Set via: kubectl patch secret hackai-secrets -p '{"data":{"jwt-secret":"'$(echo -n "$JWT_SECRET" | base64)'"}}'
+  ai-api-key: ""           # Set via: kubectl patch secret hackai-secrets -p '{"data":{"ai-api-key":"'$(echo -n "$OPENAI_API_KEY" | base64)'"}}'
+  encryption-key: ""       # Set via: kubectl patch secret hackai-secrets -p '{"data":{"encryption-key":"'$(echo -n "$ENCRYPTION_KEY" | base64)'"}}'
 ---
 apiVersion: v1
 kind: ConfigMap

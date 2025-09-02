@@ -58,11 +58,11 @@ type SearchQuery struct {
 
 // SearchResult represents search results
 type SearchResult struct {
-	Documents    []ScoredDocument `json:"documents"`
-	TotalCount   int              `json:"total_count"`
-	SearchTime   time.Duration    `json:"search_time"`
-	Provider     string           `json:"provider"`
-	QueryID      string           `json:"query_id"`
+	Documents  []ScoredDocument `json:"documents"`
+	TotalCount int              `json:"total_count"`
+	SearchTime time.Duration    `json:"search_time"`
+	Provider   string           `json:"provider"`
+	QueryID    string           `json:"query_id"`
 }
 
 // ScoredDocument represents a document with similarity score
@@ -73,12 +73,12 @@ type ScoredDocument struct {
 
 // VectorDBConfig configures the vector database manager
 type VectorDBConfig struct {
-	PrimaryProvider    string                            `json:"primary_provider"`
-	FallbackProviders  []string                          `json:"fallback_providers"`
-	HealthCheckInterval time.Duration                    `json:"health_check_interval"`
-	RetryAttempts      int                               `json:"retry_attempts"`
-	RetryDelay         time.Duration                     `json:"retry_delay"`
-	Providers          map[string]ProviderConfig         `json:"providers"`
+	PrimaryProvider     string                    `json:"primary_provider"`
+	FallbackProviders   []string                  `json:"fallback_providers"`
+	HealthCheckInterval time.Duration             `json:"health_check_interval"`
+	RetryAttempts       int                       `json:"retry_attempts"`
+	RetryDelay          time.Duration             `json:"retry_delay"`
+	Providers           map[string]ProviderConfig `json:"providers"`
 }
 
 // ProviderConfig represents configuration for a specific provider

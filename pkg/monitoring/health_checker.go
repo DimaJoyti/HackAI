@@ -17,11 +17,11 @@ var healthTracer = otel.Tracer("hackai/monitoring/health")
 
 // HealthChecker manages health checks for system components
 type HealthChecker struct {
-	checks         map[string]*HealthCheck
-	overallHealth  *OverallHealth
-	config         *MonitoringConfig
-	logger         *logger.Logger
-	mutex          sync.RWMutex
+	checks        map[string]*HealthCheck
+	overallHealth *OverallHealth
+	config        *MonitoringConfig
+	logger        *logger.Logger
+	mutex         sync.RWMutex
 }
 
 // HealthCheck represents a health check for a component
@@ -63,14 +63,14 @@ type HealthCheckResult struct {
 
 // OverallHealth represents the overall health of the system
 type OverallHealth struct {
-	Status           OverallHealthStatus       `json:"status"`
-	Components       map[string]*HealthStatus  `json:"components"`
-	CriticalFailures int                       `json:"critical_failures"`
-	TotalChecks      int                       `json:"total_checks"`
-	HealthyChecks    int                       `json:"healthy_checks"`
-	UnhealthyChecks  int                       `json:"unhealthy_checks"`
-	LastUpdate       time.Time                 `json:"last_update"`
-	Metadata         map[string]interface{}    `json:"metadata"`
+	Status           OverallHealthStatus      `json:"status"`
+	Components       map[string]*HealthStatus `json:"components"`
+	CriticalFailures int                      `json:"critical_failures"`
+	TotalChecks      int                      `json:"total_checks"`
+	HealthyChecks    int                      `json:"healthy_checks"`
+	UnhealthyChecks  int                      `json:"unhealthy_checks"`
+	LastUpdate       time.Time                `json:"last_update"`
+	Metadata         map[string]interface{}   `json:"metadata"`
 }
 
 // HealthCheckFunc is a custom health check function
@@ -499,14 +499,14 @@ func (hc *HealthChecker) CreateDefaultHealthChecks() error {
 			ExpectedStatus: 200,
 		},
 		{
-			ID:             "system_disk",
-			Name:           "System Disk Space",
-			Type:           HealthCheckTypeDisk,
-			Target:         "/",
-			Interval:       60 * time.Second,
-			Timeout:        5 * time.Second,
-			Enabled:        true,
-			Critical:       true,
+			ID:       "system_disk",
+			Name:     "System Disk Space",
+			Type:     HealthCheckTypeDisk,
+			Target:   "/",
+			Interval: 60 * time.Second,
+			Timeout:  5 * time.Second,
+			Enabled:  true,
+			Critical: true,
 		},
 		{
 			ID:             "http_endpoint",

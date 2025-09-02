@@ -1,0 +1,95 @@
+config:
+  # Global Configuration
+  hackai-multi-cloud:projectName: hackai
+  hackai-multi-cloud:environment: production
+  hackai-multi-cloud:primaryCloud: aws
+  
+  # Multi-Cloud Enablement
+  hackai-multi-cloud:enableAWS: true
+  hackai-multi-cloud:enableGCP: true
+  hackai-multi-cloud:enableAzure: true
+  
+  # AWS Configuration
+  hackai-multi-cloud:awsRegion: us-west-2
+  aws:region: us-west-2
+  aws:profile: default
+  
+  # GCP Configuration
+  hackai-multi-cloud:gcpRegion: us-central1
+  gcp:project: hackai-production
+  gcp:region: us-central1
+  
+  # Azure Configuration
+  hackai-multi-cloud:azureLocation: East US
+  azure:location: East US
+  azure:subscriptionId: your-azure-subscription-id
+  
+  # Kubernetes Configuration
+  hackai-multi-cloud:kubernetesVersion: "1.28"
+  
+  # Network Configuration
+  aws:vpcCidr: 10.0.0.0/16
+  gcp:vpcCidr: 10.1.0.0/16
+  azure:vnetCidr: 10.2.0.0/16
+  
+  # Node Configuration
+  aws:nodeInstanceTypes:
+    - m5.xlarge
+    - m5a.xlarge
+    - m5d.xlarge
+  aws:nodeMinSize: 3
+  aws:nodeMaxSize: 20
+  aws:nodeDesiredSize: 5
+  
+  gcp:nodeMachineType: e2-standard-8
+  gcp:nodeMinCount: 2
+  gcp:nodeMaxCount: 10
+  gcp:nodeInitialCount: 3
+  
+  azure:nodeVmSize: Standard_D4s_v3
+  azure:nodeMinCount: 2
+  azure:nodeMaxCount: 10
+  azure:nodeCount: 3
+  
+  # Database Configuration
+  aws:dbInstanceClass: db.r6g.large
+  aws:redisNodeType: cache.r6g.large
+  
+  # Security Configuration
+  enableNetworkPolicies: true
+  enablePodSecurityPolicies: true
+  enableEncryptionAtRest: true
+  enableEncryptionInTransit: true
+  
+  # Monitoring Configuration
+  enableMonitoring: true
+  enableLogging: true
+  enableTracing: true
+  
+  # Cost Optimization
+  enableSpotInstances: true
+  enableAutoScaling: true
+  enableRightsizing: true
+  
+  # Backup and DR
+  enableBackup: true
+  backupRetentionDays: 30
+  enableCrossRegionBackup: true
+  
+  # Compliance
+  enableCompliance: true
+  complianceFrameworks:
+    - SOC2
+    - ISO27001
+    - GDPR
+  
+  # Tags
+  commonTags:
+    Project: HackAI
+    Environment: Production
+    ManagedBy: Pulumi
+    Owner: Platform-Team
+    CostCenter: Engineering
+    Backup: Required
+    Monitoring: Critical
+    Compliance: Required

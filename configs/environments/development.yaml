@@ -23,12 +23,12 @@ server:
 
 # Database Configuration - Local PostgreSQL
 database:
-  host: "localhost"
-  port: "5432"
-  name: "hackai_dev"
-  user: "postgres"
-  password: "password"
-  ssl_mode: "disable"
+  host: "${DB_HOST:-localhost}"
+  port: "${DB_PORT:-5432}"
+  name: "${DB_NAME:-hackai_dev}"
+  user: "${DB_USER:-postgres}"
+  password: "${DB_PASSWORD:-}"  # Use environment variable, empty default for local dev
+  ssl_mode: "${DB_SSL_MODE:-disable}"
   max_open_conns: 10  # Lower for development
   max_idle_conns: 2
   conn_max_lifetime: "10m"
@@ -38,10 +38,10 @@ database:
 
 # Redis Configuration - Local Redis
 redis:
-  host: "localhost"
-  port: "6379"
-  password: ""
-  db: 1  # Use different DB for development
+  host: "${REDIS_HOST:-localhost}"
+  port: "${REDIS_PORT:-6379}"
+  password: "${REDIS_PASSWORD:-}"  # Empty default for local dev
+  db: "${REDIS_DB:-1}"  # Use different DB for development
   pool_size: 5
   min_idle_conns: 1
   dial_timeout: "10s"
@@ -52,9 +52,9 @@ redis:
 
 # JWT Configuration - Development keys
 jwt:
-  secret: "dev-secret-key-not-for-production"
-  issuer: "hackai-dev"
-  audience: "hackai-dev-users"
+  secret: "${JWT_SECRET:-dev-secret-key-not-for-production}"  # Use env var or dev default
+  issuer: "${JWT_ISSUER:-hackai-dev}"
+  audience: "${JWT_AUDIENCE:-hackai-dev-users}"
   access_token_duration: "1h"  # Longer for development convenience
   refresh_token_duration: "7d"
   algorithm: "HS256"

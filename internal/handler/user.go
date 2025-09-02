@@ -335,16 +335,16 @@ func (h *UserHandler) writeJSONResponse(w http.ResponseWriter, statusCode int, d
 func (h *UserHandler) writeErrorResponse(w http.ResponseWriter, statusCode int, message string, err error) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(statusCode)
-	
+
 	response := map[string]interface{}{
 		"error":   true,
 		"message": message,
 	}
-	
+
 	if err != nil {
 		h.logger.WithError(err).Error(message)
 		response["details"] = err.Error()
 	}
-	
+
 	json.NewEncoder(w).Encode(response)
 }

@@ -8,30 +8,37 @@ import (
 
 // User represents a user in the system
 type User struct {
-	ID        uuid.UUID `json:"id" gorm:"type:uuid;primary_key;default:gen_random_uuid()"`
-	Email     string    `json:"email" gorm:"uniqueIndex;not null"`
-	Username  string    `json:"username" gorm:"uniqueIndex;not null"`
-	Password  string    `json:"-" gorm:"not null"` // Never expose password in JSON
-	FirstName string    `json:"first_name"`
-	LastName  string    `json:"last_name"`
-	Role      UserRole  `json:"role" gorm:"default:'user'"`
+	ID        uuid.UUID  `json:"id" gorm:"type:uuid;primary_key;default:gen_random_uuid()"`
+	Email     string     `json:"email" gorm:"uniqueIndex;not null"`
+	Username  string     `json:"username" gorm:"uniqueIndex;not null"`
+	Password  string     `json:"-" gorm:"not null"` // Never expose password in JSON
+	FirstName string     `json:"first_name"`
+	LastName  string     `json:"last_name"`
+	Role      UserRole   `json:"role" gorm:"default:'user'"`
 	Status    UserStatus `json:"status" gorm:"default:'active'"`
-	
+
+	// Firebase integration
+	FirebaseUID   string `json:"firebase_uid" gorm:"uniqueIndex"`
+	DisplayName   string `json:"display_name"`
+	PhoneNumber   string `json:"phone_number"`
+	EmailVerified bool   `json:"email_verified" gorm:"default:false"`
+	Organization  string `json:"organization"`
+
 	// Profile information
-	Avatar      string    `json:"avatar"`
-	Bio         string    `json:"bio"`
-	Company     string    `json:"company"`
-	Location    string    `json:"location"`
-	Website     string    `json:"website"`
-	
+	Avatar   string `json:"avatar"`
+	Bio      string `json:"bio"`
+	Company  string `json:"company"`
+	Location string `json:"location"`
+	Website  string `json:"website"`
+
 	// Security settings
-	TwoFactorEnabled bool      `json:"two_factor_enabled" gorm:"default:false"`
-	LastLoginAt      *time.Time `json:"last_login_at"`
-	PasswordChangedAt time.Time `json:"password_changed_at"`
-	
+	TwoFactorEnabled  bool       `json:"two_factor_enabled" gorm:"default:false"`
+	LastLoginAt       *time.Time `json:"last_login_at"`
+	PasswordChangedAt time.Time  `json:"password_changed_at"`
+
 	// Audit fields
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	CreatedAt time.Time  `json:"created_at"`
+	UpdatedAt time.Time  `json:"updated_at"`
 	DeletedAt *time.Time `json:"deleted_at,omitempty" gorm:"index"`
 }
 
@@ -53,6 +60,7 @@ const (
 	UserStatusInactive  UserStatus = "inactive"
 	UserStatusSuspended UserStatus = "suspended"
 	UserStatusPending   UserStatus = "pending"
+	UserStatusDeleted   UserStatus = "deleted"
 )
 
 // UserSession represents an active user session
@@ -65,24 +73,24 @@ type UserSession struct {
 	IPAddress string    `json:"ip_address"`
 	ExpiresAt time.Time `json:"expires_at"`
 	CreatedAt time.Time `json:"created_at"`
-	
+
 	// Relationships
 	User User `json:"user" gorm:"foreignKey:UserID"`
 }
 
 // UserPermission represents granular permissions
 type UserPermission struct {
-	ID          uuid.UUID `json:"id" gorm:"type:uuid;primary_key;default:gen_random_uuid()"`
-	UserID      uuid.UUID `json:"user_id" gorm:"type:uuid;not null;index"`
-	Resource    string    `json:"resource" gorm:"not null"`
-	Action      string    `json:"action" gorm:"not null"`
-	Granted     bool      `json:"granted" gorm:"default:true"`
-	GrantedBy   uuid.UUID `json:"granted_by" gorm:"type:uuid"`
-	GrantedAt   time.Time `json:"granted_at"`
-	ExpiresAt   *time.Time `json:"expires_at"`
-	
+	ID        uuid.UUID  `json:"id" gorm:"type:uuid;primary_key;default:gen_random_uuid()"`
+	UserID    uuid.UUID  `json:"user_id" gorm:"type:uuid;not null;index"`
+	Resource  string     `json:"resource" gorm:"not null"`
+	Action    string     `json:"action" gorm:"not null"`
+	Granted   bool       `json:"granted" gorm:"default:true"`
+	GrantedBy uuid.UUID  `json:"granted_by" gorm:"type:uuid"`
+	GrantedAt time.Time  `json:"granted_at"`
+	ExpiresAt *time.Time `json:"expires_at"`
+
 	// Relationships
-	User      User `json:"user" gorm:"foreignKey:UserID"`
+	User          User `json:"user" gorm:"foreignKey:UserID"`
 	GrantedByUser User `json:"granted_by_user" gorm:"foreignKey:GrantedBy"`
 }
 
@@ -96,7 +104,7 @@ type UserActivity struct {
 	IPAddress string    `json:"ip_address"`
 	UserAgent string    `json:"user_agent"`
 	CreatedAt time.Time `json:"created_at"`
-	
+
 	// Relationships
 	User User `json:"user" gorm:"foreignKey:UserID"`
 }
@@ -111,19 +119,24 @@ type UserRepository interface {
 	Delete(id uuid.UUID) error
 	List(limit, offset int) ([]*User, error)
 	Search(query string, limit, offset int) ([]*User, error)
-	
+
+	// Firebase integration
+	GetByFirebaseUID(firebaseUID string) (*User, error)
+	UpdateFirebaseUID(userID uuid.UUID, firebaseUID string) error
+	ListUsersWithoutFirebaseUID(limit, offset int) ([]*User, error)
+
 	// Session management
 	CreateSession(session *UserSession) error
 	GetSession(token string) (*UserSession, error)
 	DeleteSession(token string) error
 	DeleteUserSessions(userID uuid.UUID) error
-	
+
 	// Permissions
 	GrantPermission(permission *UserPermission) error
 	RevokePermission(userID uuid.UUID, resource, action string) error
 	GetUserPermissions(userID uuid.UUID) ([]*UserPermission, error)
 	HasPermission(userID uuid.UUID, resource, action string) (bool, error)
-	
+
 	// Activity logging
 	LogActivity(activity *UserActivity) error
 	GetUserActivity(userID uuid.UUID, limit, offset int) ([]*UserActivity, error)
@@ -139,18 +152,18 @@ type UserUseCase interface {
 	ChangePassword(userID uuid.UUID, oldPassword, newPassword string) error
 	ResetPassword(email string) error
 	VerifyToken(token string) (*User, error)
-	
+
 	// Admin functions
 	ListUsers(limit, offset int) ([]*User, error)
 	SearchUsers(query string, limit, offset int) ([]*User, error)
 	UpdateUserRole(userID uuid.UUID, role UserRole) error
 	UpdateUserStatus(userID uuid.UUID, status UserStatus) error
-	
+
 	// Permissions
 	GrantPermission(userID uuid.UUID, resource, action string, grantedBy uuid.UUID) error
 	RevokePermission(userID uuid.UUID, resource, action string) error
 	CheckPermission(userID uuid.UUID, resource, action string) (bool, error)
-	
+
 	// Activity
 	GetUserActivity(userID uuid.UUID, limit, offset int) ([]*UserActivity, error)
 }

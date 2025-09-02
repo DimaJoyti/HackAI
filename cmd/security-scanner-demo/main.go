@@ -169,12 +169,12 @@ func main() {
 
 	stats := scanner.GetThreatStatistics()
 	fmt.Printf("Total Scans: %d\n", stats.TotalScans)
-	
+
 	fmt.Println("\nThreat Levels:")
 	for level, count := range stats.ThreatLevelStats {
 		fmt.Printf("  %s: %d\n", level, count)
 	}
-	
+
 	fmt.Println("\nVulnerability Types:")
 	for vulnType, count := range stats.VulnerabilityStats {
 		fmt.Printf("  %s: %d\n", vulnType, count)

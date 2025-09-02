@@ -142,7 +142,7 @@ func basicMemoryOperations(ctx context.Context, manager ai.MemoryManager) error 
 func advancedSearchExample(ctx context.Context, manager ai.MemoryManager) error {
 	// Create search query
 	query := ai.SearchQuery{
-		Text:   "programming",
+		Text: "programming",
 		Filters: map[string]interface{}{
 			"topic": "programming",
 		},
@@ -360,7 +360,7 @@ func AlternativeBackendsExample() error {
 func demonstrateBackend(ctx context.Context, backend interface{}, name string) error {
 	// This is a simplified demonstration
 	// In practice, you would use the backend through the MemoryManager interface
-	
+
 	memory := ai.Memory{
 		SessionID: fmt.Sprintf("%s-demo", name),
 		UserID:    "demo-user",
@@ -378,9 +378,9 @@ func demonstrateBackend(ctx context.Context, backend interface{}, name string) e
 	}
 
 	fmt.Printf("Testing %s backend with session: %s\n", name, memory.SessionID)
-	
+
 	// Note: This is a simplified example
 	// In practice, you would implement the full MemoryManager interface
-	
+
 	return nil
 }

@@ -28,18 +28,18 @@ type JailbreakCategory struct {
 
 // JailbreakTechnique represents a specific jailbreak technique
 type JailbreakTechnique struct {
-	ID           string                 `json:"id"`
-	Name         string                 `json:"name"`
-	Category     string                 `json:"category"`
-	Description  string                 `json:"description"`
-	Severity     string                 `json:"severity"`
-	Complexity   string                 `json:"complexity"`
-	SuccessRate  float64                `json:"success_rate"`
-	Indicators   []string               `json:"indicators"`
-	Patterns     []string               `json:"patterns"`
-	Examples     []string               `json:"examples"`
-	Mitigations  []string               `json:"mitigations"`
-	Metadata     map[string]interface{} `json:"metadata"`
+	ID          string                 `json:"id"`
+	Name        string                 `json:"name"`
+	Category    string                 `json:"category"`
+	Description string                 `json:"description"`
+	Severity    string                 `json:"severity"`
+	Complexity  string                 `json:"complexity"`
+	SuccessRate float64                `json:"success_rate"`
+	Indicators  []string               `json:"indicators"`
+	Patterns    []string               `json:"patterns"`
+	Examples    []string               `json:"examples"`
+	Mitigations []string               `json:"mitigations"`
+	Metadata    map[string]interface{} `json:"metadata"`
 }
 
 // JailbreakClassificationResult represents the result of jailbreak classification
@@ -382,13 +382,13 @@ func (c *SemanticClassifier) GetConfidence() float64 {
 func (c *SemanticClassifier) Classify(input string) (*JailbreakClassificationResult, error) {
 	// Simplified semantic analysis
 	// In a real implementation, this would use NLP models
-	
+
 	inputLower := strings.ToLower(input)
-	
+
 	// Check for semantic patterns
 	semanticPatterns := map[string]string{
-		"role_manipulation":     "role|persona|character|act as|pretend",
-		"instruction_override":  "ignore|forget|override|replace|new instructions",
+		"role_manipulation":      "role|persona|character|act as|pretend",
+		"instruction_override":   "ignore|forget|override|replace|new instructions",
 		"emotional_manipulation": "please|help|urgent|desperate|need",
 		"hypothetical_scenarios": "imagine|suppose|what if|hypothetically",
 	}

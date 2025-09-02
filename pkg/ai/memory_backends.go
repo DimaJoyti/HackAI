@@ -194,7 +194,7 @@ func (fb *FileBackend) Store(ctx context.Context, sessionID string, memory Memor
 	defer fb.mutex.Unlock()
 
 	filePath := fb.getFilePath(sessionID)
-	
+
 	// Ensure directory exists
 	dir := filepath.Dir(filePath)
 	if err := os.MkdirAll(dir, 0755); err != nil {
@@ -222,7 +222,7 @@ func (fb *FileBackend) Retrieve(ctx context.Context, sessionID string) (Memory, 
 	defer fb.mutex.RUnlock()
 
 	filePath := fb.getFilePath(sessionID)
-	
+
 	// Check if file exists
 	if _, err := os.Stat(filePath); os.IsNotExist(err) {
 		fb.stats.TotalMisses++
@@ -300,7 +300,7 @@ func (fb *FileBackend) Clear(ctx context.Context, sessionID string) error {
 	defer fb.mutex.Unlock()
 
 	filePath := fb.getFilePath(sessionID)
-	
+
 	if err := os.Remove(filePath); err != nil && !os.IsNotExist(err) {
 		return fmt.Errorf("failed to remove file: %w", err)
 	}
@@ -330,7 +330,7 @@ func (fb *FileBackend) BatchStore(ctx context.Context, memories map[string]Memor
 
 	for sessionID, memory := range memories {
 		filePath := fb.getFilePath(sessionID)
-		
+
 		// Ensure directory exists
 		dir := filepath.Dir(filePath)
 		if err := os.MkdirAll(dir, 0755); err != nil {
@@ -358,10 +358,10 @@ func (fb *FileBackend) BatchRetrieve(ctx context.Context, sessionIDs []string) (
 	defer fb.mutex.RUnlock()
 
 	results := make(map[string]Memory)
-	
+
 	for _, sessionID := range sessionIDs {
 		filePath := fb.getFilePath(sessionID)
-		
+
 		if data, err := os.ReadFile(filePath); err == nil {
 			var memory Memory
 			if err := json.Unmarshal(data, &memory); err == nil {

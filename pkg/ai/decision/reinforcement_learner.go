@@ -51,12 +51,12 @@ type Episode struct {
 
 // LearningStats represents learning statistics
 type LearningStats struct {
-	TotalEpisodes     int64   `json:"total_episodes"`
-	AverageReward     float64 `json:"average_reward"`
-	ExplorationRate   float64 `json:"exploration_rate"`
-	LearningRate      float64 `json:"learning_rate"`
-	QTableSize        int     `json:"q_table_size"`
-	LastUpdated       time.Time `json:"last_updated"`
+	TotalEpisodes   int64     `json:"total_episodes"`
+	AverageReward   float64   `json:"average_reward"`
+	ExplorationRate float64   `json:"exploration_rate"`
+	LearningRate    float64   `json:"learning_rate"`
+	QTableSize      int       `json:"q_table_size"`
+	LastUpdated     time.Time `json:"last_updated"`
 }
 
 // NewReinforcementLearner creates a new reinforcement learner
@@ -96,9 +96,9 @@ func (se *StateEncoder) EncodeState(context *DecisionContext) string {
 	}
 
 	// Create a simplified state representation
-	urgencyBucket := int(context.Urgency * 10) // 0-10
+	urgencyBucket := int(context.Urgency * 10)       // 0-10
 	complexityBucket := int(context.Complexity * 10) // 0-10
-	
+
 	// Encode resource availability
 	resourceLevel := "low"
 	if len(context.Resources) > 0 {
@@ -115,7 +115,7 @@ func (se *StateEncoder) EncodeState(context *DecisionContext) string {
 	}
 
 	state := fmt.Sprintf("u%d_c%d_r%s", urgencyBucket, complexityBucket, resourceLevel)
-	
+
 	// Register state if new
 	if _, exists := se.stateSpace[state]; !exists {
 		se.stateSpace[state] = len(se.stateSpace)
@@ -146,7 +146,7 @@ func (ae *ActionEncoder) EncodeAction(option *DecisionOption) string {
 	}
 
 	action := fmt.Sprintf("c%s_r%s", costBucket, riskBucket)
-	
+
 	// Register action if new
 	if _, exists := ae.actionSpace[action]; !exists {
 		ae.actionSpace[action] = len(ae.actionSpace)
@@ -226,11 +226,11 @@ func (rl *ReinforcementLearner) UpdateFromOutcome(ctx context.Context, decisionI
 	// Update Q-value using Q-learning formula
 	// Q(s,a) = Q(s,a) + α[r + γ*max(Q(s',a')) - Q(s,a)]
 	currentQ := rl.getQValue(episode.State, episode.Action)
-	
+
 	// For simplicity, assume next state is terminal (no future rewards)
 	maxNextQ := 0.0
-	
-	newQ := currentQ + rl.learningRate*(reward + rl.discountFactor*maxNextQ - currentQ)
+
+	newQ := currentQ + rl.learningRate*(reward+rl.discountFactor*maxNextQ-currentQ)
 	rl.setQValue(episode.State, episode.Action, newQ)
 
 	rl.logger.Debug("Q-value updated",
@@ -314,7 +314,7 @@ func (rl *ReinforcementLearner) RecordEpisode(state, action string, metadata map
 		State:     state,
 		Action:    action,
 		Reward:    0.0, // Will be updated when outcome is received
-		NextState: "", // Will be updated if there's a next state
+		NextState: "",  // Will be updated if there's a next state
 		Done:      false,
 		Metadata:  metadata,
 		Timestamp: time.Now(),

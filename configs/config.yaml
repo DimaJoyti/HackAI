@@ -25,12 +25,12 @@ server:
 
 # Database Configuration
 database:
-  host: "localhost"
-  port: "5432"
-  name: "hackai"
-  user: "postgres"
-  password: "password"
-  ssl_mode: "disable"
+  host: "${DB_HOST:-localhost}"
+  port: "${DB_PORT:-5432}"
+  name: "${DB_NAME:-hackai}"
+  user: "${DB_USER:-postgres}"
+  password: "${DB_PASSWORD}"
+  ssl_mode: "${DB_SSL_MODE:-disable}"
   max_open_conns: 25
   max_idle_conns: 5
   conn_max_lifetime: "5m"
@@ -40,10 +40,10 @@ database:
 
 # Redis Configuration (for caching and rate limiting)
 redis:
-  host: "localhost"
-  port: "6379"
-  password: ""
-  db: 0
+  host: "${REDIS_HOST:-localhost}"
+  port: "${REDIS_PORT:-6379}"
+  password: "${REDIS_PASSWORD}"
+  db: "${REDIS_DB:-0}"
   pool_size: 10
   min_idle_conns: 5
   dial_timeout: "5s"
@@ -54,9 +54,9 @@ redis:
 
 # JWT Configuration
 jwt:
-  secret: "your-secret-key-change-in-production"
-  issuer: "hackai-llm-security-proxy"
-  audience: "hackai-users"
+  secret: "${JWT_SECRET}"
+  issuer: "${JWT_ISSUER:-hackai-llm-security-proxy}"
+  audience: "${JWT_AUDIENCE:-hackai-users}"
   access_token_duration: "15m"
   refresh_token_duration: "24h"
   algorithm: "HS256"

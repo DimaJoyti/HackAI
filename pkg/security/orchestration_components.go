@@ -57,7 +57,7 @@ type RetryPolicy struct {
 	Metadata   map[string]interface{} `json:"metadata"`
 }
 
-type ResourceUsage struct {
+type OrchestrationResourceUsage struct {
 	CPU      float64                `json:"cpu"`
 	Memory   int64                  `json:"memory"`
 	Storage  int64                  `json:"storage"`

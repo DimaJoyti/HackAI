@@ -12,26 +12,26 @@ import (
 
 // LabManager manages hands-on laboratory exercises
 type LabManager struct {
-	logger           *logger.Logger
-	labs             map[string]*Lab
-	activeSessions   map[string]*LabSession
-	environments     map[string]*LabEnvironment
-	environmentPool  *EnvironmentPool
-	config           *LabManagerConfig
-	mu               sync.RWMutex
+	logger          *logger.Logger
+	labs            map[string]*Lab
+	activeSessions  map[string]*LabSession
+	environments    map[string]*LabEnvironment
+	environmentPool *EnvironmentPool
+	config          *LabManagerConfig
+	mu              sync.RWMutex
 }
 
 // LabManagerConfig configuration for lab manager
 type LabManagerConfig struct {
-	MaxConcurrentSessions    int           `json:"max_concurrent_sessions"`
-	SessionTimeout           time.Duration `json:"session_timeout"`
-	EnvironmentTimeout       time.Duration `json:"environment_timeout"`
-	EnableAutoValidation     bool          `json:"enable_auto_validation"`
-	EnableHints              bool          `json:"enable_hints"`
-	EnableSolutions          bool          `json:"enable_solutions"`
-	MaxAttemptsPerStep       int           `json:"max_attempts_per_step"`
-	EnableEnvironmentReuse   bool          `json:"enable_environment_reuse"`
-	EnvironmentCleanupDelay  time.Duration `json:"environment_cleanup_delay"`
+	MaxConcurrentSessions   int           `json:"max_concurrent_sessions"`
+	SessionTimeout          time.Duration `json:"session_timeout"`
+	EnvironmentTimeout      time.Duration `json:"environment_timeout"`
+	EnableAutoValidation    bool          `json:"enable_auto_validation"`
+	EnableHints             bool          `json:"enable_hints"`
+	EnableSolutions         bool          `json:"enable_solutions"`
+	MaxAttemptsPerStep      int           `json:"max_attempts_per_step"`
+	EnableEnvironmentReuse  bool          `json:"enable_environment_reuse"`
+	EnvironmentCleanupDelay time.Duration `json:"environment_cleanup_delay"`
 }
 
 // EnvironmentPool manages a pool of lab environments
@@ -44,10 +44,10 @@ type EnvironmentPool struct {
 
 // PoolConfig configuration for environment pool
 type PoolConfig struct {
-	MinPoolSize     int           `json:"min_pool_size"`
-	MaxPoolSize     int           `json:"max_pool_size"`
-	WarmupTime      time.Duration `json:"warmup_time"`
-	IdleTimeout     time.Duration `json:"idle_timeout"`
+	MinPoolSize         int           `json:"min_pool_size"`
+	MaxPoolSize         int           `json:"max_pool_size"`
+	WarmupTime          time.Duration `json:"warmup_time"`
+	IdleTimeout         time.Duration `json:"idle_timeout"`
 	HealthCheckInterval time.Duration `json:"health_check_interval"`
 }
 
@@ -106,8 +106,8 @@ func (lm *LabManager) initializeDefaultLabs() {
 				"rate_limiting":  true,
 			},
 			Resources: map[string]interface{}{
-				"cpu":    "1 core",
-				"memory": "2GB",
+				"cpu":     "1 core",
+				"memory":  "2GB",
 				"storage": "10GB",
 			},
 		},
@@ -167,9 +167,9 @@ func (lm *LabManager) initializeDefaultLabs() {
 			"Validate security controls",
 		},
 		Validation: &LabValidation{
-			Type:     "automated",
+			Type:      "automated",
 			AutoCheck: true,
-			Timeout:  30 * time.Second,
+			Timeout:   30 * time.Second,
 			Criteria: []ValidationCriterion{
 				{
 					ID:       "injection-resistance",
@@ -455,7 +455,7 @@ func (ep *EnvironmentPool) getAvailable(envType string) *ActiveEnvironment {
 }
 
 // GetLabSession retrieves a lab session by ID
-func (lm *LabManager) GetLabSession(sessionID string) (*LabSession, error) {
+func (lm *LabManager) GetLabSession(ctx context.Context, sessionID string) (*LabSession, error) {
 	lm.mu.RLock()
 	defer lm.mu.RUnlock()
 
@@ -465,6 +465,101 @@ func (lm *LabManager) GetLabSession(sessionID string) (*LabSession, error) {
 	}
 
 	return session, nil
+}
+
+// ListLabs lists labs with optional filtering
+func (lm *LabManager) ListLabs(ctx context.Context, filter LabFilter) ([]*Lab, error) {
+	lm.mu.RLock()
+	defer lm.mu.RUnlock()
+
+	var labs []*Lab
+	for _, lab := range lm.labs {
+		// Apply filters
+		if filter.Type != "" && lab.Type != filter.Type {
+			continue
+		}
+		if filter.Difficulty != "" && lab.Difficulty != filter.Difficulty {
+			continue
+		}
+		if filter.SearchQuery != "" {
+			// Simple search in title and description
+			if !containsIgnoreCase(lab.Title, filter.SearchQuery) &&
+			   !containsIgnoreCase(lab.Description, filter.SearchQuery) {
+				continue
+			}
+		}
+		labs = append(labs, lab)
+	}
+
+	return labs, nil
+}
+
+// GetLab retrieves a specific lab by ID
+func (lm *LabManager) GetLab(ctx context.Context, labID string) (*Lab, error) {
+	lm.mu.RLock()
+	defer lm.mu.RUnlock()
+
+	lab, exists := lm.labs[labID]
+	if !exists {
+		return nil, fmt.Errorf("lab not found: %s", labID)
+	}
+
+	return lab, nil
+}
+
+// containsIgnoreCase performs case-insensitive substring search
+func containsIgnoreCase(s, substr string) bool {
+	// Convert to lowercase for comparison
+	sLower := toLowerCase(s)
+	substrLower := toLowerCase(substr)
+
+	for i := 0; i <= len(sLower)-len(substrLower); i++ {
+		if sLower[i:i+len(substrLower)] == substrLower {
+			return true
+		}
+	}
+	return false
+}
+
+// toLowerCase converts string to lowercase
+func toLowerCase(s string) string {
+	result := make([]byte, len(s))
+	for i, b := range []byte(s) {
+		if b >= 'A' && b <= 'Z' {
+			result[i] = b + 32
+		} else {
+			result[i] = b
+		}
+	}
+	return string(result)
+}
+
+// CompleteLab marks a lab session as completed
+func (lm *LabManager) CompleteLab(sessionID string) error {
+	lm.mu.Lock()
+	defer lm.mu.Unlock()
+
+	session, exists := lm.activeSessions[sessionID]
+	if !exists {
+		return fmt.Errorf("lab session not found: %s", sessionID)
+	}
+
+	session.Status = "completed"
+	now := time.Now()
+	session.EndTime = &now
+
+	// Update progress to 100%
+	if session.Progress != nil {
+		session.Progress.OverallProgress = 1.0
+	}
+
+	lm.logger.WithFields(map[string]interface{}{
+		"session_id": sessionID,
+		"lab_id":     session.LabID,
+		"user_id":    session.UserID,
+	}).Info("Lab session completed")
+
+	return nil
 }
 
 // SubmitLabStep submits a lab step for validation
@@ -504,6 +599,6 @@ func (lm *LabManager) validateSubmission(session *LabSession, submission *LabSub
 	// In a real implementation, this would perform actual validation
 	score := 85.0
 	feedback := "Good work! Consider improving the security configuration."
-	
+
 	return score, feedback
 }

@@ -12,15 +12,15 @@ import (
 
 // ProceduralMemory manages procedural knowledge (skills, procedures, habits)
 type ProceduralMemory struct {
-	procedures   map[string]*Procedure
-	skills       map[string]*Skill
-	habits       map[string]*Habit
-	workflows    map[string]*Workflow
-	maxSize      int
-	skillIndex   *SkillIndex
-	config       *MemoryConfig
-	logger       *logger.Logger
-	mutex        sync.RWMutex
+	procedures map[string]*Procedure
+	skills     map[string]*Skill
+	habits     map[string]*Habit
+	workflows  map[string]*Workflow
+	maxSize    int
+	skillIndex *SkillIndex
+	config     *MemoryConfig
+	logger     *logger.Logger
+	mutex      sync.RWMutex
 }
 
 // Procedure represents a procedural memory
@@ -63,55 +63,55 @@ type ProcedureStep struct {
 
 // Skill represents a learned skill
 type Skill struct {
-	ID          string                 `json:"id"`
-	Name        string                 `json:"name"`
-	Description string                 `json:"description"`
-	Category    string                 `json:"category"`
-	Level       SkillLevel             `json:"level"`
-	Proficiency float64                `json:"proficiency"`
-	Experience  int64                  `json:"experience"`
-	Procedures  []string               `json:"procedures"`
-	Prerequisites []string             `json:"prerequisites"`
-	Metrics     map[string]float64     `json:"metrics"`
-	LastPracticed time.Time            `json:"last_practiced"`
-	CreatedAt   time.Time              `json:"created_at"`
-	UpdatedAt   time.Time              `json:"updated_at"`
-	Tags        []string               `json:"tags"`
-	Metadata    map[string]interface{} `json:"metadata"`
+	ID            string                 `json:"id"`
+	Name          string                 `json:"name"`
+	Description   string                 `json:"description"`
+	Category      string                 `json:"category"`
+	Level         SkillLevel             `json:"level"`
+	Proficiency   float64                `json:"proficiency"`
+	Experience    int64                  `json:"experience"`
+	Procedures    []string               `json:"procedures"`
+	Prerequisites []string               `json:"prerequisites"`
+	Metrics       map[string]float64     `json:"metrics"`
+	LastPracticed time.Time              `json:"last_practiced"`
+	CreatedAt     time.Time              `json:"created_at"`
+	UpdatedAt     time.Time              `json:"updated_at"`
+	Tags          []string               `json:"tags"`
+	Metadata      map[string]interface{} `json:"metadata"`
 }
 
 // Habit represents an automated behavior pattern
 type Habit struct {
-	ID          string                 `json:"id"`
-	Name        string                 `json:"name"`
-	Description string                 `json:"description"`
-	Trigger     *HabitTrigger          `json:"trigger"`
-	Routine     *HabitRoutine          `json:"routine"`
-	Reward      *HabitReward           `json:"reward"`
-	Strength    float64                `json:"strength"`
-	Frequency   float64                `json:"frequency"`
-	Consistency float64                `json:"consistency"`
-	LastTriggered time.Time            `json:"last_triggered"`
-	CreatedAt   time.Time              `json:"created_at"`
-	UpdatedAt   time.Time              `json:"updated_at"`
-	Tags        []string               `json:"tags"`
-	Metadata    map[string]interface{} `json:"metadata"`
+	ID            string                 `json:"id"`
+	Name          string                 `json:"name"`
+	Description   string                 `json:"description"`
+	Trigger       *HabitTrigger          `json:"trigger"`
+	Routine       *HabitRoutine          `json:"routine"`
+	Reward        *HabitReward           `json:"reward"`
+	Strength      float64                `json:"strength"`
+	Frequency     float64                `json:"frequency"`
+	Consistency   float64                `json:"consistency"`
+	LastTriggered time.Time              `json:"last_triggered"`
+	CreatedAt     time.Time              `json:"created_at"`
+	UpdatedAt     time.Time              `json:"updated_at"`
+	Tags          []string               `json:"tags"`
+	Metadata      map[string]interface{} `json:"metadata"`
 }
 
 // Workflow represents a complex procedural workflow
 type Workflow struct {
-	ID          string                 `json:"id"`
-	Name        string                 `json:"name"`
-	Description string                 `json:"description"`
-	Procedures  []string               `json:"procedures"`
-	Dependencies map[string][]string   `json:"dependencies"`
-	Parallel    [][]string             `json:"parallel"`
-	Conditions  []*Condition           `json:"conditions"`
-	Metrics     map[string]float64     `json:"metrics"`
-	CreatedAt   time.Time              `json:"created_at"`
-	UpdatedAt   time.Time              `json:"updated_at"`
-	Tags        []string               `json:"tags"`
-	Metadata    map[string]interface{} `json:"metadata"`
+	ID           string                 `json:"id"`
+	Name         string                 `json:"name"`
+	Description  string                 `json:"description"`
+	Procedures   []string               `json:"procedures"`
+	Dependencies map[string][]string    `json:"dependencies"`
+	Parallel     [][]string             `json:"parallel"`
+	Conditions   []*Condition           `json:"conditions"`
+	Metrics      map[string]float64     `json:"metrics"`
+	CreatedAt    time.Time              `json:"created_at"`
+	UpdatedAt    time.Time              `json:"updated_at"`
+	Tags         []string               `json:"tags"`
+	Metadata     map[string]interface{} `json:"metadata"`
 }
 
 // Supporting structures
@@ -134,24 +134,24 @@ type ProcedureOutcome struct {
 }
 
 type HabitTrigger struct {
-	Type        TriggerType            `json:"type"`
-	Conditions  []*Condition           `json:"conditions"`
-	Context     map[string]interface{} `json:"context"`
-	Metadata    map[string]interface{} `json:"metadata"`
+	Type       TriggerType            `json:"type"`
+	Conditions []*Condition           `json:"conditions"`
+	Context    map[string]interface{} `json:"context"`
+	Metadata   map[string]interface{} `json:"metadata"`
 }
 
 type HabitRoutine struct {
-	Steps       []*ProcedureStep       `json:"steps"`
-	Duration    time.Duration          `json:"duration"`
-	Complexity  float64                `json:"complexity"`
-	Metadata    map[string]interface{} `json:"metadata"`
+	Steps      []*ProcedureStep       `json:"steps"`
+	Duration   time.Duration          `json:"duration"`
+	Complexity float64                `json:"complexity"`
+	Metadata   map[string]interface{} `json:"metadata"`
 }
 
 type HabitReward struct {
-	Type        RewardType             `json:"type"`
-	Value       interface{}            `json:"value"`
-	Strength    float64                `json:"strength"`
-	Metadata    map[string]interface{} `json:"metadata"`
+	Type     RewardType             `json:"type"`
+	Value    interface{}            `json:"value"`
+	Strength float64                `json:"strength"`
+	Metadata map[string]interface{} `json:"metadata"`
 }
 
 type SkillIndex struct {
@@ -173,34 +173,34 @@ type RewardType string
 
 const (
 	// Procedure Types
-	ProcedureTypeTask       ProcedureType = "task"
-	ProcedureTypeAlgorithm  ProcedureType = "algorithm"
-	ProcedureTypeProtocol   ProcedureType = "protocol"
-	ProcedureTypeWorkflow   ProcedureType = "workflow"
-	ProcedureTypeHeuristic  ProcedureType = "heuristic"
-	ProcedureTypeStrategy   ProcedureType = "strategy"
+	ProcedureTypeTask      ProcedureType = "task"
+	ProcedureTypeAlgorithm ProcedureType = "algorithm"
+	ProcedureTypeProtocol  ProcedureType = "protocol"
+	ProcedureTypeWorkflow  ProcedureType = "workflow"
+	ProcedureTypeHeuristic ProcedureType = "heuristic"
+	ProcedureTypeStrategy  ProcedureType = "strategy"
 
 	// Step Types
-	StepTypeAction      StepType = "action"
-	StepTypeDecision    StepType = "decision"
-	StepTypeValidation  StepType = "validation"
-	StepTypeComputation StepType = "computation"
+	StepTypeAction        StepType = "action"
+	StepTypeDecision      StepType = "decision"
+	StepTypeValidation    StepType = "validation"
+	StepTypeComputation   StepType = "computation"
 	StepTypeCommunication StepType = "communication"
-	StepTypeWait        StepType = "wait"
+	StepTypeWait          StepType = "wait"
 
 	// Skill Levels
-	SkillLevelNovice     SkillLevel = "novice"
-	SkillLevelBeginner   SkillLevel = "beginner"
+	SkillLevelNovice       SkillLevel = "novice"
+	SkillLevelBeginner     SkillLevel = "beginner"
 	SkillLevelIntermediate SkillLevel = "intermediate"
-	SkillLevelAdvanced   SkillLevel = "advanced"
-	SkillLevelExpert     SkillLevel = "expert"
-	SkillLevelMaster     SkillLevel = "master"
+	SkillLevelAdvanced     SkillLevel = "advanced"
+	SkillLevelExpert       SkillLevel = "expert"
+	SkillLevelMaster       SkillLevel = "master"
 
 	// Condition Types
-	ConditionTypeContext    ConditionType = "context"
-	ConditionTypeState      ConditionType = "state"
-	ConditionTypeTime       ConditionType = "time"
-	ConditionTypeResource   ConditionType = "resource"
+	ConditionTypeContext     ConditionType = "context"
+	ConditionTypeState       ConditionType = "state"
+	ConditionTypeTime        ConditionType = "time"
+	ConditionTypeResource    ConditionType = "resource"
 	ConditionTypePerformance ConditionType = "performance"
 
 	// Condition Operators
@@ -212,11 +212,11 @@ const (
 	ConditionOperatorExists      ConditionOperator = "exists"
 
 	// Trigger Types
-	TriggerTypeTime     TriggerType = "time"
-	TriggerTypeEvent    TriggerType = "event"
-	TriggerTypeContext  TriggerType = "context"
-	TriggerTypeState    TriggerType = "state"
-	TriggerTypePattern  TriggerType = "pattern"
+	TriggerTypeTime    TriggerType = "time"
+	TriggerTypeEvent   TriggerType = "event"
+	TriggerTypeContext TriggerType = "context"
+	TriggerTypeState   TriggerType = "state"
+	TriggerTypePattern TriggerType = "pattern"
 
 	// Reward Types
 	RewardTypePositive  RewardType = "positive"
@@ -558,8 +558,8 @@ func (pm *ProceduralMemory) evictLeastUsedProcedure() error {
 	var oldestTime time.Time
 
 	for id, procedure := range pm.procedures {
-		if leastUsedID == "" || procedure.UsageCount < leastUsage || 
-		   (procedure.UsageCount == leastUsage && procedure.LastUsed.Before(oldestTime)) {
+		if leastUsedID == "" || procedure.UsageCount < leastUsage ||
+			(procedure.UsageCount == leastUsage && procedure.LastUsed.Before(oldestTime)) {
 			leastUsedID = id
 			leastUsage = procedure.UsageCount
 			oldestTime = procedure.LastUsed

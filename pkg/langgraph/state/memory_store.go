@@ -10,10 +10,10 @@ import (
 
 // MemoryStateStore implements StateStore using in-memory storage
 type MemoryStateStore struct {
-	data      map[string]*StateEntry
-	watchers  map[string][]chan StateChangeEvent
-	mutex     sync.RWMutex
-	watchMux  sync.RWMutex
+	data     map[string]*StateEntry
+	watchers map[string][]chan StateChangeEvent
+	mutex    sync.RWMutex
+	watchMux sync.RWMutex
 }
 
 // NewMemoryStateStore creates a new in-memory state store
@@ -46,7 +46,7 @@ func (mss *MemoryStateStore) Set(ctx context.Context, key StateKey, entry *State
 	defer mss.mutex.Unlock()
 
 	keyStr := mss.keyToString(key)
-	
+
 	// Check if this is an update or create
 	var oldEntry *StateEntry
 	if existing, exists := mss.data[keyStr]; exists {
@@ -83,7 +83,7 @@ func (mss *MemoryStateStore) Delete(ctx context.Context, key StateKey) error {
 	defer mss.mutex.Unlock()
 
 	keyStr := mss.keyToString(key)
-	
+
 	// Get old value for event
 	var oldValue interface{}
 	if existing, exists := mss.data[keyStr]; exists {
@@ -227,7 +227,7 @@ func (mss *MemoryStateStore) Watch(ctx context.Context, pattern StateKeyPattern)
 
 	ch := make(chan StateChangeEvent, 100) // Buffered channel
 	patternStr := mss.patternToString(pattern)
-	
+
 	mss.watchers[patternStr] = append(mss.watchers[patternStr], ch)
 
 	// Start a goroutine to handle context cancellation

@@ -24,16 +24,16 @@ type LLMAuditMiddleware struct {
 
 // MiddlewareConfig represents middleware configuration
 type MiddlewareConfig struct {
-	Enabled                bool     `json:"enabled"`
-	LogSuccessfulRequests  bool     `json:"log_successful_requests"`
-	LogFailedRequests      bool     `json:"log_failed_requests"`
-	LogBlockedRequests     bool     `json:"log_blocked_requests"`
-	LogSecurityViolations  bool     `json:"log_security_violations"`
-	LogPolicyDecisions     bool     `json:"log_policy_decisions"`
-	ExcludedEndpoints      []string `json:"excluded_endpoints"`
-	ExcludedProviders      []string `json:"excluded_providers"`
-	MinThreatScoreToLog    float64  `json:"min_threat_score_to_log"`
-	SampleRate             float64  `json:"sample_rate"` // 0.0 to 1.0
+	Enabled               bool     `json:"enabled"`
+	LogSuccessfulRequests bool     `json:"log_successful_requests"`
+	LogFailedRequests     bool     `json:"log_failed_requests"`
+	LogBlockedRequests    bool     `json:"log_blocked_requests"`
+	LogSecurityViolations bool     `json:"log_security_violations"`
+	LogPolicyDecisions    bool     `json:"log_policy_decisions"`
+	ExcludedEndpoints     []string `json:"excluded_endpoints"`
+	ExcludedProviders     []string `json:"excluded_providers"`
+	MinThreatScoreToLog   float64  `json:"min_threat_score_to_log"`
+	SampleRate            float64  `json:"sample_rate"` // 0.0 to 1.0
 }
 
 // LLMRequestProcessor defines the interface for processing LLM requests

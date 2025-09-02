@@ -43,6 +43,17 @@ build-demos: ## Build demo applications
 	go build -o bin/observability-demo ./cmd/observability-demo
 	@echo "Demo applications built successfully"
 
+build-multicloud-cli: ## Build Multi-Cloud DevOps CLI
+	@echo "Building Multi-Cloud DevOps CLI..."
+	@mkdir -p bin
+	go build -o bin/multicloud-devops-cli ./cmd/multicloud-devops-cli
+	@echo "Multi-Cloud DevOps CLI built successfully"
+
+install-multicloud-cli: build-multicloud-cli ## Install Multi-Cloud DevOps CLI to system PATH
+	@echo "Installing Multi-Cloud DevOps CLI to /usr/local/bin..."
+	sudo cp bin/multicloud-devops-cli /usr/local/bin/
+	@echo "CLI installed successfully! Run 'multicloud-devops-cli -help' to get started"
+
 # Test targets
 test: ## Run all tests
 	go test -v ./...
@@ -207,7 +218,7 @@ db-restore: ## Restore database from backup (requires BACKUP_FILE variable)
 	docker-compose exec -T postgres psql -U hackai hackai < $(BACKUP_FILE)
 
 # Security and Quality Commands
-.PHONY: security-scan vulnerability-check lint format audit
+.PHONY: security-scan vulnerability-check lint format audit security-audit setup-secrets validate-secrets
 
 security-scan: ## Run comprehensive security scan
 	@echo "Running security vulnerability scan..."
@@ -240,10 +251,29 @@ format: ## Format code
 	fi
 	@if [ -d "web" ]; then cd web && npm run format; fi
 
-audit: ## Run security audit
-	@echo "Running security audit..."
+audit: ## Run comprehensive security audit
+	@echo "Running comprehensive security audit..."
+	@$(MAKE) security-scan
+	@$(MAKE) vulnerability-check
+	@$(MAKE) security-audit
 	go mod verify
 	@if [ -d "web" ]; then cd web && npm audit; fi
+
+security-audit: ## Run security audit for hardcoded secrets
+	@echo "Running security audit for hardcoded secrets..."
+	@./scripts/security-audit.sh
+
+setup-secrets: ## Setup secure environment variables
+	@echo "Setting up secure secrets..."
+	@./scripts/setup-secrets.sh setup
+
+validate-secrets: ## Validate existing secrets
+	@echo "Validating existing secrets..."
+	@./scripts/setup-secrets.sh validate
+
+rotate-secrets: ## Rotate all secrets (use with caution)
+	@echo "Rotating secrets..."
+	@./scripts/setup-secrets.sh rotate
 
 deploy-dry-run: ## Show deployment plan without executing
 	@echo "Showing deployment plan..."

@@ -12,11 +12,11 @@ import (
 
 // AgentCoordinator coordinates task assignment and agent collaboration
 type AgentCoordinator struct {
-	config           *MultiAgentConfig
-	logger           *logger.Logger
+	config             *MultiAgentConfig
+	logger             *logger.Logger
 	assignmentStrategy AssignmentStrategy
-	loadBalancer     *LoadBalancer
-	capabilityMatcher *CapabilityMatcher
+	loadBalancer       *LoadBalancer
+	capabilityMatcher  *CapabilityMatcher
 }
 
 // AssignmentStrategy defines different strategies for task assignment
@@ -32,9 +32,9 @@ const (
 
 // LoadBalancer manages agent workload distribution
 type LoadBalancer struct {
-	logger      *logger.Logger
-	agentLoads  map[string]int
-	maxLoad     int
+	logger     *logger.Logger
+	agentLoads map[string]int
+	maxLoad    int
 }
 
 // CapabilityMatcher matches tasks to agents based on capabilities
@@ -44,13 +44,13 @@ type CapabilityMatcher struct {
 
 // AgentAssignment represents an assignment of a subtask to an agent
 type AgentAssignment struct {
-	SubtaskID    string                 `json:"subtask_id"`
-	AgentID      string                 `json:"agent_id"`
-	Confidence   float64                `json:"confidence"`
-	Reasoning    string                 `json:"reasoning"`
-	Priority     Priority               `json:"priority"`
-	EstimatedDuration time.Duration     `json:"estimated_duration"`
-	Metadata     map[string]interface{} `json:"metadata"`
+	SubtaskID         string                 `json:"subtask_id"`
+	AgentID           string                 `json:"agent_id"`
+	Confidence        float64                `json:"confidence"`
+	Reasoning         string                 `json:"reasoning"`
+	Priority          Priority               `json:"priority"`
+	EstimatedDuration time.Duration          `json:"estimated_duration"`
+	Metadata          map[string]interface{} `json:"metadata"`
 }
 
 // NewAgentCoordinator creates a new agent coordinator
@@ -161,11 +161,11 @@ func (ac *AgentCoordinator) createSecurityAssessmentSubtasks(task *Collaborative
 			},
 		},
 		{
-			ID:          fmt.Sprintf("%s-vuln-scan", task.ID),
-			Name:        "Vulnerability Scanning",
-			Description: "Scan for vulnerabilities",
-			Status:      TaskStatusPending,
-			Priority:    PriorityHigh,
+			ID:           fmt.Sprintf("%s-vuln-scan", task.ID),
+			Name:         "Vulnerability Scanning",
+			Description:  "Scan for vulnerabilities",
+			Status:       TaskStatusPending,
+			Priority:     PriorityHigh,
 			Dependencies: []string{fmt.Sprintf("%s-recon", task.ID)},
 			Input: map[string]interface{}{
 				"target":    task.Metadata["target"],
@@ -173,22 +173,22 @@ func (ac *AgentCoordinator) createSecurityAssessmentSubtasks(task *Collaborative
 			},
 		},
 		{
-			ID:          fmt.Sprintf("%s-analysis", task.ID),
-			Name:        "Risk Analysis",
-			Description: "Analyze identified vulnerabilities and assess risk",
-			Status:      TaskStatusPending,
-			Priority:    PriorityNormal,
+			ID:           fmt.Sprintf("%s-analysis", task.ID),
+			Name:         "Risk Analysis",
+			Description:  "Analyze identified vulnerabilities and assess risk",
+			Status:       TaskStatusPending,
+			Priority:     PriorityNormal,
 			Dependencies: []string{fmt.Sprintf("%s-vuln-scan", task.ID)},
 			Input: map[string]interface{}{
 				"analysis_type": "risk_assessment",
 			},
 		},
 		{
-			ID:          fmt.Sprintf("%s-report", task.ID),
-			Name:        "Security Report",
-			Description: "Generate comprehensive security report",
-			Status:      TaskStatusPending,
-			Priority:    PriorityNormal,
+			ID:           fmt.Sprintf("%s-report", task.ID),
+			Name:         "Security Report",
+			Description:  "Generate comprehensive security report",
+			Status:       TaskStatusPending,
+			Priority:     PriorityNormal,
 			Dependencies: []string{fmt.Sprintf("%s-analysis", task.ID)},
 			Input: map[string]interface{}{
 				"report_type": "security_assessment",
@@ -214,22 +214,22 @@ func (ac *AgentCoordinator) createDataAnalysisSubtasks(task *CollaborativeTask) 
 			},
 		},
 		{
-			ID:          fmt.Sprintf("%s-processing", task.ID),
-			Name:        "Data Processing",
-			Description: "Clean and process collected data",
-			Status:      TaskStatusPending,
-			Priority:    PriorityNormal,
+			ID:           fmt.Sprintf("%s-processing", task.ID),
+			Name:         "Data Processing",
+			Description:  "Clean and process collected data",
+			Status:       TaskStatusPending,
+			Priority:     PriorityNormal,
 			Dependencies: []string{fmt.Sprintf("%s-collection", task.ID)},
 			Input: map[string]interface{}{
 				"processing_type": "standard",
 			},
 		},
 		{
-			ID:          fmt.Sprintf("%s-analysis", task.ID),
-			Name:        "Data Analysis",
-			Description: "Perform statistical analysis on processed data",
-			Status:      TaskStatusPending,
-			Priority:    PriorityNormal,
+			ID:           fmt.Sprintf("%s-analysis", task.ID),
+			Name:         "Data Analysis",
+			Description:  "Perform statistical analysis on processed data",
+			Status:       TaskStatusPending,
+			Priority:     PriorityNormal,
 			Dependencies: []string{fmt.Sprintf("%s-processing", task.ID)},
 			Input: map[string]interface{}{
 				"analysis_methods": []string{"statistical", "pattern_recognition"},
@@ -254,11 +254,11 @@ func (ac *AgentCoordinator) createInvestigationSubtasks(task *CollaborativeTask)
 			},
 		},
 		{
-			ID:          fmt.Sprintf("%s-forensics", task.ID),
-			Name:        "Forensic Analysis",
-			Description: "Perform forensic analysis on collected evidence",
-			Status:      TaskStatusPending,
-			Priority:    PriorityHigh,
+			ID:           fmt.Sprintf("%s-forensics", task.ID),
+			Name:         "Forensic Analysis",
+			Description:  "Perform forensic analysis on collected evidence",
+			Status:       TaskStatusPending,
+			Priority:     PriorityHigh,
 			Dependencies: []string{fmt.Sprintf("%s-evidence", task.ID)},
 			Input: map[string]interface{}{
 				"analysis_depth": "comprehensive",
@@ -283,14 +283,14 @@ func (ac *AgentCoordinator) createReportingSubtasks(task *CollaborativeTask) []*
 			},
 		},
 		{
-			ID:          fmt.Sprintf("%s-generate", task.ID),
-			Name:        "Report Generation",
-			Description: "Generate formatted report",
-			Status:      TaskStatusPending,
-			Priority:    PriorityNormal,
+			ID:           fmt.Sprintf("%s-generate", task.ID),
+			Name:         "Report Generation",
+			Description:  "Generate formatted report",
+			Status:       TaskStatusPending,
+			Priority:     PriorityNormal,
 			Dependencies: []string{fmt.Sprintf("%s-compile", task.ID)},
 			Input: map[string]interface{}{
-				"format": "comprehensive",
+				"format":   "comprehensive",
 				"template": "standard",
 			},
 		},
@@ -383,7 +383,7 @@ func (ac *AgentCoordinator) assignByLoadBalance(task *CollaborativeTask, availab
 func (ac *AgentCoordinator) assignRoundRobin(task *CollaborativeTask, availableAgents map[string]Agent) (map[string]string, error) {
 	assignments := make(map[string]string)
 	agentIDs := make([]string, 0, len(availableAgents))
-	
+
 	for agentID := range availableAgents {
 		agentIDs = append(agentIDs, agentID)
 	}
@@ -410,7 +410,7 @@ func (ac *AgentCoordinator) assignByPriority(task *CollaborativeTask, availableA
 	// Sort subtasks by priority (highest first)
 	sortedSubtasks := make([]*Subtask, len(task.Subtasks))
 	copy(sortedSubtasks, task.Subtasks)
-	
+
 	sort.Slice(sortedSubtasks, func(i, j int) bool {
 		return sortedSubtasks[i].Priority > sortedSubtasks[j].Priority
 	})
@@ -448,7 +448,7 @@ func (ac *AgentCoordinator) assignHybrid(task *CollaborativeTask, availableAgent
 
 		// Among candidates, choose the least loaded
 		bestAgent := ac.loadBalancer.GetLeastLoadedFromCandidates(candidates)
-		
+
 		assignments[subtask.ID] = bestAgent
 		subtask.AssignedAgent = bestAgent
 		ac.loadBalancer.IncrementLoad(bestAgent)
@@ -553,10 +553,10 @@ func (cm *CapabilityMatcher) getTypeCompatibilityScore(subtask *Subtask, agentTy
 	agentTypeLower := strings.ToLower(agentType)
 
 	compatibilityMap := map[string][]string{
-		"react": {"analysis", "investigation", "reasoning", "scan"},
+		"react":            {"analysis", "investigation", "reasoning", "scan"},
 		"plan_and_execute": {"planning", "coordination", "workflow", "process"},
-		"security": {"security", "vulnerability", "scan", "audit", "penetration"},
-		"data": {"data", "collection", "processing", "analysis"},
+		"security":         {"security", "vulnerability", "scan", "audit", "penetration"},
+		"data":             {"data", "collection", "processing", "analysis"},
 	}
 
 	for agentTypeKey, keywords := range compatibilityMap {

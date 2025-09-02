@@ -287,10 +287,10 @@ func (bm *BroadcastManager) sendToMember(ctx context.Context, message *AgentMess
 	bm.logger.Debug("Sending message to member",
 		"message_id", message.ID,
 		"member_id", message.To[0])
-	
+
 	// Simulate network delay
 	time.Sleep(10 * time.Millisecond)
-	
+
 	return nil
 }
 

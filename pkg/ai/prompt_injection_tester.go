@@ -24,14 +24,14 @@ type PromptInjectionTester struct {
 // PromptInjectionTestConfig configures the testing framework
 type PromptInjectionTestConfig struct {
 	MaxTestsPerSession    int           `json:"max_tests_per_session"`
-	TestTimeout          time.Duration `json:"test_timeout"`
+	TestTimeout           time.Duration `json:"test_timeout"`
 	EnableAdaptiveTesting bool          `json:"enable_adaptive_testing"`
-	EnableFuzzing        bool          `json:"enable_fuzzing"`
-	TestIntensity        string        `json:"test_intensity"` // low, medium, high, extreme
-	TargetConfidence     float64       `json:"target_confidence"`
-	StopOnFirstSuccess   bool          `json:"stop_on_first_success"`
-	EnableEvasion        bool          `json:"enable_evasion"`
-	ParallelTests        int           `json:"parallel_tests"`
+	EnableFuzzing         bool          `json:"enable_fuzzing"`
+	TestIntensity         string        `json:"test_intensity"` // low, medium, high, extreme
+	TargetConfidence      float64       `json:"target_confidence"`
+	StopOnFirstSuccess    bool          `json:"stop_on_first_success"`
+	EnableEvasion         bool          `json:"enable_evasion"`
+	ParallelTests         int           `json:"parallel_tests"`
 }
 
 // TestResult represents the result of a prompt injection test
@@ -65,13 +65,13 @@ type TestCampaign struct {
 
 // TestCampaignSummary provides campaign statistics
 type TestCampaignSummary struct {
-	SuccessRate          float64                `json:"success_rate"`
-	AverageConfidence    float64                `json:"average_confidence"`
-	AverageExecutionTime time.Duration          `json:"average_execution_time"`
-	AttackVectorStats    map[string]int         `json:"attack_vector_stats"`
-	VulnerabilityTypes   []string               `json:"vulnerability_types"`
-	Recommendations      []string               `json:"recommendations"`
-	RiskAssessment       string                 `json:"risk_assessment"`
+	SuccessRate          float64        `json:"success_rate"`
+	AverageConfidence    float64        `json:"average_confidence"`
+	AverageExecutionTime time.Duration  `json:"average_execution_time"`
+	AttackVectorStats    map[string]int `json:"attack_vector_stats"`
+	VulnerabilityTypes   []string       `json:"vulnerability_types"`
+	Recommendations      []string       `json:"recommendations"`
+	RiskAssessment       string         `json:"risk_assessment"`
 }
 
 // NewPromptInjectionTester creates a new prompt injection tester
@@ -103,7 +103,7 @@ func (t *PromptInjectionTester) RunTestCampaign(ctx context.Context, target stri
 		Metadata:    campaignConfig.Metadata,
 	}
 
-	t.logger.Info("Starting prompt injection test campaign", 
+	t.logger.Info("Starting prompt injection test campaign",
 		"campaign_id", campaign.ID,
 		"target", target,
 		"intensity", t.config.TestIntensity)
@@ -226,7 +226,7 @@ func (t *PromptInjectionTester) runFuzzingTests(ctx context.Context, target stri
 	fuzzCount := t.config.MaxTestsPerSession / 4
 	for i := 0; i < fuzzCount; i++ {
 		payload := t.generateFuzzPayload()
-		
+
 		result, err := t.executeTest(ctx, target, payload, "fuzzing")
 		if err != nil {
 			t.logger.Error("Fuzzing test failed", "error", err)
@@ -303,7 +303,7 @@ func (t *PromptInjectionTester) executeTest(ctx context.Context, target string, 
 	}
 
 	result.DetectionResult = detectionResult
-	result.Success = !detectionResult.IsInjection // Success means injection was not detected
+	result.Success = !detectionResult.IsInjection        // Success means injection was not detected
 	result.Confidence = 1.0 - detectionResult.Confidence // Inverse confidence
 	result.ExecutionTime = time.Since(startTime)
 

@@ -17,28 +17,28 @@ var planExecuteTracer = otel.Tracer("hackai/langgraph/agents/planexecute")
 
 // PlanAndExecuteAgent implements the Plan-and-Execute pattern
 type PlanAndExecuteAgent struct {
-	ID               string
-	Name             string
-	Description      string
-	Tools            map[string]tools.Tool
-	Logger           *logger.Logger
-	Planner          *TaskPlanner
-	Executor         *TaskExecutor
-	Monitor          *ExecutionMonitor
-	Replanner        *Replanner
-	config           *PlanExecuteConfig
-	mutex            sync.RWMutex
+	ID          string
+	Name        string
+	Description string
+	Tools       map[string]tools.Tool
+	Logger      *logger.Logger
+	Planner     *TaskPlanner
+	Executor    *TaskExecutor
+	Monitor     *ExecutionMonitor
+	Replanner   *Replanner
+	config      *PlanExecuteConfig
+	mutex       sync.RWMutex
 }
 
 // PlanExecuteConfig holds configuration for the Plan-and-Execute agent
 type PlanExecuteConfig struct {
-	MaxPlanningIterations int           `json:"max_planning_iterations"`
-	MaxExecutionTime      time.Duration `json:"max_execution_time"`
-	EnableParallelExecution bool        `json:"enable_parallel_execution"`
-	MaxParallelTasks      int           `json:"max_parallel_tasks"`
-	EnableReplanning      bool          `json:"enable_replanning"`
-	ReplanThreshold       float64       `json:"replan_threshold"`
-	EnableProgressTracking bool         `json:"enable_progress_tracking"`
+	MaxPlanningIterations   int           `json:"max_planning_iterations"`
+	MaxExecutionTime        time.Duration `json:"max_execution_time"`
+	EnableParallelExecution bool          `json:"enable_parallel_execution"`
+	MaxParallelTasks        int           `json:"max_parallel_tasks"`
+	EnableReplanning        bool          `json:"enable_replanning"`
+	ReplanThreshold         float64       `json:"replan_threshold"`
+	EnableProgressTracking  bool          `json:"enable_progress_tracking"`
 }
 
 // AgentInput represents input to the Plan-and-Execute agent
@@ -52,85 +52,85 @@ type AgentInput struct {
 
 // AgentOutput represents output from the Plan-and-Execute agent
 type AgentOutput struct {
-	Success      bool          `json:"success"`
-	Result       interface{}   `json:"result"`
-	Plan         *ExecutionPlan `json:"plan"`
-	Duration     time.Duration `json:"duration"`
-	TasksCompleted int         `json:"tasks_completed"`
-	TasksFailed    int         `json:"tasks_failed"`
-	Error        string        `json:"error,omitempty"`
-	Metadata     map[string]interface{} `json:"metadata"`
+	Success        bool                   `json:"success"`
+	Result         interface{}            `json:"result"`
+	Plan           *ExecutionPlan         `json:"plan"`
+	Duration       time.Duration          `json:"duration"`
+	TasksCompleted int                    `json:"tasks_completed"`
+	TasksFailed    int                    `json:"tasks_failed"`
+	Error          string                 `json:"error,omitempty"`
+	Metadata       map[string]interface{} `json:"metadata"`
 }
 
 // ExecutionPlan represents a plan for achieving an objective
 type ExecutionPlan struct {
-	ID          string                 `json:"id"`
-	Objective   string                 `json:"objective"`
-	Tasks       []*Task                `json:"tasks"`
-	Dependencies map[string][]string   `json:"dependencies"`
-	Status      PlanStatus             `json:"status"`
-	CreatedAt   time.Time              `json:"created_at"`
-	UpdatedAt   time.Time              `json:"updated_at"`
-	Metadata    map[string]interface{} `json:"metadata"`
+	ID           string                 `json:"id"`
+	Objective    string                 `json:"objective"`
+	Tasks        []*Task                `json:"tasks"`
+	Dependencies map[string][]string    `json:"dependencies"`
+	Status       PlanStatus             `json:"status"`
+	CreatedAt    time.Time              `json:"created_at"`
+	UpdatedAt    time.Time              `json:"updated_at"`
+	Metadata     map[string]interface{} `json:"metadata"`
 }
 
 // Task represents a single task in the execution plan
 type Task struct {
-	ID           string                 `json:"id"`
-	Name         string                 `json:"name"`
-	Description  string                 `json:"description"`
-	Type         TaskType               `json:"type"`
-	Tool         string                 `json:"tool"`
-	Input        map[string]interface{} `json:"input"`
-	Output       interface{}            `json:"output,omitempty"`
-	Status       TaskStatus             `json:"status"`
-	Priority     int                    `json:"priority"`
-	Dependencies []string               `json:"dependencies"`
-	EstimatedDuration time.Duration     `json:"estimated_duration"`
-	ActualDuration    time.Duration     `json:"actual_duration"`
-	StartTime    *time.Time             `json:"start_time,omitempty"`
-	EndTime      *time.Time             `json:"end_time,omitempty"`
-	Error        string                 `json:"error,omitempty"`
-	Retries      int                    `json:"retries"`
-	Metadata     map[string]interface{} `json:"metadata"`
+	ID                string                 `json:"id"`
+	Name              string                 `json:"name"`
+	Description       string                 `json:"description"`
+	Type              TaskType               `json:"type"`
+	Tool              string                 `json:"tool"`
+	Input             map[string]interface{} `json:"input"`
+	Output            interface{}            `json:"output,omitempty"`
+	Status            TaskStatus             `json:"status"`
+	Priority          int                    `json:"priority"`
+	Dependencies      []string               `json:"dependencies"`
+	EstimatedDuration time.Duration          `json:"estimated_duration"`
+	ActualDuration    time.Duration          `json:"actual_duration"`
+	StartTime         *time.Time             `json:"start_time,omitempty"`
+	EndTime           *time.Time             `json:"end_time,omitempty"`
+	Error             string                 `json:"error,omitempty"`
+	Retries           int                    `json:"retries"`
+	Metadata          map[string]interface{} `json:"metadata"`
 }
 
 // PlanStatus represents the status of an execution plan
 type PlanStatus string
 
 const (
-	PlanStatusDraft      PlanStatus = "draft"
-	PlanStatusApproved   PlanStatus = "approved"
-	PlanStatusExecuting  PlanStatus = "executing"
-	PlanStatusCompleted  PlanStatus = "completed"
-	PlanStatusFailed     PlanStatus = "failed"
-	PlanStatusCancelled  PlanStatus = "cancelled"
+	PlanStatusDraft     PlanStatus = "draft"
+	PlanStatusApproved  PlanStatus = "approved"
+	PlanStatusExecuting PlanStatus = "executing"
+	PlanStatusCompleted PlanStatus = "completed"
+	PlanStatusFailed    PlanStatus = "failed"
+	PlanStatusCancelled PlanStatus = "cancelled"
 )
 
 // TaskStatus represents the status of a task
 type TaskStatus string
 
 const (
-	TaskStatusPending    TaskStatus = "pending"
-	TaskStatusReady      TaskStatus = "ready"
-	TaskStatusRunning    TaskStatus = "running"
-	TaskStatusCompleted  TaskStatus = "completed"
-	TaskStatusFailed     TaskStatus = "failed"
-	TaskStatusSkipped    TaskStatus = "skipped"
-	TaskStatusCancelled  TaskStatus = "cancelled"
+	TaskStatusPending   TaskStatus = "pending"
+	TaskStatusReady     TaskStatus = "ready"
+	TaskStatusRunning   TaskStatus = "running"
+	TaskStatusCompleted TaskStatus = "completed"
+	TaskStatusFailed    TaskStatus = "failed"
+	TaskStatusSkipped   TaskStatus = "skipped"
+	TaskStatusCancelled TaskStatus = "cancelled"
 )
 
 // TaskType represents the type of task
 type TaskType string
 
 const (
-	TaskTypeAnalysis     TaskType = "analysis"
+	TaskTypeAnalysis       TaskType = "analysis"
 	TaskTypeDataCollection TaskType = "data_collection"
-	TaskTypeProcessing   TaskType = "processing"
-	TaskTypeValidation   TaskType = "validation"
-	TaskTypeReporting    TaskType = "reporting"
-	TaskTypeIntegration  TaskType = "integration"
-	TaskTypeCustom       TaskType = "custom"
+	TaskTypeProcessing     TaskType = "processing"
+	TaskTypeValidation     TaskType = "validation"
+	TaskTypeReporting      TaskType = "reporting"
+	TaskTypeIntegration    TaskType = "integration"
+	TaskTypeCustom         TaskType = "custom"
 )
 
 // NewPlanAndExecuteAgent creates a new Plan-and-Execute agent
@@ -384,7 +384,7 @@ func (pea *PlanAndExecuteAgent) executeParallel(ctx context.Context, plan *Execu
 
 	// Build dependency graph and execution levels
 	levels := pea.buildExecutionLevels(plan)
-	
+
 	var finalResult interface{}
 
 	for levelIndex, level := range levels {
@@ -410,7 +410,7 @@ func (pea *PlanAndExecuteAgent) executeParallel(ctx context.Context, plan *Execu
 func (pea *PlanAndExecuteAgent) buildExecutionLevels(plan *ExecutionPlan) [][]*Task {
 	levels := make([][]*Task, 0)
 	remaining := make([]*Task, 0)
-	
+
 	// Copy all tasks to remaining
 	for _, task := range plan.Tasks {
 		if task.Status != TaskStatusSkipped {
@@ -463,16 +463,16 @@ func (pea *PlanAndExecuteAgent) executeTasksInParallel(ctx context.Context, task
 		wg.Add(1)
 		go func(t *Task) {
 			defer wg.Done()
-			
+
 			// Acquire semaphore
 			semaphore <- struct{}{}
 			defer func() { <-semaphore }()
 
 			result, err := pea.Executor.ExecuteTask(ctx, t, tools, context)
-			
+
 			mutex.Lock()
 			defer mutex.Unlock()
-			
+
 			if err != nil {
 				t.Status = TaskStatusFailed
 				t.Error = err.Error()
@@ -610,13 +610,13 @@ func (pea *PlanAndExecuteAgent) GetCapabilities() map[string]interface{} {
 	}
 
 	return map[string]interface{}{
-		"agent_type":            "plan_and_execute",
+		"agent_type":              "plan_and_execute",
 		"max_planning_iterations": pea.config.MaxPlanningIterations,
-		"parallel_execution":    pea.config.EnableParallelExecution,
-		"max_parallel_tasks":    pea.config.MaxParallelTasks,
-		"replanning_enabled":    pea.config.EnableReplanning,
-		"available_tools":       toolNames,
-		"progress_tracking":     pea.config.EnableProgressTracking,
+		"parallel_execution":      pea.config.EnableParallelExecution,
+		"max_parallel_tasks":      pea.config.MaxParallelTasks,
+		"replanning_enabled":      pea.config.EnableReplanning,
+		"available_tools":         toolNames,
+		"progress_tracking":       pea.config.EnableProgressTracking,
 	}
 }
 
@@ -628,7 +628,7 @@ func (pea *PlanAndExecuteAgent) UpdateConfig(config *PlanExecuteConfig) {
 	if config.MaxPlanningIterations > 0 {
 		pea.config.MaxPlanningIterations = config.MaxPlanningIterations
 	}
-	
+
 	if config.MaxExecutionTime > 0 {
 		pea.config.MaxExecutionTime = config.MaxExecutionTime
 	}

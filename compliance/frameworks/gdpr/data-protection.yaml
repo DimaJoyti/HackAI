@@ -1,0 +1,444 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: gdpr-controls
+  namespace: security
+  labels:
+    compliance.framework: gdpr
+    compliance.version: "2018"
+data:
+  controls.yaml: |
+    framework: GDPR
+    version: "2018"
+    description: "General Data Protection Regulation Controls for HackAI Platform"
+    
+    principles:
+      lawfulness_fairness_transparency:
+        article: "Article 5(1)(a)"
+        description: "Personal data shall be processed lawfully, fairly and in a transparent manner"
+        controls:
+          - id: GDPR-5.1.a.1
+            description: "Legal basis for processing is documented"
+            implementation:
+              - type: "data_processing_record"
+                resource: "ProcessingRecord"
+                validation: "legal basis documented for all data processing"
+              - type: "privacy_notice"
+                resource: "PrivacyNotice"
+                validation: "clear privacy notices provided to data subjects"
+            automated_check: true
+            frequency: "monthly"
+            
+      purpose_limitation:
+        article: "Article 5(1)(b)"
+        description: "Personal data shall be collected for specified, explicit and legitimate purposes"
+        controls:
+          - id: GDPR-5.1.b.1
+            description: "Data collection purposes are clearly defined"
+            implementation:
+              - type: "data_classification"
+                resource: "DataCategory"
+                validation: "all personal data has defined purpose"
+              - type: "consent_management"
+                resource: "ConsentRecord"
+                validation: "consent obtained for specific purposes"
+            automated_check: true
+            frequency: "weekly"
+            
+      data_minimisation:
+        article: "Article 5(1)(c)"
+        description: "Personal data shall be adequate, relevant and limited to what is necessary"
+        controls:
+          - id: GDPR-5.1.c.1
+            description: "Data minimization practices implemented"
+            implementation:
+              - type: "data_retention"
+                resource: "RetentionPolicy"
+                validation: "retention periods defined and enforced"
+              - type: "data_anonymization"
+                resource: "AnonymizationRule"
+                validation: "unnecessary data is anonymized or deleted"
+            automated_check: true
+            frequency: "daily"
+            
+      accuracy:
+        article: "Article 5(1)(d)"
+        description: "Personal data shall be accurate and kept up to date"
+        controls:
+          - id: GDPR-5.1.d.1
+            description: "Data accuracy measures implemented"
+            implementation:
+              - type: "data_validation"
+                resource: "ValidationRule"
+                validation: "data validation rules are enforced"
+              - type: "data_correction"
+                resource: "CorrectionProcess"
+                validation: "process for data correction exists"
+            automated_check: true
+            frequency: "continuous"
+            
+      storage_limitation:
+        article: "Article 5(1)(e)"
+        description: "Personal data kept in a form which permits identification for no longer than necessary"
+        controls:
+          - id: GDPR-5.1.e.1
+            description: "Storage limitation controls"
+            implementation:
+              - type: "automated_deletion"
+                resource: "DeletionPolicy"
+                validation: "automated deletion after retention period"
+              - type: "data_archival"
+                resource: "ArchivalPolicy"
+                validation: "data archived when no longer needed"
+            automated_check: true
+            frequency: "daily"
+            
+      integrity_confidentiality:
+        article: "Article 5(1)(f)"
+        description: "Personal data processed in a manner that ensures appropriate security"
+        controls:
+          - id: GDPR-5.1.f.1
+            description: "Security measures for personal data"
+            implementation:
+              - type: "encryption"
+                resource: "EncryptionPolicy"
+                validation: "personal data encrypted at rest and in transit"
+              - type: "access_control"
+                resource: "AccessPolicy"
+                validation: "access controls for personal data"
+            automated_check: true
+            frequency: "continuous"
+            
+    data_subject_rights:
+      right_of_access:
+        article: "Article 15"
+        description: "Right of access by the data subject"
+        controls:
+          - id: GDPR-15.1
+            description: "Data subject access request process"
+            implementation:
+              - type: "access_request_api"
+                resource: "APIEndpoint"
+                validation: "API for data subject access requests"
+              - type: "data_export"
+                resource: "ExportFunction"
+                validation: "automated data export capability"
+            automated_check: true
+            frequency: "monthly"
+            
+      right_to_rectification:
+        article: "Article 16"
+        description: "Right to rectification"
+        controls:
+          - id: GDPR-16.1
+            description: "Data rectification process"
+            implementation:
+              - type: "data_update_api"
+                resource: "APIEndpoint"
+                validation: "API for data updates"
+              - type: "audit_trail"
+                resource: "AuditLog"
+                validation: "changes to personal data are logged"
+            automated_check: true
+            frequency: "continuous"
+            
+      right_to_erasure:
+        article: "Article 17"
+        description: "Right to erasure ('right to be forgotten')"
+        controls:
+          - id: GDPR-17.1
+            description: "Data erasure process"
+            implementation:
+              - type: "deletion_api"
+                resource: "APIEndpoint"
+                validation: "API for data deletion requests"
+              - type: "secure_deletion"
+                resource: "DeletionProcess"
+                validation: "secure deletion procedures"
+            automated_check: true
+            frequency: "weekly"
+            
+      right_to_portability:
+        article: "Article 20"
+        description: "Right to data portability"
+        controls:
+          - id: GDPR-20.1
+            description: "Data portability implementation"
+            implementation:
+              - type: "data_export_format"
+                resource: "ExportFormat"
+                validation: "structured, machine-readable format"
+              - type: "data_transfer"
+                resource: "TransferAPI"
+                validation: "direct transfer capability"
+            automated_check: true
+            frequency: "monthly"
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gdpr-compliance-service
+  namespace: security
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: gdpr-compliance-service
+  template:
+    metadata:
+      labels:
+        app: gdpr-compliance-service
+        compliance.framework: gdpr
+    spec:
+      serviceAccountName: hackai-security-scanner
+      containers:
+      - name: gdpr-service
+        image: hackai/gdpr-compliance:latest
+        ports:
+        - containerPort: 8080
+          name: http
+        env:
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: database-credentials
+              key: url
+        - name: ENCRYPTION_KEY
+          valueFrom:
+            secretKeyRef:
+              name: encryption-keys
+              key: gdpr-key
+        volumeMounts:
+        - name: config
+          mountPath: /etc/gdpr
+          readOnly: true
+        resources:
+          requests:
+            memory: 256Mi
+            cpu: 200m
+          limits:
+            memory: 512Mi
+            cpu: 500m
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 10
+      volumes:
+      - name: config
+        configMap:
+          name: gdpr-controls
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gdpr-compliance-service
+  namespace: security
+spec:
+  selector:
+    app: gdpr-compliance-service
+  ports:
+  - port: 80
+    targetPort: 8080
+    name: http
+
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: gdpr-compliance-audit
+  namespace: security
+spec:
+  schedule: "0 3 * * 0"  # Weekly on Sunday at 3 AM
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app.kubernetes.io/name: gdpr-audit
+            compliance.framework: gdpr
+        spec:
+          serviceAccountName: hackai-security-scanner
+          restartPolicy: OnFailure
+          containers:
+          - name: gdpr-auditor
+            image: hackai/compliance-auditor:latest
+            command:
+            - /bin/sh
+            - -c
+            - |
+              echo "Starting GDPR compliance audit..."
+              
+              # Check data processing records
+              echo "Auditing data processing records..."
+              curl -s http://gdpr-compliance-service/api/v1/processing-records | \
+                jq '.[] | select(.legal_basis == null or .legal_basis == "")'
+              
+              # Check consent records
+              echo "Auditing consent records..."
+              curl -s http://gdpr-compliance-service/api/v1/consent-records | \
+                jq '.[] | select(.consent_date < (now - 86400*365*2))'  # 2 years old
+              
+              # Check data retention compliance
+              echo "Auditing data retention..."
+              curl -s http://gdpr-compliance-service/api/v1/retention-audit | \
+                jq '.violations[]'
+              
+              # Check encryption compliance
+              echo "Auditing encryption compliance..."
+              kubectl get secrets --all-namespaces -o json | \
+                jq '.items[] | select(.metadata.labels."encryption" != "enabled")'
+              
+              # Check access controls
+              echo "Auditing access controls for personal data..."
+              kubectl get networkpolicies --all-namespaces -o json | \
+                jq '.items[] | select(.metadata.labels."data-type" == "personal")'
+              
+              # Generate GDPR compliance report
+              echo "Generating GDPR compliance report..."
+              
+              # Check data subject rights implementation
+              echo "Auditing data subject rights..."
+              curl -s http://gdpr-compliance-service/api/v1/rights-audit
+              
+              # Upload audit report
+              aws s3 cp /tmp/gdpr-audit-report.json s3://hackai-compliance-reports/gdpr/$(date +%Y%m%d)/
+              
+              echo "GDPR compliance audit completed"
+            env:
+            - name: AWS_DEFAULT_REGION
+              value: "us-west-2"
+            - name: COMPLIANCE_FRAMEWORK
+              value: "GDPR"
+            resources:
+              requests:
+                memory: 256Mi
+                cpu: 200m
+              limits:
+                memory: 512Mi
+                cpu: 500m
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: data-subject-rights-api
+  namespace: security
+data:
+  api-spec.yaml: |
+    openapi: 3.0.0
+    info:
+      title: GDPR Data Subject Rights API
+      version: 1.0.0
+      description: API for handling GDPR data subject rights requests
+    
+    paths:
+      /api/v1/data-access:
+        post:
+          summary: Request access to personal data
+          requestBody:
+            required: true
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    subject_id:
+                      type: string
+                    identity_verification:
+                      type: object
+                    request_scope:
+                      type: array
+                      items:
+                        type: string
+          responses:
+            '200':
+              description: Data access request processed
+              content:
+                application/json:
+                  schema:
+                    type: object
+                    properties:
+                      request_id:
+                        type: string
+                      status:
+                        type: string
+                      data:
+                        type: object
+      
+      /api/v1/data-rectification:
+        post:
+          summary: Request rectification of personal data
+          requestBody:
+            required: true
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    subject_id:
+                      type: string
+                    corrections:
+                      type: object
+                    justification:
+                      type: string
+          responses:
+            '200':
+              description: Rectification request processed
+      
+      /api/v1/data-erasure:
+        post:
+          summary: Request erasure of personal data
+          requestBody:
+            required: true
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    subject_id:
+                      type: string
+                    erasure_scope:
+                      type: array
+                      items:
+                        type: string
+                    legal_ground:
+                      type: string
+          responses:
+            '200':
+              description: Erasure request processed
+      
+      /api/v1/data-portability:
+        post:
+          summary: Request data portability
+          requestBody:
+            required: true
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    subject_id:
+                      type: string
+                    export_format:
+                      type: string
+                      enum: [json, xml, csv]
+                    destination:
+                      type: string
+          responses:
+            '200':
+              description: Portability request processed
+              content:
+                application/octet-stream:
+                  schema:
+                    type: string
+                    format: binary

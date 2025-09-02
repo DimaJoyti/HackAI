@@ -1,0 +1,38 @@
+name: hackai-multi-cloud
+runtime: go
+description: Multi-cloud infrastructure for HackAI platform
+
+config:
+  projectName:
+    description: Name of the project
+    default: "hackai"
+  environment:
+    description: Environment name (development, staging, production)
+    default: "production"
+  enableAWS:
+    description: Enable AWS deployment
+    type: boolean
+    default: false
+  enableGCP:
+    description: Enable GCP deployment
+    type: boolean
+    default: false
+  enableAzure:
+    description: Enable Azure deployment
+    type: boolean
+    default: false
+  primaryCloud:
+    description: Primary cloud provider
+    default: "aws"
+  awsRegion:
+    description: AWS region
+    default: "us-west-2"
+  gcpRegion:
+    description: GCP region
+    default: "us-central1"
+  azureLocation:
+    description: Azure location
+    default: "East US"
+  kubernetesVersion:
+    description: Kubernetes version
+    default: "1.28"

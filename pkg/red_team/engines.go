@@ -40,9 +40,9 @@ type ReportGenerator struct {
 
 // ReconResults represents reconnaissance results
 type ReconResults struct {
-	Assets   []AssetInfo   `json:"assets"`
-	Services []ServiceInfo `json:"services"`
-	Networks []NetworkInfo `json:"networks"`
+	Assets   []AssetInfo            `json:"assets"`
+	Services []ServiceInfo          `json:"services"`
+	Networks []NetworkInfo          `json:"networks"`
 	Metadata map[string]interface{} `json:"metadata"`
 }
 
@@ -102,16 +102,16 @@ func (apg *AttackPlanGenerator) GenerateAttackPlan(ctx context.Context, target T
 
 	// Create attack plan
 	plan := &AttackPlan{
-		ID:          fmt.Sprintf("plan_%d", time.Now().UnixNano()),
-		Name:        fmt.Sprintf("Attack Plan - %s", target.Name),
-		Description: fmt.Sprintf("Automated attack plan for %s", target.Name),
-		Phases:      []AttackPhase{},
-		Timeline:    config.Timeout,
-		Complexity:  ComplexityMedium,
+		ID:           fmt.Sprintf("plan_%d", time.Now().UnixNano()),
+		Name:         fmt.Sprintf("Attack Plan - %s", target.Name),
+		Description:  fmt.Sprintf("Automated attack plan for %s", target.Name),
+		Phases:       []AttackPhase{},
+		Timeline:     config.Timeout,
+		Complexity:   ComplexityMedium,
 		StealthLevel: 5,
-		SuccessRate: 0.7,
-		RiskLevel:   RiskLevelMedium,
-		Metadata:    make(map[string]interface{}),
+		SuccessRate:  0.7,
+		RiskLevel:    RiskLevelMedium,
+		Metadata:     make(map[string]interface{}),
 	}
 
 	// Generate phases based on objectives
@@ -134,16 +134,16 @@ func (apg *AttackPlanGenerator) GenerateAttackPlan(ctx context.Context, target T
 // generatePhaseForObjective generates an attack phase for a specific objective
 func (apg *AttackPlanGenerator) generatePhaseForObjective(objective OperationObjective, order int) AttackPhase {
 	phase := AttackPhase{
-		ID:          fmt.Sprintf("phase_%s_%d", objective.Type, order),
-		Name:        fmt.Sprintf("%s Phase", objective.Name),
-		Description: objective.Description,
-		Type:        apg.mapObjectiveToPhaseType(objective.Type),
-		Order:       order,
-		Duration:    time.Minute * 30, // Default 30 minutes per phase
-		Techniques:  []AttackTechnique{},
+		ID:           fmt.Sprintf("phase_%s_%d", objective.Type, order),
+		Name:         fmt.Sprintf("%s Phase", objective.Name),
+		Description:  objective.Description,
+		Type:         apg.mapObjectiveToPhaseType(objective.Type),
+		Order:        order,
+		Duration:     time.Minute * 30, // Default 30 minutes per phase
+		Techniques:   []AttackTechnique{},
 		Dependencies: []string{},
-		Success:     false,
-		Metadata:    make(map[string]interface{}),
+		Success:      false,
+		Metadata:     make(map[string]interface{}),
 	}
 
 	// Add techniques based on objective type
@@ -258,13 +258,13 @@ func (re *ReconEngine) PerformReconnaissance(ctx context.Context, target TargetE
 	results := &ReconResults{
 		Assets: []AssetInfo{
 			{
-				ID:          "asset_web_server",
-				Name:        "Web Server",
-				Type:        "server",
-				IP:          "192.168.1.100",
-				Hostname:    "web.example.com",
-				OS:          "Linux Ubuntu 20.04",
-				Services:    []ServiceInfo{
+				ID:       "asset_web_server",
+				Name:     "Web Server",
+				Type:     "server",
+				IP:       "192.168.1.100",
+				Hostname: "web.example.com",
+				OS:       "Linux Ubuntu 20.04",
+				Services: []ServiceInfo{
 					{
 						Name:     "HTTP",
 						Port:     80,
@@ -287,13 +287,13 @@ func (re *ReconEngine) PerformReconnaissance(ctx context.Context, target TargetE
 				Metadata:    make(map[string]interface{}),
 			},
 			{
-				ID:          "asset_db_server",
-				Name:        "Database Server",
-				Type:        "database",
-				IP:          "192.168.1.101",
-				Hostname:    "db.example.com",
-				OS:          "Linux Ubuntu 20.04",
-				Services:    []ServiceInfo{
+				ID:       "asset_db_server",
+				Name:     "Database Server",
+				Type:     "database",
+				IP:       "192.168.1.101",
+				Hostname: "db.example.com",
+				OS:       "Linux Ubuntu 20.04",
+				Services: []ServiceInfo{
 					{
 						Name:     "MySQL",
 						Port:     3306,
@@ -327,8 +327,8 @@ func (re *ReconEngine) PerformReconnaissance(ctx context.Context, target TargetE
 			},
 		},
 		Metadata: map[string]interface{}{
-			"scan_duration": "100ms",
-			"assets_found":  2,
+			"scan_duration":  "100ms",
+			"assets_found":   2,
 			"services_found": 3,
 		},
 	}

@@ -1,0 +1,307 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: soc2-controls
+  namespace: security
+  labels:
+    compliance.framework: soc2
+    compliance.version: "2017"
+data:
+  controls.yaml: |
+    framework: SOC2
+    version: "2017"
+    description: "SOC 2 Type II Controls for HackAI Multi-Cloud Platform"
+    
+    trust_service_criteria:
+      security:
+        CC6.1:
+          title: "Logical and Physical Access Controls"
+          description: "The entity implements logical and physical access controls to protect against threats from sources outside its system boundaries."
+          controls:
+            - id: CC6.1.1
+              description: "Multi-factor authentication is required for all administrative access"
+              implementation:
+                - type: "kubernetes_rbac"
+                  resource: "ClusterRoleBinding"
+                  validation: "all admin users have MFA enabled"
+                - type: "cloud_iam"
+                  resource: "IAM_Policy"
+                  validation: "MFA required for privileged operations"
+              automated_check: true
+              frequency: "daily"
+              
+            - id: CC6.1.2
+              description: "Network access controls are implemented"
+              implementation:
+                - type: "network_policy"
+                  resource: "NetworkPolicy"
+                  validation: "default deny-all policies in place"
+                - type: "security_group"
+                  resource: "SecurityGroup"
+                  validation: "no unrestricted inbound rules"
+              automated_check: true
+              frequency: "continuous"
+              
+        CC6.2:
+          title: "System Access Controls"
+          description: "Prior to issuing system credentials and granting system access, the entity registers and authorizes new internal and external users."
+          controls:
+            - id: CC6.2.1
+              description: "User access provisioning process"
+              implementation:
+                - type: "identity_management"
+                  resource: "User_Account"
+                  validation: "all users have approved access requests"
+                - type: "service_account"
+                  resource: "ServiceAccount"
+                  validation: "service accounts follow least privilege"
+              automated_check: true
+              frequency: "weekly"
+              
+        CC6.3:
+          title: "Data Access Controls"
+          description: "The entity authorizes, modifies, or removes access to data, software, functions, and other protected information assets."
+          controls:
+            - id: CC6.3.1
+              description: "Data classification and access controls"
+              implementation:
+                - type: "data_classification"
+                  resource: "Database"
+                  validation: "sensitive data is properly classified"
+                - type: "encryption"
+                  resource: "Storage"
+                  validation: "encryption at rest for sensitive data"
+              automated_check: true
+              frequency: "daily"
+              
+      availability:
+        CC7.1:
+          title: "System Monitoring"
+          description: "To meet its objectives, the entity uses detection and monitoring procedures to identify system failures."
+          controls:
+            - id: CC7.1.1
+              description: "Comprehensive monitoring and alerting"
+              implementation:
+                - type: "monitoring"
+                  resource: "PrometheusRule"
+                  validation: "critical alerts are configured"
+                - type: "health_check"
+                  resource: "HealthCheck"
+                  validation: "all services have health checks"
+              automated_check: true
+              frequency: "continuous"
+              
+        CC7.2:
+          title: "System Backup and Recovery"
+          description: "The entity implements backup and recovery procedures."
+          controls:
+            - id: CC7.2.1
+              description: "Automated backup procedures"
+              implementation:
+                - type: "backup"
+                  resource: "BackupPolicy"
+                  validation: "automated backups are configured"
+                - type: "disaster_recovery"
+                  resource: "DRPlan"
+                  validation: "DR procedures are tested regularly"
+              automated_check: true
+              frequency: "daily"
+              
+      processing_integrity:
+        CC8.1:
+          title: "Data Processing Controls"
+          description: "The entity implements controls to ensure that data processing is complete, valid, accurate, and authorized."
+          controls:
+            - id: CC8.1.1
+              description: "Data validation and integrity checks"
+              implementation:
+                - type: "data_validation"
+                  resource: "ValidationRule"
+                  validation: "input validation is implemented"
+                - type: "audit_logging"
+                  resource: "AuditLog"
+                  validation: "all data changes are logged"
+              automated_check: true
+              frequency: "continuous"
+              
+      confidentiality:
+        CC9.1:
+          title: "Data Encryption"
+          description: "The entity protects confidential information through encryption."
+          controls:
+            - id: CC9.1.1
+              description: "Encryption in transit and at rest"
+              implementation:
+                - type: "tls_encryption"
+                  resource: "TLSPolicy"
+                  validation: "TLS 1.2+ for all communications"
+                - type: "storage_encryption"
+                  resource: "EncryptionKey"
+                  validation: "AES-256 encryption for data at rest"
+              automated_check: true
+              frequency: "daily"
+              
+      privacy:
+        CC10.1:
+          title: "Privacy Controls"
+          description: "The entity implements controls to protect personal information."
+          controls:
+            - id: CC10.1.1
+              description: "Personal data protection measures"
+              implementation:
+                - type: "data_anonymization"
+                  resource: "DataMask"
+                  validation: "PII is anonymized in non-production"
+                - type: "consent_management"
+                  resource: "ConsentRecord"
+                  validation: "user consent is properly managed"
+              automated_check: true
+              frequency: "weekly"
+
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: soc2-compliance-check
+  namespace: security
+spec:
+  schedule: "0 6 * * *"  # Daily at 6 AM
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app.kubernetes.io/name: compliance-checker
+            compliance.framework: soc2
+        spec:
+          serviceAccountName: hackai-security-scanner
+          restartPolicy: OnFailure
+          containers:
+          - name: soc2-checker
+            image: hackai/compliance-checker:latest
+            command:
+            - /bin/sh
+            - -c
+            - |
+              echo "Starting SOC2 compliance check..."
+              
+              # Check CC6.1 - Access Controls
+              echo "Checking CC6.1 - Access Controls"
+              kubectl get networkpolicies --all-namespaces -o json | \
+                jq '.items[] | select(.spec.policyTypes | contains(["Ingress", "Egress"]))'
+              
+              # Check CC6.2 - User Authorization
+              echo "Checking CC6.2 - User Authorization"
+              kubectl get clusterrolebindings -o json | \
+                jq '.items[] | select(.subjects[]?.kind == "User")'
+              
+              # Check CC6.3 - Data Access Controls
+              echo "Checking CC6.3 - Data Access Controls"
+              kubectl get secrets --all-namespaces -o json | \
+                jq '.items[] | select(.type == "Opaque")'
+              
+              # Check CC7.1 - System Monitoring
+              echo "Checking CC7.1 - System Monitoring"
+              kubectl get prometheusrules --all-namespaces -o json | \
+                jq '.items[].spec.groups[].rules[] | select(.alert)'
+              
+              # Check CC7.2 - Backup and Recovery
+              echo "Checking CC7.2 - Backup and Recovery"
+              kubectl get cronjobs --all-namespaces -o json | \
+                jq '.items[] | select(.metadata.labels."backup" == "true")'
+              
+              # Check CC8.1 - Data Processing Controls
+              echo "Checking CC8.1 - Data Processing Controls"
+              kubectl get validatingadmissionwebhooks -o json | \
+                jq '.items[] | select(.webhooks[].admissionReviewVersions)'
+              
+              # Check CC9.1 - Data Encryption
+              echo "Checking CC9.1 - Data Encryption"
+              kubectl get ingresses --all-namespaces -o json | \
+                jq '.items[] | select(.spec.tls)'
+              
+              # Generate compliance report
+              echo "Generating SOC2 compliance report..."
+              
+              # Upload report to S3
+              aws s3 cp /tmp/soc2-report.json s3://hackai-compliance-reports/soc2/$(date +%Y%m%d)/
+              
+              echo "SOC2 compliance check completed"
+            env:
+            - name: AWS_DEFAULT_REGION
+              value: "us-west-2"
+            - name: COMPLIANCE_FRAMEWORK
+              value: "SOC2"
+            volumeMounts:
+            - name: config
+              mountPath: /etc/compliance
+              readOnly: true
+            resources:
+              requests:
+                memory: 256Mi
+                cpu: 200m
+              limits:
+                memory: 512Mi
+                cpu: 500m
+          volumes:
+          - name: config
+            configMap:
+              name: soc2-controls
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: compliance-dashboard-config
+  namespace: security
+data:
+  dashboard.json: |
+    {
+      "dashboard": {
+        "title": "SOC2 Compliance Dashboard",
+        "tags": ["compliance", "soc2", "security"],
+        "timezone": "UTC",
+        "panels": [
+          {
+            "title": "CC6.1 - Access Controls Compliance",
+            "type": "stat",
+            "targets": [
+              {
+                "expr": "sum(compliance_check{framework=\"soc2\",control=\"CC6.1\",status=\"pass\"}) / sum(compliance_check{framework=\"soc2\",control=\"CC6.1\"}) * 100",
+                "legendFormat": "Compliance %"
+              }
+            ]
+          },
+          {
+            "title": "CC7.1 - Monitoring Controls",
+            "type": "stat", 
+            "targets": [
+              {
+                "expr": "sum(compliance_check{framework=\"soc2\",control=\"CC7.1\",status=\"pass\"}) / sum(compliance_check{framework=\"soc2\",control=\"CC7.1\"}) * 100",
+                "legendFormat": "Compliance %"
+              }
+            ]
+          },
+          {
+            "title": "CC9.1 - Encryption Controls",
+            "type": "stat",
+            "targets": [
+              {
+                "expr": "sum(compliance_check{framework=\"soc2\",control=\"CC9.1\",status=\"pass\"}) / sum(compliance_check{framework=\"soc2\",control=\"CC9.1\"}) * 100", 
+                "legendFormat": "Compliance %"
+              }
+            ]
+          },
+          {
+            "title": "Overall SOC2 Compliance Trend",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "avg_over_time(compliance_score{framework=\"soc2\"}[24h])",
+                "legendFormat": "SOC2 Score"
+              }
+            ]
+          }
+        ]
+      }
+    }

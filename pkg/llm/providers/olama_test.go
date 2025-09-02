@@ -36,9 +36,9 @@ func TestNewOlamaProvider(t *testing.T) {
 			}{
 				Models: []OlamaModelInfo{
 					{
-						Name:   "llama2",
-						Size:   3800000000,
-						Digest: "abc123def456",
+						Name:       "llama2",
+						Size:       3800000000,
+						Digest:     "abc123def456",
 						ModifiedAt: time.Now(),
 					},
 				},
@@ -149,15 +149,15 @@ func TestOlamaProvider_Stream(t *testing.T) {
 		switch r.URL.Path {
 		case "/api/show":
 			response := OlamaModelInfo{
-				Name:   "llama2",
-				Digest: "abc123def456",
+				Name:       "llama2",
+				Digest:     "abc123def456",
 				ModifiedAt: time.Now(),
 			}
 			json.NewEncoder(w).Encode(response)
 		case "/api/chat":
 			// Simulate streaming response
 			encoder := json.NewEncoder(w)
-			
+
 			// First chunk
 			chunk1 := OlamaResponse{
 				Model:     "llama2",
@@ -236,8 +236,8 @@ func TestOlamaProvider_Embed(t *testing.T) {
 		switch r.URL.Path {
 		case "/api/show":
 			response := OlamaModelInfo{
-				Name:   "llama2",
-				Digest: "abc123def456",
+				Name:       "llama2",
+				Digest:     "abc123def456",
 				ModifiedAt: time.Now(),
 			}
 			json.NewEncoder(w).Encode(response)
@@ -280,8 +280,8 @@ func TestOlamaProvider_Health(t *testing.T) {
 		switch r.URL.Path {
 		case "/api/show":
 			response := OlamaModelInfo{
-				Name:   "llama2",
-				Digest: "abc123def456",
+				Name:       "llama2",
+				Digest:     "abc123def456",
 				ModifiedAt: time.Now(),
 			}
 			json.NewEncoder(w).Encode(response)
@@ -323,8 +323,8 @@ func TestOlamaProvider_ListModels(t *testing.T) {
 		switch r.URL.Path {
 		case "/api/show":
 			response := OlamaModelInfo{
-				Name:   "llama2",
-				Digest: "abc123def456",
+				Name:       "llama2",
+				Digest:     "abc123def456",
 				ModifiedAt: time.Now(),
 			}
 			json.NewEncoder(w).Encode(response)

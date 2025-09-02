@@ -21,9 +21,9 @@ var securityAgentTracer = otel.Tracer("hackai/agents/cybersecurity")
 
 // SecurityAgent implements AI-powered cybersecurity analysis and threat detection
 type SecurityAgent struct {
-	id              string
-	name            string
-	agentType       string
+	id               string
+	name             string
+	agentType        string
 	securityChains   map[string]llm.Chain
 	threatDetector   *ThreatDetector
 	vulnScanner      *VulnerabilityScanner
@@ -48,14 +48,14 @@ type SecurityAgentConfig struct {
 
 // SecurityAnalysisRequest represents a security analysis request
 type SecurityAnalysisRequest struct {
-	Type        string                 `json:"type"`
-	Target      string                 `json:"target"`
-	Content     string                 `json:"content"`
-	Context     map[string]interface{} `json:"context"`
-	Priority    string                 `json:"priority"`
-	Framework   string                 `json:"framework,omitempty"`
-	Compliance  []string               `json:"compliance,omitempty"`
-	Metadata    map[string]interface{} `json:"metadata"`
+	Type       string                 `json:"type"`
+	Target     string                 `json:"target"`
+	Content    string                 `json:"content"`
+	Context    map[string]interface{} `json:"context"`
+	Priority   string                 `json:"priority"`
+	Framework  string                 `json:"framework,omitempty"`
+	Compliance []string               `json:"compliance,omitempty"`
+	Metadata   map[string]interface{} `json:"metadata"`
 }
 
 // SecurityAnalysisResult represents the analysis result
@@ -102,12 +102,12 @@ type Recommendation struct {
 
 // ComplianceStatus represents compliance assessment
 type ComplianceStatus struct {
-	Framework   string                 `json:"framework"`
-	Status      string                 `json:"status"`
-	Score       float64                `json:"score"`
-	Gaps        []ComplianceGap        `json:"gaps"`
-	Controls    []ComplianceControl    `json:"controls"`
-	Metadata    map[string]interface{} `json:"metadata"`
+	Framework string                 `json:"framework"`
+	Status    string                 `json:"status"`
+	Score     float64                `json:"score"`
+	Gaps      []ComplianceGap        `json:"gaps"`
+	Controls  []ComplianceControl    `json:"controls"`
+	Metadata  map[string]interface{} `json:"metadata"`
 }
 
 // ComplianceGap represents a compliance gap
@@ -120,11 +120,11 @@ type ComplianceGap struct {
 
 // ComplianceControl represents a compliance control
 type ComplianceControl struct {
-	ID          string `json:"id"`
-	Name        string `json:"name"`
-	Status      string `json:"status"`
-	Evidence    string `json:"evidence"`
-	LastTested  time.Time `json:"last_tested"`
+	ID         string    `json:"id"`
+	Name       string    `json:"name"`
+	Status     string    `json:"status"`
+	Evidence   string    `json:"evidence"`
+	LastTested time.Time `json:"last_tested"`
 }
 
 // SecurityIncident represents a security incident
@@ -178,27 +178,27 @@ type ResponseAction struct {
 
 // ContainmentStrategy represents containment strategy
 type ContainmentStrategy struct {
-	Type        string   `json:"type"`
-	Actions     []string `json:"actions"`
-	Timeline    string   `json:"timeline"`
-	Resources   []string `json:"resources"`
+	Type      string   `json:"type"`
+	Actions   []string `json:"actions"`
+	Timeline  string   `json:"timeline"`
+	Resources []string `json:"resources"`
 }
 
 // RecoveryPlan represents recovery plan
 type RecoveryPlan struct {
-	Steps       []RecoveryStep `json:"steps"`
-	Timeline    string         `json:"timeline"`
-	Validation  []string       `json:"validation"`
-	Rollback    []string       `json:"rollback"`
+	Steps      []RecoveryStep `json:"steps"`
+	Timeline   string         `json:"timeline"`
+	Validation []string       `json:"validation"`
+	Rollback   []string       `json:"rollback"`
 }
 
 // RecoveryStep represents a recovery step
 type RecoveryStep struct {
-	ID          string    `json:"id"`
-	Description string    `json:"description"`
-	Status      string    `json:"status"`
+	ID           string   `json:"id"`
+	Description  string   `json:"description"`
+	Status       string   `json:"status"`
 	Dependencies []string `json:"dependencies"`
-	Timeline    string    `json:"timeline"`
+	Timeline     string   `json:"timeline"`
 }
 
 // NewSecurityAgent creates a new cybersecurity AI agent
@@ -268,9 +268,9 @@ func (sa *SecurityAgent) AnalyzeSecurity(ctx context.Context, request SecurityAn
 		"target", request.Target)
 
 	result := &SecurityAnalysisResult{
-		RequestID:  requestID,
-		Timestamp:  startTime,
-		Metadata:   make(map[string]interface{}),
+		RequestID: requestID,
+		Timestamp: startTime,
+		Metadata:  make(map[string]interface{}),
 	}
 
 	// Perform threat detection
@@ -361,14 +361,14 @@ func (sa *SecurityAgent) AnalyzeSecurity(ctx context.Context, request SecurityAn
 func (sa *SecurityAgent) initializeSecurityChains(provider providers.LLMProvider) error {
 	// This would initialize various security analysis chains
 	// For now, we'll create placeholder chains
-	
+
 	sa.logger.Info("Initializing security chains")
-	
+
 	// Initialize threat detection chain
 	// Initialize vulnerability assessment chain
 	// Initialize incident response chain
 	// Initialize compliance assessment chain
-	
+
 	return nil
 }
 
@@ -402,7 +402,7 @@ func (sa *SecurityAgent) analyzeIncidents(ctx context.Context, request SecurityA
 func (sa *SecurityAgent) generateRecommendations(ctx context.Context, request SecurityAnalysisRequest, result *SecurityAnalysisResult) ([]Recommendation, error) {
 	// Generate recommendations based on analysis results
 	var recommendations []Recommendation
-	
+
 	// Add threat-based recommendations
 	if result.ThreatScore > sa.config.ThreatThreshold {
 		recommendations = append(recommendations, Recommendation{
@@ -415,7 +415,7 @@ func (sa *SecurityAgent) generateRecommendations(ctx context.Context, request Se
 			Timeline:    "immediate",
 		})
 	}
-	
+
 	// Add vulnerability-based recommendations
 	for _, vuln := range result.Vulnerabilities {
 		if vuln.Severity == "critical" || vuln.Severity == "high" {
@@ -430,7 +430,7 @@ func (sa *SecurityAgent) generateRecommendations(ctx context.Context, request Se
 			})
 		}
 	}
-	
+
 	return recommendations, nil
 }
 
@@ -450,8 +450,8 @@ func (sa *SecurityAgent) assessCompliance(ctx context.Context, request SecurityA
 func (sa *SecurityAgent) generateAnalysis(ctx context.Context, request SecurityAnalysisRequest, result *SecurityAnalysisResult) (string, float64, error) {
 	analysis := fmt.Sprintf("Security analysis completed for %s. Threat level: %s (score: %.2f). Found %d vulnerabilities and %d recommendations.",
 		request.Target, result.ThreatLevel, result.ThreatScore, len(result.Vulnerabilities), len(result.Recommendations))
-	
+
 	confidence := 0.85 // Simplified confidence calculation
-	
+
 	return analysis, confidence, nil
 }

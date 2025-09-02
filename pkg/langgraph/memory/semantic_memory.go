@@ -12,15 +12,15 @@ import (
 
 // SemanticMemory manages semantic knowledge and concepts
 type SemanticMemory struct {
-	concepts     map[string]*Concept
-	relations    map[string]*ConceptRelation
-	categories   map[string]*Category
-	maxSize      int
+	concepts       map[string]*Concept
+	relations      map[string]*ConceptRelation
+	categories     map[string]*Category
+	maxSize        int
 	knowledgeGraph *KnowledgeGraph
-	conceptIndex *ConceptIndex
-	config       *MemoryConfig
-	logger       *logger.Logger
-	mutex        sync.RWMutex
+	conceptIndex   *ConceptIndex
+	config         *MemoryConfig
+	logger         *logger.Logger
+	mutex          sync.RWMutex
 }
 
 // Concept represents a semantic concept
@@ -123,28 +123,28 @@ type EdgeType string
 
 const (
 	// Concept Types
-	ConceptTypeEntity     ConceptType = "entity"
-	ConceptTypeAction     ConceptType = "action"
-	ConceptTypeProperty   ConceptType = "property"
-	ConceptTypeEvent      ConceptType = "event"
-	ConceptTypeAbstract   ConceptType = "abstract"
-	ConceptTypeConcrete   ConceptType = "concrete"
-	ConceptTypeProcess    ConceptType = "process"
-	ConceptTypeState      ConceptType = "state"
+	ConceptTypeEntity   ConceptType = "entity"
+	ConceptTypeAction   ConceptType = "action"
+	ConceptTypeProperty ConceptType = "property"
+	ConceptTypeEvent    ConceptType = "event"
+	ConceptTypeAbstract ConceptType = "abstract"
+	ConceptTypeConcrete ConceptType = "concrete"
+	ConceptTypeProcess  ConceptType = "process"
+	ConceptTypeState    ConceptType = "state"
 
 	// Relation Types
-	RelationTypeIsA       RelationType = "is_a"
-	RelationTypePartOf    RelationType = "part_of"
-	RelationTypeHasA      RelationType = "has_a"
-	RelationTypeCausedBy  RelationType = "caused_by"
-	RelationTypeLeadsTo   RelationType = "leads_to"
-	RelationTypeSimilarTo RelationType = "similar_to"
+	RelationTypeIsA        RelationType = "is_a"
+	RelationTypePartOf     RelationType = "part_of"
+	RelationTypeHasA       RelationType = "has_a"
+	RelationTypeCausedBy   RelationType = "caused_by"
+	RelationTypeLeadsTo    RelationType = "leads_to"
+	RelationTypeSimilarTo  RelationType = "similar_to"
 	RelationTypeOppositeOf RelationType = "opposite_of"
-	RelationTypeUsedFor   RelationType = "used_for"
-	RelationTypeLocatedAt RelationType = "located_at"
+	RelationTypeUsedFor    RelationType = "used_for"
+	RelationTypeLocatedAt  RelationType = "located_at"
 
 	// Relation Directions
-	DirectionBidirectional RelationDirection = "bidirectional"
+	DirectionBidirectional  RelationDirection = "bidirectional"
 	DirectionUnidirectional RelationDirection = "unidirectional"
 
 	// Node Types
@@ -153,9 +153,9 @@ const (
 	NodeTypeInstance NodeType = "instance"
 
 	// Edge Types
-	EdgeTypeRelation     EdgeType = "relation"
+	EdgeTypeRelation       EdgeType = "relation"
 	EdgeTypeCategorization EdgeType = "categorization"
-	EdgeTypeInstantiation EdgeType = "instantiation"
+	EdgeTypeInstantiation  EdgeType = "instantiation"
 )
 
 // NewSemanticMemory creates a new semantic memory instance
@@ -540,8 +540,8 @@ func (sm *SemanticMemory) evictLeastUsedConcept() error {
 	var oldestTime time.Time
 
 	for id, concept := range sm.concepts {
-		if leastUsedID == "" || concept.Frequency < leastFrequency || 
-		   (concept.Frequency == leastFrequency && concept.LastUsed.Before(oldestTime)) {
+		if leastUsedID == "" || concept.Frequency < leastFrequency ||
+			(concept.Frequency == leastFrequency && concept.LastUsed.Before(oldestTime)) {
 			leastUsedID = id
 			leastFrequency = concept.Frequency
 			oldestTime = concept.LastUsed

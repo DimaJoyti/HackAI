@@ -17,27 +17,41 @@ import (
 type MockRepository struct{}
 
 func (m *MockRepository) CreateVulnerabilityScan(scan *domain.VulnerabilityScan) error { return nil }
-func (m *MockRepository) GetVulnerabilityScan(id uuid.UUID) (*domain.VulnerabilityScan, error) { return nil, nil }
+func (m *MockRepository) GetVulnerabilityScan(id uuid.UUID) (*domain.VulnerabilityScan, error) {
+	return nil, nil
+}
 func (m *MockRepository) UpdateVulnerabilityScan(scan *domain.VulnerabilityScan) error { return nil }
-func (m *MockRepository) ListVulnerabilityScans(userID uuid.UUID, limit, offset int) ([]*domain.VulnerabilityScan, error) { return nil, nil }
+func (m *MockRepository) ListVulnerabilityScans(userID uuid.UUID, limit, offset int) ([]*domain.VulnerabilityScan, error) {
+	return nil, nil
+}
 func (m *MockRepository) DeleteVulnerabilityScan(id uuid.UUID) error { return nil }
 
-func (m *MockRepository) CreateNetworkScan(scan *domain.NetworkScan) error { return nil }
+func (m *MockRepository) CreateNetworkScan(scan *domain.NetworkScan) error         { return nil }
 func (m *MockRepository) GetNetworkScan(id uuid.UUID) (*domain.NetworkScan, error) { return nil, nil }
-func (m *MockRepository) UpdateNetworkScan(scan *domain.NetworkScan) error { return nil }
-func (m *MockRepository) ListNetworkScans(userID uuid.UUID, limit, offset int) ([]*domain.NetworkScan, error) { return nil, nil }
+func (m *MockRepository) UpdateNetworkScan(scan *domain.NetworkScan) error         { return nil }
+func (m *MockRepository) ListNetworkScans(userID uuid.UUID, limit, offset int) ([]*domain.NetworkScan, error) {
+	return nil, nil
+}
 func (m *MockRepository) DeleteNetworkScan(id uuid.UUID) error { return nil }
 
 func (m *MockRepository) CreateNetworkHost(host *domain.NetworkHost) error { return nil }
-func (m *MockRepository) ListNetworkHosts(scanID uuid.UUID) ([]*domain.NetworkHost, error) { return nil, nil }
+func (m *MockRepository) ListNetworkHosts(scanID uuid.UUID) ([]*domain.NetworkHost, error) {
+	return nil, nil
+}
 
 func (m *MockRepository) CreateNetworkPort(port *domain.NetworkPort) error { return nil }
-func (m *MockRepository) ListNetworkPorts(hostID uuid.UUID) ([]*domain.NetworkPort, error) { return nil, nil }
+func (m *MockRepository) ListNetworkPorts(hostID uuid.UUID) ([]*domain.NetworkPort, error) {
+	return nil, nil
+}
 
 func (m *MockRepository) CreateVulnerability(vuln *domain.Vulnerability) error { return nil }
-func (m *MockRepository) GetVulnerability(id uuid.UUID) (*domain.Vulnerability, error) { return nil, nil }
+func (m *MockRepository) GetVulnerability(id uuid.UUID) (*domain.Vulnerability, error) {
+	return nil, nil
+}
 func (m *MockRepository) UpdateVulnerability(vuln *domain.Vulnerability) error { return nil }
-func (m *MockRepository) ListVulnerabilities(scanID uuid.UUID) ([]*domain.Vulnerability, error) { return nil, nil }
+func (m *MockRepository) ListVulnerabilities(scanID uuid.UUID) ([]*domain.Vulnerability, error) {
+	return nil, nil
+}
 func (m *MockRepository) DeleteVulnerability(id uuid.UUID) error { return nil }
 
 func main() {
@@ -116,7 +130,7 @@ func demoVulnerabilityScanning(ctx context.Context, scanner *usecase.Vulnerabili
 
 	for i, target := range targets {
 		fmt.Printf("  %d. Scanning %s...\n", i+1, target)
-		
+
 		config := domain.ScanConfig{
 			Timeout:         30,
 			MaxDepth:        3,
@@ -132,7 +146,7 @@ func demoVulnerabilityScanning(ctx context.Context, scanner *usecase.Vulnerabili
 
 		fmt.Printf("     ✅ Scan started (ID: %s)\n", scan.ID.String()[:8])
 		fmt.Printf("     📊 Status: %s, Progress: %d%%\n", scan.Status, scan.Progress)
-		
+
 		// Simulate waiting for scan completion
 		time.Sleep(1 * time.Second)
 		fmt.Printf("     🔍 AI Analysis: Detected SQL injection patterns\n")
@@ -150,7 +164,7 @@ func demoNetworkAnalysis(ctx context.Context, analyzer *usecase.NetworkAnalyzerU
 
 	for i, target := range targets {
 		fmt.Printf("  %d. Analyzing network %s...\n", i+1, target)
-		
+
 		config := domain.NetworkScanConfig{
 			Timeout:   5,
 			Threads:   10,
@@ -167,7 +181,7 @@ func demoNetworkAnalysis(ctx context.Context, analyzer *usecase.NetworkAnalyzerU
 
 		fmt.Printf("     ✅ Network scan started (ID: %s)\n", scan.ID.String()[:8])
 		fmt.Printf("     📊 Status: %s, Progress: %d%%\n", scan.Status, scan.Progress)
-		
+
 		// Simulate scan results
 		time.Sleep(800 * time.Millisecond)
 		fmt.Printf("     🖥️  AI Detection: 5 hosts discovered\n")
@@ -187,7 +201,7 @@ func demoThreatIntelligence(ctx context.Context, threatIntel *usecase.ThreatInte
 
 	for i, target := range targets {
 		fmt.Printf("  %d. Analyzing threat intelligence for %s...\n", i+1, target)
-		
+
 		report, err := threatIntel.AnalyzeThreat(ctx, target)
 		if err != nil {
 			fmt.Printf("     ❌ Error: %v\n", err)
@@ -199,22 +213,22 @@ func demoThreatIntelligence(ctx context.Context, threatIntel *usecase.ThreatInte
 		fmt.Printf("     📊 Risk Score: %.1f/10\n", report.RiskScore)
 		fmt.Printf("     🔍 Confidence: %.0f%%\n", report.Confidence*100)
 		fmt.Printf("     📝 Summary: %s\n", report.Summary)
-		
+
 		if len(report.Indicators) > 0 {
 			fmt.Printf("     🚨 Threat Indicators:\n")
 			for _, indicator := range report.Indicators {
-				fmt.Printf("       - %s: %s (Confidence: %.0f%%)\n", 
+				fmt.Printf("       - %s: %s (Confidence: %.0f%%)\n",
 					indicator.Type, indicator.Description, indicator.Confidence*100)
 			}
 		}
-		
+
 		if len(report.Recommendations) > 0 {
 			fmt.Printf("     💡 AI Recommendations:\n")
 			for _, rec := range report.Recommendations {
 				fmt.Printf("       - %s\n", rec)
 			}
 		}
-		
+
 		time.Sleep(400 * time.Millisecond)
 	}
 }
@@ -235,7 +249,7 @@ func demoLogAnalysis(ctx context.Context, logAnalyzer *usecase.LogAnalyzerUseCas
 	}
 
 	fmt.Printf("  📋 Analyzing %d log entries with AI/NLP...\n", len(sampleLogs))
-	
+
 	timeRange := usecase.TimeRange{
 		Start: time.Now().Add(-1 * time.Hour),
 		End:   time.Now(),
@@ -292,7 +306,7 @@ func demoComprehensiveAIAnalysis(ctx context.Context, aiService *usecase.AIModel
 		Type:     "comprehensive",
 		Targets:  targets,
 		Priority: "high",
-		Config:   map[string]interface{}{
+		Config: map[string]interface{}{
 			"deep_analysis": true,
 			"correlation":   true,
 		},

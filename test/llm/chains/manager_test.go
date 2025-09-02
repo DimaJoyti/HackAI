@@ -34,10 +34,10 @@ func TestChainManager(t *testing.T) {
 			CheckMaliciousCode:   true,
 		},
 	}, logger)
-	
+
 	monitor, err := chains.NewDefaultChainMonitor(logger)
 	require.NoError(t, err)
-	
+
 	security := chains.NewDefaultChainSecurity(logger)
 	templates := chains.NewDefaultTemplateManager(logger)
 
@@ -274,7 +274,7 @@ func TestChainValidator(t *testing.T) {
 	t.Run("InvalidChain", func(t *testing.T) {
 		chain := &MockChain{
 			id:          "", // Invalid: empty ID
-			name:        "",  // Invalid: empty name
+			name:        "", // Invalid: empty name
 			description: "A chain with validation issues",
 		}
 
@@ -439,6 +439,6 @@ func (mc *MockChain) Execute(ctx context.Context, input llm.ChainInput) (llm.Cha
 	}, nil
 }
 
-func (mc *MockChain) GetMemory() llm.Memory     { return mc.memory }
+func (mc *MockChain) GetMemory() llm.Memory       { return mc.memory }
 func (mc *MockChain) SetMemory(memory llm.Memory) { mc.memory = memory }
-func (mc *MockChain) Validate() error          { return nil }
+func (mc *MockChain) Validate() error             { return nil }

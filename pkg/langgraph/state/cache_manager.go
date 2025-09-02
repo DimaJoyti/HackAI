@@ -9,39 +9,39 @@ import (
 
 // StateCacheManager manages state caching for performance optimization
 type StateCacheManager struct {
-	cache     map[string]*CacheEntry
-	maxSize   int
-	ttl       time.Duration
-	logger    *logger.Logger
-	mutex     sync.RWMutex
-	stats     *CacheStats
-	eviction  EvictionPolicy
+	cache    map[string]*CacheEntry
+	maxSize  int
+	ttl      time.Duration
+	logger   *logger.Logger
+	mutex    sync.RWMutex
+	stats    *CacheStats
+	eviction EvictionPolicy
 }
 
 // CacheEntry represents a cached state entry
 type CacheEntry struct {
-	Key       StateKey     `json:"key"`
-	Value     *StateEntry  `json:"value"`
-	CreatedAt time.Time    `json:"created_at"`
-	AccessedAt time.Time   `json:"accessed_at"`
-	AccessCount int64      `json:"access_count"`
-	Size       int64       `json:"size"`
-	TTL        time.Duration `json:"ttl"`
-	ExpiresAt  time.Time    `json:"expires_at"`
+	Key         StateKey      `json:"key"`
+	Value       *StateEntry   `json:"value"`
+	CreatedAt   time.Time     `json:"created_at"`
+	AccessedAt  time.Time     `json:"accessed_at"`
+	AccessCount int64         `json:"access_count"`
+	Size        int64         `json:"size"`
+	TTL         time.Duration `json:"ttl"`
+	ExpiresAt   time.Time     `json:"expires_at"`
 }
 
 // CacheStats holds cache statistics
 type CacheStats struct {
-	Hits           int64   `json:"hits"`
-	Misses         int64   `json:"misses"`
-	Evictions      int64   `json:"evictions"`
-	Size           int     `json:"size"`
-	MaxSize        int     `json:"max_size"`
-	HitRatio       float64 `json:"hit_ratio"`
-	TotalSize      int64   `json:"total_size"`
-	AverageSize    float64 `json:"average_size"`
-	OldestEntry    *time.Time `json:"oldest_entry,omitempty"`
-	NewestEntry    *time.Time `json:"newest_entry,omitempty"`
+	Hits        int64      `json:"hits"`
+	Misses      int64      `json:"misses"`
+	Evictions   int64      `json:"evictions"`
+	Size        int        `json:"size"`
+	MaxSize     int        `json:"max_size"`
+	HitRatio    float64    `json:"hit_ratio"`
+	TotalSize   int64      `json:"total_size"`
+	AverageSize float64    `json:"average_size"`
+	OldestEntry *time.Time `json:"oldest_entry,omitempty"`
+	NewestEntry *time.Time `json:"newest_entry,omitempty"`
 }
 
 // EvictionPolicy defines cache eviction policies

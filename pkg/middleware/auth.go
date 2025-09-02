@@ -203,9 +203,9 @@ func (am *AuthMiddleware) SessionTimeout(timeout time.Duration) func(http.Handle
 			// Check if session has timed out
 			if time.Since(claims.IssuedAt.Time) > timeout {
 				am.logger.WithFields(map[string]interface{}{
-					"user_id":    claims.UserID,
-					"issued_at":  claims.IssuedAt.Time,
-					"timeout":    timeout,
+					"user_id":   claims.UserID,
+					"issued_at": claims.IssuedAt.Time,
+					"timeout":   timeout,
 				}).Warn("Session timeout")
 				am.writeErrorResponse(w, http.StatusUnauthorized, "Session has timed out")
 				return
@@ -221,7 +221,7 @@ func (am *AuthMiddleware) IPWhitelist(allowedIPs []string) func(http.Handler) ht
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			clientIP := getClientIP(r)
-			
+
 			if !am.isIPAllowed(clientIP, allowedIPs) {
 				am.logger.WithFields(map[string]interface{}{
 					"client_ip":   clientIP,
@@ -250,10 +250,10 @@ func (am *AuthMiddleware) AuditLog(next http.Handler) http.Handler {
 
 		// Log the request
 		duration := time.Since(start)
-		
+
 		userID, _ := r.Context().Value("user_id").(uuid.UUID)
 		username, _ := r.Context().Value("username").(string)
-		
+
 		am.logger.WithFields(map[string]interface{}{
 			"user_id":     userID,
 			"username":    username,
@@ -271,7 +271,7 @@ func (am *AuthMiddleware) AuditLog(next http.Handler) http.Handler {
 func (am *AuthMiddleware) hasPermission(claims *auth.Claims, resource, action string) bool {
 	// Basic role-based permission system
 	// In a real implementation, this would query a permission service or database
-	
+
 	switch claims.Role {
 	case domain.UserRoleAdmin:
 		return true // Admins have all permissions
@@ -343,7 +343,7 @@ func getClientIP(r *http.Request) string {
 func (am *AuthMiddleware) writeErrorResponse(w http.ResponseWriter, statusCode int, message string) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(statusCode)
-	
+
 	response := fmt.Sprintf(`{"error": "%s", "status": %d}`, message, statusCode)
 	w.Write([]byte(response))
 }

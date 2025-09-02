@@ -44,12 +44,12 @@ type JUnitTestSuite struct {
 
 // JUnitTestCase represents a JUnit test case
 type JUnitTestCase struct {
-	Name      string           `xml:"name,attr"`
-	ClassName string           `xml:"classname,attr"`
-	Time      float64          `xml:"time,attr"`
-	Failure   *JUnitFailure    `xml:"failure,omitempty"`
-	Error     *JUnitError      `xml:"error,omitempty"`
-	Skipped   *JUnitSkipped    `xml:"skipped,omitempty"`
+	Name      string        `xml:"name,attr"`
+	ClassName string        `xml:"classname,attr"`
+	Time      float64       `xml:"time,attr"`
+	Failure   *JUnitFailure `xml:"failure,omitempty"`
+	Error     *JUnitError   `xml:"error,omitempty"`
+	Skipped   *JUnitSkipped `xml:"skipped,omitempty"`
 }
 
 // JUnitFailure represents a test failure
@@ -356,7 +356,7 @@ func (cr *ConsoleReporter) Report(results *TestResults) error {
 	fmt.Println("\n" + strings.Repeat("=", 80))
 	fmt.Println("🛡️  HackAI Test Results")
 	fmt.Println(strings.Repeat("=", 80))
-	
+
 	fmt.Printf("Execution ID: %s\n", results.ExecutionID)
 	fmt.Printf("Duration: %v\n", results.Duration)
 	fmt.Printf("Environment: %s\n", results.Environment.Environment)
@@ -420,7 +420,7 @@ func (cr *ConsoleReporter) Report(results *TestResults) error {
 	}
 
 	fmt.Println(strings.Repeat("=", 80))
-	
+
 	return nil
 }
 

@@ -1,0 +1,426 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cost-optimization-policies
+  namespace: cost-optimization
+  labels:
+    app.kubernetes.io/name: cost-optimizer
+    app.kubernetes.io/component: policies
+data:
+  policies.yaml: |
+    cost_optimization_policies:
+      version: "1.0"
+      description: "Automated cost optimization policies for HackAI multi-cloud platform"
+      
+      global_settings:
+        cost_threshold_usd: 100.0
+        savings_threshold_percent: 10.0
+        auto_apply_low_risk: true
+        auto_apply_medium_risk: false
+        auto_apply_high_risk: false
+        notification_channels:
+          - slack
+          - email
+        
+      rightsizing_policies:
+        enabled: true
+        cpu_utilization_threshold: 20.0
+        memory_utilization_threshold: 30.0
+        observation_period_days: 7
+        min_instance_age_hours: 24
+        excluded_environments:
+          - production
+        auto_apply_conditions:
+          - risk_level: "low"
+          - savings_percent: ">= 20"
+          - utilization: "< 25"
+        
+      spot_instance_policies:
+        enabled: true
+        environments:
+          development:
+            auto_convert: true
+            max_interruption_rate: 10.0
+          staging:
+            auto_convert: false
+            max_interruption_rate: 5.0
+          production:
+            auto_convert: false
+            max_interruption_rate: 2.0
+        workload_types:
+          batch_processing:
+            suitable: true
+            auto_convert: true
+          web_services:
+            suitable: false
+            auto_convert: false
+          databases:
+            suitable: false
+            auto_convert: false
+        
+      reserved_instance_policies:
+        enabled: true
+        utilization_threshold: 80.0
+        commitment_period: "1year"
+        payment_option: "partial_upfront"
+        auto_purchase_conditions:
+          - utilization: ">= 90"
+          - runtime_days: ">= 30"
+          - savings_percent: ">= 25"
+        
+      storage_optimization_policies:
+        enabled: true
+        unused_volume_age_days: 7
+        snapshot_retention_days: 30
+        intelligent_tiering: true
+        lifecycle_policies:
+          standard_to_ia: 30
+          ia_to_glacier: 90
+          glacier_to_deep_archive: 365
+        
+      network_optimization_policies:
+        enabled: true
+        unused_load_balancer_age_days: 3
+        unused_nat_gateway_age_days: 1
+        cross_az_traffic_optimization: true
+        
+      database_optimization_policies:
+        enabled: true
+        idle_connection_threshold: 5.0
+        cpu_utilization_threshold: 30.0
+        read_replica_optimization: true
+        backup_optimization: true
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cost-optimization-controller
+  namespace: cost-optimization
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: cost-optimization-controller
+  template:
+    metadata:
+      labels:
+        app: cost-optimization-controller
+    spec:
+      serviceAccountName: cost-optimizer
+      containers:
+      - name: controller
+        image: hackai/cost-optimization-controller:latest
+        ports:
+        - containerPort: 8080
+          name: http
+        - containerPort: 9090
+          name: metrics
+        env:
+        - name: POLICY_CONFIG_PATH
+          value: "/etc/policies/policies.yaml"
+        - name: AWS_REGION
+          value: "us-west-2"
+        - name: GCP_PROJECT_ID
+          value: "hackai-production"
+        - name: AZURE_SUBSCRIPTION_ID
+          valueFrom:
+            secretKeyRef:
+              name: azure-credentials
+              key: subscription-id
+        - name: SLACK_WEBHOOK_URL
+          valueFrom:
+            secretKeyRef:
+              name: notification-secrets
+              key: slack-webhook
+        volumeMounts:
+        - name: policies
+          mountPath: /etc/policies
+          readOnly: true
+        - name: cloud-credentials
+          mountPath: /etc/credentials
+          readOnly: true
+        resources:
+          requests:
+            memory: 256Mi
+            cpu: 200m
+          limits:
+            memory: 512Mi
+            cpu: 500m
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 10
+      volumes:
+      - name: policies
+        configMap:
+          name: cost-optimization-policies
+      - name: cloud-credentials
+        secret:
+          secretName: cloud-credentials
+
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: cost-optimization-analyzer
+  namespace: cost-optimization
+spec:
+  schedule: "0 6 * * *"  # Daily at 6 AM
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: cost-optimization-analyzer
+        spec:
+          serviceAccountName: cost-optimizer
+          restartPolicy: OnFailure
+          containers:
+          - name: analyzer
+            image: hackai/cost-analyzer:latest
+            command:
+            - /bin/sh
+            - -c
+            - |
+              echo "Starting cost optimization analysis..."
+              
+              # Run multi-cloud cost analysis
+              /usr/local/bin/cost-analyzer analyze \
+                --config /etc/policies/policies.yaml \
+                --output /tmp/cost-analysis.json \
+                --format json
+              
+              # Apply automated optimizations
+              /usr/local/bin/cost-optimizer apply \
+                --analysis /tmp/cost-analysis.json \
+                --dry-run=false \
+                --auto-approve-low-risk
+              
+              # Generate and send report
+              /usr/local/bin/cost-reporter generate \
+                --analysis /tmp/cost-analysis.json \
+                --template daily-summary \
+                --send-notifications
+              
+              echo "Cost optimization analysis completed"
+            env:
+            - name: AWS_REGION
+              value: "us-west-2"
+            - name: ANALYSIS_CONFIG
+              value: "/etc/policies/policies.yaml"
+            volumeMounts:
+            - name: policies
+              mountPath: /etc/policies
+              readOnly: true
+            - name: cloud-credentials
+              mountPath: /etc/credentials
+              readOnly: true
+            resources:
+              requests:
+                memory: 512Mi
+                cpu: 500m
+              limits:
+                memory: 1Gi
+                cpu: 1000m
+          volumes:
+          - name: policies
+            configMap:
+              name: cost-optimization-policies
+          - name: cloud-credentials
+            secret:
+              secretName: cloud-credentials
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: cost-optimizer
+  namespace: cost-optimization
+  labels:
+    app.kubernetes.io/name: cost-optimizer
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: cost-optimizer
+rules:
+- apiGroups: [""]
+  resources: ["pods", "services", "persistentvolumes", "persistentvolumeclaims"]
+  verbs: ["get", "list", "watch", "update", "patch"]
+- apiGroups: ["apps"]
+  resources: ["deployments", "statefulsets", "daemonsets"]
+  verbs: ["get", "list", "watch", "update", "patch"]
+- apiGroups: ["autoscaling"]
+  resources: ["horizontalpodautoscalers", "verticalpodautoscalers"]
+  verbs: ["get", "list", "watch", "create", "update", "patch"]
+- apiGroups: ["metrics.k8s.io"]
+  resources: ["pods", "nodes"]
+  verbs: ["get", "list"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: cost-optimizer
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cost-optimizer
+subjects:
+- kind: ServiceAccount
+  name: cost-optimizer
+  namespace: cost-optimization
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cost-optimization-rules
+  namespace: cost-optimization
+data:
+  rules.yaml: |
+    optimization_rules:
+      rightsizing:
+        - name: "Underutilized CPU"
+          condition: "avg_cpu_utilization < 20 AND observation_days >= 7"
+          action: "downsize_instance"
+          risk_level: "low"
+          savings_estimate: "30-50%"
+          
+        - name: "Underutilized Memory"
+          condition: "avg_memory_utilization < 30 AND observation_days >= 7"
+          action: "downsize_instance"
+          risk_level: "low"
+          savings_estimate: "25-40%"
+          
+        - name: "Oversized Development Instances"
+          condition: "environment == 'development' AND instance_size > 'medium'"
+          action: "downsize_instance"
+          risk_level: "very_low"
+          savings_estimate: "40-60%"
+          
+      spot_instances:
+        - name: "Development Workloads"
+          condition: "environment == 'development' AND workload_type != 'database'"
+          action: "convert_to_spot"
+          risk_level: "low"
+          savings_estimate: "60-70%"
+          
+        - name: "Batch Processing"
+          condition: "workload_type == 'batch' AND fault_tolerant == true"
+          action: "convert_to_spot"
+          risk_level: "low"
+          savings_estimate: "60-70%"
+          
+        - name: "CI/CD Runners"
+          condition: "workload_type == 'ci_cd' AND ephemeral == true"
+          action: "convert_to_spot"
+          risk_level: "very_low"
+          savings_estimate: "70-80%"
+          
+      reserved_instances:
+        - name: "Stable Production Workloads"
+          condition: "environment == 'production' AND uptime_days >= 30 AND utilization >= 80"
+          action: "purchase_reserved_instance"
+          risk_level: "low"
+          savings_estimate: "30-40%"
+          
+        - name: "Database Instances"
+          condition: "workload_type == 'database' AND uptime_days >= 60"
+          action: "purchase_reserved_instance"
+          risk_level: "very_low"
+          savings_estimate: "35-45%"
+          
+      storage_optimization:
+        - name: "Unused Volumes"
+          condition: "volume_state == 'available' AND age_days >= 7"
+          action: "delete_volume"
+          risk_level: "medium"
+          savings_estimate: "100%"
+          
+        - name: "Old Snapshots"
+          condition: "snapshot_age_days >= 30 AND automated_backup == false"
+          action: "delete_snapshot"
+          risk_level: "low"
+          savings_estimate: "100%"
+          
+        - name: "Infrequent Access Storage"
+          condition: "access_frequency < 1_per_month AND storage_class == 'standard'"
+          action: "move_to_ia"
+          risk_level: "very_low"
+          savings_estimate: "40-50%"
+          
+      network_optimization:
+        - name: "Unused Load Balancers"
+          condition: "target_count == 0 AND age_days >= 3"
+          action: "delete_load_balancer"
+          risk_level: "medium"
+          savings_estimate: "100%"
+          
+        - name: "Unused NAT Gateways"
+          condition: "traffic_gb_per_day < 1 AND age_days >= 1"
+          action: "delete_nat_gateway"
+          risk_level: "high"
+          savings_estimate: "100%"
+
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: cost-optimization-metrics
+  namespace: cost-optimization
+spec:
+  selector:
+    matchLabels:
+      app: cost-optimization-controller
+  endpoints:
+  - port: metrics
+    interval: 30s
+    path: /metrics
+
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: cost-optimization-alerts
+  namespace: cost-optimization
+spec:
+  groups:
+  - name: cost-optimization
+    rules:
+    - alert: HighCostIncrease
+      expr: increase(cost_total_usd[24h]) > 100
+      for: 1h
+      labels:
+        severity: warning
+      annotations:
+        summary: "High cost increase detected"
+        description: "Cost has increased by more than $100 in the last 24 hours"
+        
+    - alert: CostOptimizationOpportunity
+      expr: cost_savings_potential_usd > 500
+      for: 30m
+      labels:
+        severity: info
+      annotations:
+        summary: "Significant cost optimization opportunity"
+        description: "Potential savings of ${{ $value }} detected"
+        
+    - alert: CostBudgetExceeded
+      expr: cost_total_usd > cost_budget_usd
+      for: 5m
+      labels:
+        severity: critical
+      annotations:
+        summary: "Cost budget exceeded"
+        description: "Current cost ${{ $value }} exceeds budget"

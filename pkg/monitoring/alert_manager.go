@@ -18,68 +18,68 @@ var alertTracer = otel.Tracer("hackai/monitoring/alerts")
 
 // AlertManager manages alerts and notifications
 type AlertManager struct {
-	alerts         map[string]*Alert
-	rules          map[string]*AlertRule
-	channels       map[string]AlertChannel
-	suppressions   map[string]*AlertSuppression
-	escalations    map[string]*AlertEscalation
-	config         *MonitoringConfig
-	logger         *logger.Logger
-	mutex          sync.RWMutex
+	alerts       map[string]*Alert
+	rules        map[string]*AlertRule
+	channels     map[string]AlertChannel
+	suppressions map[string]*AlertSuppression
+	escalations  map[string]*AlertEscalation
+	config       *MonitoringConfig
+	logger       *logger.Logger
+	mutex        sync.RWMutex
 }
 
 // Alert represents an alert instance
 type Alert struct {
-	ID            string                 `json:"id"`
-	RuleID        string                 `json:"rule_id"`
-	Name          string                 `json:"name"`
-	Description   string                 `json:"description"`
-	Severity      AlertSeverity          `json:"severity"`
-	Status        AlertStatus            `json:"status"`
-	Source        string                 `json:"source"`
-	Component     string                 `json:"component"`
-	Tags          []string               `json:"tags"`
-	Labels        map[string]string      `json:"labels"`
-	Annotations   map[string]string      `json:"annotations"`
-	Value         interface{}            `json:"value"`
-	Threshold     interface{}            `json:"threshold"`
-	Condition     string                 `json:"condition"`
-	FiredAt       time.Time              `json:"fired_at"`
-	ResolvedAt    *time.Time             `json:"resolved_at,omitempty"`
-	LastNotified  *time.Time             `json:"last_notified,omitempty"`
-	NotifyCount   int                    `json:"notify_count"`
-	Escalated     bool                   `json:"escalated"`
-	Suppressed    bool                   `json:"suppressed"`
-	Acknowledged  bool                   `json:"acknowledged"`
-	AcknowledgedBy string                `json:"acknowledged_by,omitempty"`
-	AcknowledgedAt *time.Time            `json:"acknowledged_at,omitempty"`
-	History       []*AlertEvent          `json:"history"`
-	Metadata      map[string]interface{} `json:"metadata"`
+	ID             string                 `json:"id"`
+	RuleID         string                 `json:"rule_id"`
+	Name           string                 `json:"name"`
+	Description    string                 `json:"description"`
+	Severity       AlertSeverity          `json:"severity"`
+	Status         AlertStatus            `json:"status"`
+	Source         string                 `json:"source"`
+	Component      string                 `json:"component"`
+	Tags           []string               `json:"tags"`
+	Labels         map[string]string      `json:"labels"`
+	Annotations    map[string]string      `json:"annotations"`
+	Value          interface{}            `json:"value"`
+	Threshold      interface{}            `json:"threshold"`
+	Condition      string                 `json:"condition"`
+	FiredAt        time.Time              `json:"fired_at"`
+	ResolvedAt     *time.Time             `json:"resolved_at,omitempty"`
+	LastNotified   *time.Time             `json:"last_notified,omitempty"`
+	NotifyCount    int                    `json:"notify_count"`
+	Escalated      bool                   `json:"escalated"`
+	Suppressed     bool                   `json:"suppressed"`
+	Acknowledged   bool                   `json:"acknowledged"`
+	AcknowledgedBy string                 `json:"acknowledged_by,omitempty"`
+	AcknowledgedAt *time.Time             `json:"acknowledged_at,omitempty"`
+	History        []*AlertEvent          `json:"history"`
+	Metadata       map[string]interface{} `json:"metadata"`
 }
 
 // AlertRule defines conditions for triggering alerts
 type AlertRule struct {
-	ID              string                 `json:"id"`
-	Name            string                 `json:"name"`
-	Description     string                 `json:"description"`
-	Enabled         bool                   `json:"enabled"`
-	Severity        AlertSeverity          `json:"severity"`
-	Source          string                 `json:"source"`
-	Component       string                 `json:"component"`
-	Metric          string                 `json:"metric"`
-	Condition       AlertCondition         `json:"condition"`
-	Threshold       interface{}            `json:"threshold"`
-	Duration        time.Duration          `json:"duration"`
-	EvaluationInterval time.Duration       `json:"evaluation_interval"`
-	Labels          map[string]string      `json:"labels"`
-	Annotations     map[string]string      `json:"annotations"`
-	NotificationChannels []string          `json:"notification_channels"`
-	EscalationPolicy string               `json:"escalation_policy,omitempty"`
-	SuppressionRules []string             `json:"suppression_rules"`
-	Dependencies    []string               `json:"dependencies"`
-	CreatedAt       time.Time              `json:"created_at"`
-	UpdatedAt       time.Time              `json:"updated_at"`
-	Metadata        map[string]interface{} `json:"metadata"`
+	ID                   string                 `json:"id"`
+	Name                 string                 `json:"name"`
+	Description          string                 `json:"description"`
+	Enabled              bool                   `json:"enabled"`
+	Severity             AlertSeverity          `json:"severity"`
+	Source               string                 `json:"source"`
+	Component            string                 `json:"component"`
+	Metric               string                 `json:"metric"`
+	Condition            AlertCondition         `json:"condition"`
+	Threshold            interface{}            `json:"threshold"`
+	Duration             time.Duration          `json:"duration"`
+	EvaluationInterval   time.Duration          `json:"evaluation_interval"`
+	Labels               map[string]string      `json:"labels"`
+	Annotations          map[string]string      `json:"annotations"`
+	NotificationChannels []string               `json:"notification_channels"`
+	EscalationPolicy     string                 `json:"escalation_policy,omitempty"`
+	SuppressionRules     []string               `json:"suppression_rules"`
+	Dependencies         []string               `json:"dependencies"`
+	CreatedAt            time.Time              `json:"created_at"`
+	UpdatedAt            time.Time              `json:"updated_at"`
+	Metadata             map[string]interface{} `json:"metadata"`
 }
 
 // AlertEvent represents an event in alert history
@@ -103,18 +103,18 @@ type AlertChannel interface {
 
 // AlertSuppression defines alert suppression rules
 type AlertSuppression struct {
-	ID          string                 `json:"id"`
-	Name        string                 `json:"name"`
-	Description string                 `json:"description"`
-	Enabled     bool                   `json:"enabled"`
+	ID          string                  `json:"id"`
+	Name        string                  `json:"name"`
+	Description string                  `json:"description"`
+	Enabled     bool                    `json:"enabled"`
 	Conditions  []*SuppressionCondition `json:"conditions"`
-	StartTime   *time.Time             `json:"start_time,omitempty"`
-	EndTime     *time.Time             `json:"end_time,omitempty"`
-	Recurring   bool                   `json:"recurring"`
-	Schedule    string                 `json:"schedule,omitempty"`
-	CreatedBy   string                 `json:"created_by"`
-	CreatedAt   time.Time              `json:"created_at"`
-	Metadata    map[string]interface{} `json:"metadata"`
+	StartTime   *time.Time              `json:"start_time,omitempty"`
+	EndTime     *time.Time              `json:"end_time,omitempty"`
+	Recurring   bool                    `json:"recurring"`
+	Schedule    string                  `json:"schedule,omitempty"`
+	CreatedBy   string                  `json:"created_by"`
+	CreatedAt   time.Time               `json:"created_at"`
+	Metadata    map[string]interface{}  `json:"metadata"`
 }
 
 // AlertEscalation defines escalation policies
@@ -137,13 +137,13 @@ type SuppressionCondition struct {
 }
 
 type EscalationStep struct {
-	Level            int           `json:"level"`
-	Delay            time.Duration `json:"delay"`
-	Channels         []string      `json:"channels"`
-	RequireAck       bool          `json:"require_ack"`
-	AckTimeout       time.Duration `json:"ack_timeout"`
-	RepeatInterval   time.Duration `json:"repeat_interval,omitempty"`
-	MaxRepeats       int           `json:"max_repeats,omitempty"`
+	Level          int           `json:"level"`
+	Delay          time.Duration `json:"delay"`
+	Channels       []string      `json:"channels"`
+	RequireAck     bool          `json:"require_ack"`
+	AckTimeout     time.Duration `json:"ack_timeout"`
+	RepeatInterval time.Duration `json:"repeat_interval,omitempty"`
+	MaxRepeats     int           `json:"max_repeats,omitempty"`
 }
 
 // Enums for alerts
@@ -162,34 +162,34 @@ const (
 	SeverityInfo     AlertSeverity = "info"
 
 	// Alert Statuses
-	StatusFiring    AlertStatus = "firing"
-	StatusResolved  AlertStatus = "resolved"
-	StatusSuppressed AlertStatus = "suppressed"
+	StatusFiring       AlertStatus = "firing"
+	StatusResolved     AlertStatus = "resolved"
+	StatusSuppressed   AlertStatus = "suppressed"
 	StatusAcknowledged AlertStatus = "acknowledged"
 
 	// Alert Conditions
-	ConditionGreaterThan    AlertCondition = "greater_than"
-	ConditionLessThan       AlertCondition = "less_than"
-	ConditionEquals         AlertCondition = "equals"
-	ConditionNotEquals      AlertCondition = "not_equals"
-	ConditionContains       AlertCondition = "contains"
-	ConditionNotContains    AlertCondition = "not_contains"
-	ConditionIncreaseBy     AlertCondition = "increase_by"
-	ConditionDecreaseBy     AlertCondition = "decrease_by"
+	ConditionGreaterThan AlertCondition = "greater_than"
+	ConditionLessThan    AlertCondition = "less_than"
+	ConditionEquals      AlertCondition = "equals"
+	ConditionNotEquals   AlertCondition = "not_equals"
+	ConditionContains    AlertCondition = "contains"
+	ConditionNotContains AlertCondition = "not_contains"
+	ConditionIncreaseBy  AlertCondition = "increase_by"
+	ConditionDecreaseBy  AlertCondition = "decrease_by"
 
 	// Alert Event Types
-	EventTypeFired       AlertEventType = "fired"
-	EventTypeResolved    AlertEventType = "resolved"
+	EventTypeFired        AlertEventType = "fired"
+	EventTypeResolved     AlertEventType = "resolved"
 	EventTypeAcknowledged AlertEventType = "acknowledged"
-	EventTypeEscalated   AlertEventType = "escalated"
-	EventTypeSuppressed  AlertEventType = "suppressed"
-	EventTypeNotified    AlertEventType = "notified"
+	EventTypeEscalated    AlertEventType = "escalated"
+	EventTypeSuppressed   AlertEventType = "suppressed"
+	EventTypeNotified     AlertEventType = "notified"
 
 	// Alert Channel Types
-	ChannelTypeEmail    AlertChannelType = "email"
-	ChannelTypeSlack    AlertChannelType = "slack"
-	ChannelTypeWebhook  AlertChannelType = "webhook"
-	ChannelTypeSMS      AlertChannelType = "sms"
+	ChannelTypeEmail     AlertChannelType = "email"
+	ChannelTypeSlack     AlertChannelType = "slack"
+	ChannelTypeWebhook   AlertChannelType = "webhook"
+	ChannelTypeSMS       AlertChannelType = "sms"
 	ChannelTypePagerDuty AlertChannelType = "pagerduty"
 )
 

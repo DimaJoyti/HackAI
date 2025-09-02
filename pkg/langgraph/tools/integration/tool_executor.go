@@ -17,13 +17,13 @@ var executorTracer = otel.Tracer("hackai/langgraph/tools/executor")
 
 // ToolExecutor handles tool execution with advanced features
 type ToolExecutor struct {
-	config           *IntegrationConfig
-	rateLimiters     map[string]*RateLimiter
-	circuitBreakers  map[string]*CircuitBreaker
-	cache            *ExecutionCache
-	semaphore        chan struct{}
-	logger           *logger.Logger
-	mutex            sync.RWMutex
+	config          *IntegrationConfig
+	rateLimiters    map[string]*RateLimiter
+	circuitBreakers map[string]*CircuitBreaker
+	cache           *ExecutionCache
+	semaphore       chan struct{}
+	logger          *logger.Logger
+	mutex           sync.RWMutex
 }
 
 // RateLimiter implements token bucket rate limiting
@@ -70,13 +70,13 @@ type CacheEntry struct {
 
 // ExecutionContext holds context for tool execution
 type ExecutionContext struct {
-	ToolID      string                 `json:"tool_id"`
-	UserID      string                 `json:"user_id"`
-	RequestID   string                 `json:"request_id"`
-	StartTime   time.Time              `json:"start_time"`
-	Timeout     time.Duration          `json:"timeout"`
-	Metadata    map[string]interface{} `json:"metadata"`
-	Trace       trace.Span             `json:"-"`
+	ToolID    string                 `json:"tool_id"`
+	UserID    string                 `json:"user_id"`
+	RequestID string                 `json:"request_id"`
+	StartTime time.Time              `json:"start_time"`
+	Timeout   time.Duration          `json:"timeout"`
+	Metadata  map[string]interface{} `json:"metadata"`
+	Trace     trace.Span             `json:"-"`
 }
 
 // NewToolExecutor creates a new tool executor
@@ -158,14 +158,14 @@ func (te *ToolExecutor) Execute(ctx context.Context, integration *ToolIntegratio
 
 	// Execute with timeout and retries
 	result, err := te.executeWithRetries(ctx, integration, input, execCtx)
-	
+
 	duration := time.Since(startTime)
-	
+
 	if err != nil {
 		// Record failure in circuit breaker
 		te.recordCircuitBreakerFailure(integration)
 		span.RecordError(err)
-		
+
 		return &ExecutionResult{
 			Success:   false,
 			Error:     err.Error(),
@@ -204,7 +204,7 @@ func (te *ToolExecutor) executeWithRetries(ctx context.Context, integration *Too
 	for attempt := 1; attempt <= maxAttempts; attempt++ {
 		// Create timeout context
 		timeoutCtx, cancel := context.WithTimeout(ctx, execCtx.Timeout)
-		
+
 		// Execute tool
 		result, err := te.executeSingle(timeoutCtx, integration, input, execCtx, attempt)
 		cancel()
@@ -214,7 +214,7 @@ func (te *ToolExecutor) executeWithRetries(ctx context.Context, integration *Too
 		}
 
 		lastErr = err
-		
+
 		// Don't retry on certain errors
 		if !te.shouldRetry(err, attempt, maxAttempts) {
 			break
@@ -276,7 +276,7 @@ func (te *ToolExecutor) applyRateLimit(integration *ToolIntegration) error {
 
 	toolID := integration.Tool.ID()
 	rateLimiter, exists := te.rateLimiters[toolID]
-	
+
 	if !exists {
 		rateLimiter = NewRateLimiter(integration.Config.RateLimit)
 		te.rateLimiters[toolID] = rateLimiter
@@ -295,7 +295,7 @@ func (te *ToolExecutor) checkCircuitBreaker(integration *ToolIntegration) error 
 
 	toolID := integration.Tool.ID()
 	circuitBreaker, exists := te.circuitBreakers[toolID]
-	
+
 	if !exists {
 		circuitBreaker = NewCircuitBreaker(integration.Config.CircuitBreaker)
 		te.circuitBreakers[toolID] = circuitBreaker
@@ -387,7 +387,7 @@ func (te *ToolExecutor) calculateRetryDelay(integration *ToolIntegration, attemp
 
 	// Exponential backoff
 	delay := baseDelay * time.Duration(1<<uint(attempt-1))
-	
+
 	// Cap at 30 seconds
 	if delay > 30*time.Second {
 		delay = 30 * time.Second
@@ -562,7 +562,7 @@ func (ec *ExecutionCache) cleanup() {
 	for range ticker.C {
 		ec.mutex.Lock()
 		now := time.Now()
-		
+
 		for key, entry := range ec.cache {
 			if now.After(entry.ExpiresAt) {
 				delete(ec.cache, key)

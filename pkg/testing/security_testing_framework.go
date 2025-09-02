@@ -24,7 +24,7 @@ type SecurityTestingFramework struct {
 
 	// Results management
 	testResults  map[string]*TestResult
-	testSessions map[string]*TestSession
+	testSessions map[string]*SecurityTestSession
 
 	// Synchronization
 	mu sync.RWMutex
@@ -34,8 +34,8 @@ type SecurityTestingFramework struct {
 
 // Note: TestResult is defined in framework.go
 
-// TestSession represents a testing session
-type TestSession struct {
+// SecurityTestSession represents a security testing session
+type SecurityTestSession struct {
 	ID        string     `json:"id"`
 	Name      string     `json:"name"`
 	StartTime time.Time  `json:"start_time"`
@@ -139,7 +139,7 @@ func NewSecurityTestingFramework(config *SecurityTestConfig, logger Logger) *Sec
 		config:       config,
 		logger:       logger,
 		testResults:  make(map[string]*TestResult),
-		testSessions: make(map[string]*TestSession),
+		testSessions: make(map[string]*SecurityTestSession),
 	}
 
 	// Initialize test components with default configurations
@@ -161,8 +161,8 @@ func NewSecurityTestingFramework(config *SecurityTestConfig, logger Logger) *Sec
 	return framework
 }
 
-// StartTestSession starts a new testing session
-func (stf *SecurityTestingFramework) StartTestSession(name, targetURL string, testSuites []string) (*TestSession, error) {
+// StartSecurityTestSession starts a new testing session
+func (stf *SecurityTestingFramework) StartSecurityTestSession(name, targetURL string, testSuites []string) (*SecurityTestSession, error) {
 	// Note: SecurityTestConfig doesn't have Enabled field, so we check if any testing is enabled
 	if !stf.config.EnableVulnerabilityScanning && !stf.config.EnablePenetrationTesting && !stf.config.EnableComplianceChecking {
 		return nil, fmt.Errorf("all security testing is disabled")
@@ -170,7 +170,7 @@ func (stf *SecurityTestingFramework) StartTestSession(name, targetURL string, te
 
 	sessionID := fmt.Sprintf("session_%d", time.Now().UnixNano())
 
-	session := &TestSession{
+	session := &SecurityTestSession{
 		ID:          sessionID,
 		Name:        name,
 		StartTime:   time.Now(),
@@ -188,13 +188,13 @@ func (stf *SecurityTestingFramework) StartTestSession(name, targetURL string, te
 	stf.logger.Info("Started security test session", "session_id", sessionID, "target", targetURL)
 
 	// Start test orchestration
-	go stf.runTestSession(session)
+	go stf.runSecurityTestSession(session)
 
 	return session, nil
 }
 
-// runTestSession executes a test session
-func (stf *SecurityTestingFramework) runTestSession(session *TestSession) {
+// runSecurityTestSession executes a test session
+func (stf *SecurityTestingFramework) runSecurityTestSession(session *SecurityTestSession) {
 	defer func() {
 		endTime := time.Now()
 		session.EndTime = &endTime
@@ -251,7 +251,7 @@ func (stf *SecurityTestingFramework) runTestSession(session *TestSession) {
 }
 
 // addTestResults adds test results to a session
-func (stf *SecurityTestingFramework) addTestResults(session *TestSession, results []*TestResult) {
+func (stf *SecurityTestingFramework) addTestResults(session *SecurityTestSession, results []*TestResult) {
 	stf.mu.Lock()
 	defer stf.mu.Unlock()
 
@@ -323,7 +323,7 @@ func (stf *SecurityTestingFramework) runFuzzTests(ctx context.Context, targetURL
 }
 
 // generateReports generates test reports
-func (stf *SecurityTestingFramework) generateReports(session *TestSession) {
+func (stf *SecurityTestingFramework) generateReports(session *SecurityTestSession) {
 	// Generate JSON report
 	jsonReport := stf.generateJSONReport(session)
 	session.Reports = append(session.Reports, jsonReport)
@@ -338,7 +338,7 @@ func (stf *SecurityTestingFramework) generateReports(session *TestSession) {
 }
 
 // generateJSONReport generates a JSON report
-func (stf *SecurityTestingFramework) generateJSONReport(session *TestSession) *TestReport {
+func (stf *SecurityTestingFramework) generateJSONReport(session *SecurityTestSession) *TestReport {
 	content, _ := json.MarshalIndent(session, "", "  ")
 
 	return &TestReport{
@@ -353,7 +353,7 @@ func (stf *SecurityTestingFramework) generateJSONReport(session *TestSession) *T
 }
 
 // generateHTMLReport generates an HTML report
-func (stf *SecurityTestingFramework) generateHTMLReport(session *TestSession) *TestReport {
+func (stf *SecurityTestingFramework) generateHTMLReport(session *SecurityTestSession) *TestReport {
 	// This would generate a comprehensive HTML report
 	// For now, we'll create a basic HTML structure
 	content := fmt.Sprintf(`
@@ -427,7 +427,7 @@ func (stf *SecurityTestingFramework) generateHTMLReport(session *TestSession) *T
 }
 
 // generateCSVReport generates a CSV report
-func (stf *SecurityTestingFramework) generateCSVReport(session *TestSession) *TestReport {
+func (stf *SecurityTestingFramework) generateCSVReport(session *SecurityTestSession) *TestReport {
 	content := "Test ID,Test Type,Test Name,Status,Severity,Duration,Vulnerabilities,Findings\n"
 
 	for _, result := range session.TestResults {
@@ -455,8 +455,8 @@ func (stf *SecurityTestingFramework) generateCSVReport(session *TestSession) *Te
 	}
 }
 
-// GetTestSession retrieves a test session
-func (stf *SecurityTestingFramework) GetTestSession(sessionID string) (*TestSession, error) {
+// GetSecurityTestSession retrieves a test session
+func (stf *SecurityTestingFramework) GetSecurityTestSession(sessionID string) (*SecurityTestSession, error) {
 	stf.mu.RLock()
 	defer stf.mu.RUnlock()
 
@@ -481,12 +481,12 @@ func (stf *SecurityTestingFramework) GetTestResult(resultID string) (*TestResult
 	return result, nil
 }
 
-// ListTestSessions lists all test sessions
-func (stf *SecurityTestingFramework) ListTestSessions() []*TestSession {
+// ListSecurityTestSessions lists all test sessions
+func (stf *SecurityTestingFramework) ListSecurityTestSessions() []*SecurityTestSession {
 	stf.mu.RLock()
 	defer stf.mu.RUnlock()
 
-	sessions := make([]*TestSession, 0, len(stf.testSessions))
+	sessions := make([]*SecurityTestSession, 0, len(stf.testSessions))
 	for _, session := range stf.testSessions {
 		sessions = append(sessions, session)
 	}

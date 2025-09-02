@@ -12,21 +12,21 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 
-	"github.com/google/uuid"
 	"github.com/dimajoyti/hackai/pkg/logger"
+	"github.com/google/uuid"
 )
 
 var semanticTracer = otel.Tracer("hackai/llm/memory/semantic")
 
 // InMemorySemanticMemory implements SemanticMemory using in-memory storage
 type InMemorySemanticMemory struct {
-	facts         map[string]Fact
-	subjectIndex  map[string][]string // subject -> fact IDs
+	facts          map[string]Fact
+	subjectIndex   map[string][]string // subject -> fact IDs
 	predicateIndex map[string][]string // predicate -> fact IDs
-	objectIndex   map[string][]string // object -> fact IDs
-	mutex         sync.RWMutex
-	maxSize       int
-	logger        *logger.Logger
+	objectIndex    map[string][]string // object -> fact IDs
+	mutex          sync.RWMutex
+	maxSize        int
+	logger         *logger.Logger
 }
 
 // NewInMemorySemanticMemory creates a new in-memory semantic memory
@@ -93,8 +93,8 @@ func (m *InMemorySemanticMemory) StoreFact(ctx context.Context, fact Fact) error
 		attribute.Bool("success", true),
 	)
 
-	m.logger.Debug("Fact stored", 
-		"fact_id", fact.ID, 
+	m.logger.Debug("Fact stored",
+		"fact_id", fact.ID,
 		"subject", fact.Subject,
 		"predicate", fact.Predicate,
 		"object", fact.Object,
@@ -152,7 +152,7 @@ func (m *InMemorySemanticMemory) RetrieveFacts(ctx context.Context, query string
 		attribute.Bool("success", true),
 	)
 
-	m.logger.Debug("Facts retrieved", 
+	m.logger.Debug("Facts retrieved",
 		"query", query,
 		"results_count", len(candidates),
 	)
@@ -429,9 +429,9 @@ func (m *InMemorySemanticMemory) removeFromIndexes(factID string, fact Fact) {
 func (m *InMemorySemanticMemory) parseQuery(query string) map[string]string {
 	// Simple parsing - in production, this would be more sophisticated
 	parts := make(map[string]string)
-	
+
 	query = strings.ToLower(strings.TrimSpace(query))
-	
+
 	// Look for patterns like "X is Y" or "X has Y"
 	if strings.Contains(query, " is ") {
 		splitParts := strings.Split(query, " is ")
@@ -448,20 +448,20 @@ func (m *InMemorySemanticMemory) parseQuery(query string) map[string]string {
 			parts["object"] = strings.TrimSpace(splitParts[1])
 		}
 	}
-	
+
 	return parts
 }
 
 // getFactsByQuery gets facts matching query parts
 func (m *InMemorySemanticMemory) getFactsByQuery(queryParts map[string]string) []string {
 	var candidateIDs []string
-	
+
 	if subject, exists := queryParts["subject"]; exists {
 		if ids, found := m.subjectIndex[subject]; found {
 			candidateIDs = append(candidateIDs, ids...)
 		}
 	}
-	
+
 	if predicate, exists := queryParts["predicate"]; exists {
 		if ids, found := m.predicateIndex[predicate]; found {
 			if len(candidateIDs) == 0 {
@@ -472,7 +472,7 @@ func (m *InMemorySemanticMemory) getFactsByQuery(queryParts map[string]string) [
 			}
 		}
 	}
-	
+
 	if object, exists := queryParts["object"]; exists {
 		if ids, found := m.objectIndex[object]; found {
 			if len(candidateIDs) == 0 {
@@ -483,7 +483,7 @@ func (m *InMemorySemanticMemory) getFactsByQuery(queryParts map[string]string) [
 			}
 		}
 	}
-	
+
 	return candidateIDs
 }
 

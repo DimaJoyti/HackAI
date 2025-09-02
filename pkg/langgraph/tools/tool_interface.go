@@ -10,13 +10,13 @@ import (
 type Tool interface {
 	// ID returns the unique identifier for the tool
 	ID() string
-	
+
 	// Name returns the human-readable name of the tool
 	Name() string
-	
+
 	// Description returns a description of what the tool does
 	Description() string
-	
+
 	// Execute executes the tool with the given input
 	Execute(ctx context.Context, input map[string]interface{}) (interface{}, error)
 }
@@ -43,12 +43,12 @@ type MetricsTool interface {
 
 // ToolMetrics holds metrics for tool execution
 type ToolMetrics struct {
-	ExecutionCount   int64         `json:"execution_count"`
-	SuccessCount     int64         `json:"success_count"`
-	ErrorCount       int64         `json:"error_count"`
-	AverageLatency   time.Duration `json:"average_latency"`
-	LastExecuted     time.Time     `json:"last_executed"`
-	TotalLatency     time.Duration `json:"total_latency"`
+	ExecutionCount int64         `json:"execution_count"`
+	SuccessCount   int64         `json:"success_count"`
+	ErrorCount     int64         `json:"error_count"`
+	AverageLatency time.Duration `json:"average_latency"`
+	LastExecuted   time.Time     `json:"last_executed"`
+	TotalLatency   time.Duration `json:"total_latency"`
 }
 
 // ToolInput represents input to a tool
@@ -154,25 +154,25 @@ type ToolOutput struct {
 type ToolCategory string
 
 const (
-	CategoryAnalysis     ToolCategory = "analysis"
-	CategorySecurity     ToolCategory = "security"
-	CategoryData         ToolCategory = "data"
+	CategoryAnalysis      ToolCategory = "analysis"
+	CategorySecurity      ToolCategory = "security"
+	CategoryData          ToolCategory = "data"
 	CategoryCommunication ToolCategory = "communication"
-	CategoryUtility      ToolCategory = "utility"
-	CategoryIntegration  ToolCategory = "integration"
-	CategoryReporting    ToolCategory = "reporting"
+	CategoryUtility       ToolCategory = "utility"
+	CategoryIntegration   ToolCategory = "integration"
+	CategoryReporting     ToolCategory = "reporting"
 )
 
 // ToolCapability represents capabilities that tools can have
 type ToolCapability string
 
 const (
-	CapabilityAsync      ToolCapability = "async"
-	CapabilityBatch      ToolCapability = "batch"
-	CapabilityStreaming  ToolCapability = "streaming"
-	CapabilityRetryable  ToolCapability = "retryable"
-	CapabilityCacheable  ToolCapability = "cacheable"
-	CapabilityStateful   ToolCapability = "stateful"
+	CapabilityAsync     ToolCapability = "async"
+	CapabilityBatch     ToolCapability = "batch"
+	CapabilityStreaming ToolCapability = "streaming"
+	CapabilityRetryable ToolCapability = "retryable"
+	CapabilityCacheable ToolCapability = "cacheable"
+	CapabilityStateful  ToolCapability = "stateful"
 )
 
 // ToolInfo provides metadata about a tool
@@ -355,15 +355,15 @@ func NewToolError(toolID, code, message string, retryable bool, cause error) *To
 
 // Common error codes
 const (
-	ErrorCodeInvalidInput    = "INVALID_INPUT"
-	ErrorCodeTimeout         = "TIMEOUT"
-	ErrorCodeNetworkError    = "NETWORK_ERROR"
-	ErrorCodeAuthError       = "AUTH_ERROR"
-	ErrorCodeRateLimit       = "RATE_LIMIT"
-	ErrorCodeInternalError   = "INTERNAL_ERROR"
-	ErrorCodeNotFound        = "NOT_FOUND"
+	ErrorCodeInvalidInput     = "INVALID_INPUT"
+	ErrorCodeTimeout          = "TIMEOUT"
+	ErrorCodeNetworkError     = "NETWORK_ERROR"
+	ErrorCodeAuthError        = "AUTH_ERROR"
+	ErrorCodeRateLimit        = "RATE_LIMIT"
+	ErrorCodeInternalError    = "INTERNAL_ERROR"
+	ErrorCodeNotFound         = "NOT_FOUND"
 	ErrorCodePermissionDenied = "PERMISSION_DENIED"
-	ErrorCodeConfigError     = "CONFIG_ERROR"
+	ErrorCodeConfigError      = "CONFIG_ERROR"
 )
 
 // IsRetryableError checks if an error is retryable

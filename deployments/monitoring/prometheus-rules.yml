@@ -1,0 +1,262 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: hackai-observability-rules
+  namespace: monitoring
+  labels:
+    app: hackai
+    component: observability
+spec:
+  groups:
+  - name: hackai.performance
+    interval: 30s
+    rules:
+    - alert: HighErrorRate
+      expr: |
+        (
+          rate(http_requests_total{status=~"5.."}[5m]) /
+          rate(http_requests_total[5m])
+        ) > 0.05
+      for: 5m
+      labels:
+        severity: critical
+        component: api
+      annotations:
+        summary: "High error rate detected"
+        description: "Error rate is {{ $value | humanizePercentage }} for {{ $labels.service }}"
+        runbook_url: "https://docs.hackai.dev/runbooks/high-error-rate"
+
+    - alert: HighResponseTime
+      expr: |
+        histogram_quantile(0.95, 
+          rate(http_request_duration_seconds_bucket[5m])
+        ) > 5
+      for: 3m
+      labels:
+        severity: warning
+        component: api
+      annotations:
+        summary: "High response time detected"
+        description: "95th percentile response time is {{ $value }}s for {{ $labels.service }}"
+        runbook_url: "https://docs.hackai.dev/runbooks/high-response-time"
+
+    - alert: HighMemoryUsage
+      expr: |
+        (
+          process_resident_memory_bytes / 
+          node_memory_MemTotal_bytes
+        ) > 0.85
+      for: 2m
+      labels:
+        severity: critical
+        component: system
+      annotations:
+        summary: "High memory usage detected"
+        description: "Memory usage is {{ $value | humanizePercentage }} on {{ $labels.instance }}"
+        runbook_url: "https://docs.hackai.dev/runbooks/high-memory-usage"
+
+    - alert: HighCPUUsage
+      expr: |
+        (
+          100 - (avg by (instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100)
+        ) > 80
+      for: 5m
+      labels:
+        severity: warning
+        component: system
+      annotations:
+        summary: "High CPU usage detected"
+        description: "CPU usage is {{ $value }}% on {{ $labels.instance }}"
+        runbook_url: "https://docs.hackai.dev/runbooks/high-cpu-usage"
+
+  - name: hackai.availability
+    interval: 30s
+    rules:
+    - alert: ServiceDown
+      expr: up == 0
+      for: 1m
+      labels:
+        severity: critical
+        component: service
+      annotations:
+        summary: "Service is down"
+        description: "{{ $labels.job }} service is down on {{ $labels.instance }}"
+        runbook_url: "https://docs.hackai.dev/runbooks/service-down"
+
+    - alert: HealthCheckFailing
+      expr: |
+        probe_success == 0
+      for: 2m
+      labels:
+        severity: critical
+        component: health
+      annotations:
+        summary: "Health check failing"
+        description: "Health check for {{ $labels.instance }} is failing"
+        runbook_url: "https://docs.hackai.dev/runbooks/health-check-failing"
+
+    - alert: DatabaseConnectionFailure
+      expr: |
+        increase(database_connection_errors_total[5m]) > 5
+      for: 1m
+      labels:
+        severity: critical
+        component: database
+      annotations:
+        summary: "Database connection failures"
+        description: "{{ $value }} database connection failures in the last 5 minutes"
+        runbook_url: "https://docs.hackai.dev/runbooks/database-connection-failure"
+
+  - name: hackai.security
+    interval: 30s
+    rules:
+    - alert: SecurityThreatDetected
+      expr: |
+        increase(security_threats_detected_total[5m]) > 0
+      for: 0s
+      labels:
+        severity: critical
+        component: security
+      annotations:
+        summary: "Security threat detected"
+        description: "{{ $value }} security threats detected in the last 5 minutes"
+        runbook_url: "https://docs.hackai.dev/runbooks/security-threat"
+
+    - alert: HighFailedLoginAttempts
+      expr: |
+        increase(auth_failed_attempts_total[5m]) > 10
+      for: 2m
+      labels:
+        severity: warning
+        component: auth
+      annotations:
+        summary: "High failed login attempts"
+        description: "{{ $value }} failed login attempts in the last 5 minutes"
+        runbook_url: "https://docs.hackai.dev/runbooks/failed-login-attempts"
+
+    - alert: UnauthorizedAPIAccess
+      expr: |
+        increase(http_requests_total{status="401"}[5m]) > 20
+      for: 3m
+      labels:
+        severity: warning
+        component: api
+      annotations:
+        summary: "High unauthorized API access attempts"
+        description: "{{ $value }} unauthorized API access attempts in the last 5 minutes"
+        runbook_url: "https://docs.hackai.dev/runbooks/unauthorized-access"
+
+  - name: hackai.business
+    interval: 60s
+    rules:
+    - alert: LowUserEngagement
+      expr: |
+        rate(user_actions_total[1h]) < 10
+      for: 10m
+      labels:
+        severity: warning
+        component: business
+      annotations:
+        summary: "Low user engagement detected"
+        description: "User engagement rate is {{ $value }} actions per second"
+        runbook_url: "https://docs.hackai.dev/runbooks/low-user-engagement"
+
+    - alert: HighEducationDropoffRate
+      expr: |
+        (
+          rate(education_sessions_abandoned_total[1h]) /
+          rate(education_sessions_started_total[1h])
+        ) > 0.3
+      for: 15m
+      labels:
+        severity: warning
+        component: education
+      annotations:
+        summary: "High education session dropoff rate"
+        description: "Education dropoff rate is {{ $value | humanizePercentage }}"
+        runbook_url: "https://docs.hackai.dev/runbooks/education-dropoff"
+
+  - name: hackai.infrastructure
+    interval: 30s
+    rules:
+    - alert: DiskSpaceRunningLow
+      expr: |
+        (
+          node_filesystem_avail_bytes{mountpoint="/"} /
+          node_filesystem_size_bytes{mountpoint="/"}
+        ) < 0.1
+      for: 5m
+      labels:
+        severity: warning
+        component: infrastructure
+      annotations:
+        summary: "Disk space running low"
+        description: "Disk space is {{ $value | humanizePercentage }} full on {{ $labels.instance }}"
+        runbook_url: "https://docs.hackai.dev/runbooks/disk-space-low"
+
+    - alert: NetworkLatencyHigh
+      expr: |
+        histogram_quantile(0.95, 
+          rate(network_latency_seconds_bucket[5m])
+        ) > 0.5
+      for: 5m
+      labels:
+        severity: warning
+        component: network
+      annotations:
+        summary: "High network latency"
+        description: "95th percentile network latency is {{ $value }}s"
+        runbook_url: "https://docs.hackai.dev/runbooks/network-latency"
+
+    - alert: ContainerRestartLoop
+      expr: |
+        increase(kube_pod_container_status_restarts_total[15m]) > 3
+      for: 5m
+      labels:
+        severity: critical
+        component: kubernetes
+      annotations:
+        summary: "Container restart loop detected"
+        description: "Container {{ $labels.container }} in pod {{ $labels.pod }} has restarted {{ $value }} times"
+        runbook_url: "https://docs.hackai.dev/runbooks/container-restart-loop"
+
+  - name: hackai.ai_models
+    interval: 60s
+    rules:
+    - alert: ModelInferenceLatencyHigh
+      expr: |
+        histogram_quantile(0.95, 
+          rate(ai_model_inference_duration_seconds_bucket[5m])
+        ) > 10
+      for: 5m
+      labels:
+        severity: warning
+        component: ai
+      annotations:
+        summary: "High AI model inference latency"
+        description: "95th percentile inference latency is {{ $value }}s for model {{ $labels.model }}"
+        runbook_url: "https://docs.hackai.dev/runbooks/model-latency"
+
+    - alert: ModelAccuracyDegraded
+      expr: |
+        ai_model_accuracy_score < 0.8
+      for: 10m
+      labels:
+        severity: critical
+        component: ai
+      annotations:
+        summary: "AI model accuracy degraded"
+        description: "Model {{ $labels.model }} accuracy is {{ $value }}"
+        runbook_url: "https://docs.hackai.dev/runbooks/model-accuracy"
+
+    - alert: ModelResourceExhaustion
+      expr: |
+        ai_model_gpu_memory_usage_ratio > 0.9
+      for: 3m
+      labels:
+        severity: warning
+        component: ai
+      annotations:
+        summary: "AI model GPU memory exhaustion"
+        description: "GPU memory usage is {{ $value | humanizePercentage }} for model {{ $labels.model }}"
+        runbook_url: "https://docs.hackai.dev/runbooks/gpu-memory-exhaustion"

@@ -1,0 +1,11 @@
+# Ignore all service account JSON files
+*.json
+!example-service-account.json
+
+# Ignore any backup files
+*.bak
+*.backup
+
+# Ignore any temporary files
+*.tmp
+*.temp

@@ -1,0 +1,494 @@
+# HackAI Comprehensive API Documentation & Integration Configuration
+# Enterprise-grade API management and documentation settings
+
+# Global API Settings
+global:
+  api_version: "v1"
+  base_url: "https://api.hackai.dev"
+  documentation_url: "https://docs.hackai.dev"
+  support_email: "api-support@hackai.dev"
+  enable_versioning: true
+  enable_deprecation_warnings: true
+  enable_rate_limiting: true
+  enable_analytics: true
+  enable_caching: true
+  enable_compression: true
+  enable_cors: true
+
+# Server Configuration
+server:
+  host: "0.0.0.0"
+  port: "8080"
+  read_timeout: "30s"
+  write_timeout: "30s"
+  idle_timeout: "60s"
+  max_header_bytes: 1048576
+  enable_https: true
+  cert_file: "/etc/ssl/certs/api.crt"
+  key_file: "/etc/ssl/private/api.key"
+  enable_http2: true
+  enable_compression: true
+  enable_cors: true
+  cors_origins:
+    - "https://hackai.dev"
+    - "https://app.hackai.dev"
+    - "https://docs.hackai.dev"
+  enable_metrics: true
+  metrics_path: "/metrics"
+  enable_health_check: true
+  health_check_path: "/health"
+
+# Documentation Configuration
+documentation:
+  enable_generation: true
+  output_format:
+    - "html"
+    - "markdown"
+    - "pdf"
+    - "swagger-ui"
+    - "redoc"
+  output_directory: "./docs/api"
+  include_examples: true
+  include_schemas: true
+  include_authentication: true
+  include_error_codes: true
+  include_rate_limit: true
+  include_versioning: true
+  custom_templates:
+    - "./templates/api-docs.html"
+    - "./templates/api-docs.md"
+  branding:
+    logo: "https://hackai.dev/logo.png"
+    favicon_url: "https://hackai.dev/favicon.ico"
+    primary_color: "#2563eb"
+    secondary_color: "#64748b"
+    font_family: "Inter, sans-serif"
+    custom_css: "./assets/custom.css"
+    custom_js: "./assets/custom.js"
+
+# OpenAPI Configuration
+openapi:
+  version: "3.0.3"
+  output_directory: "./docs/openapi"
+  output_formats:
+    - "json"
+    - "yaml"
+  include_examples: true
+  include_schemas: true
+  include_servers: true
+  include_security: true
+  include_tags: true
+  include_external_docs: true
+  validate_spec: true
+  pretty_print: true
+  sort_paths: true
+  sort_schemas: true
+  custom_extensions:
+    x-logo:
+      url: "https://hackai.dev/logo.png"
+      altText: "HackAI Logo"
+    x-api-id: "hackai-api"
+    x-audience: "developers"
+  template_overrides:
+    info_description: "./templates/api-description.md"
+    security_schemes: "./templates/security-schemes.yaml"
+
+# Client Generation Configuration
+client_generation:
+  output_directory: "./clients"
+  supported_languages:
+    - "go"
+    - "javascript"
+    - "typescript"
+    - "python"
+    - "java"
+    - "csharp"
+    - "php"
+    - "ruby"
+    - "swift"
+    - "kotlin"
+  template_directory: "./templates/clients"
+  package_name_template: "hackai-{{.language}}-client"
+  version_template: "{{.api_version}}"
+  include_examples: true
+  include_tests: true
+  include_documentation: true
+  generate_async: true
+  custom_templates:
+    go: "./templates/clients/go"
+    javascript: "./templates/clients/js"
+    python: "./templates/clients/python"
+  language_configs:
+    go:
+      package_manager: "go mod"
+      file_extension: ".go"
+      naming_convention: "camelCase"
+      dependencies:
+        - "github.com/go-resty/resty/v2"
+        - "github.com/google/uuid"
+      build_command: "go build"
+      test_command: "go test -v ./..."
+      publish_command: "go mod tidy"
+    javascript:
+      package_manager: "npm"
+      file_extension: ".js"
+      naming_convention: "camelCase"
+      dependencies:
+        - "axios"
+        - "uuid"
+      dev_dependencies:
+        - "jest"
+        - "@types/jest"
+      build_command: "npm run build"
+      test_command: "npm test"
+      publish_command: "npm publish"
+    typescript:
+      package_manager: "npm"
+      file_extension: ".ts"
+      naming_convention: "camelCase"
+      dependencies:
+        - "axios"
+        - "uuid"
+      dev_dependencies:
+        - "typescript"
+        - "jest"
+        - "@types/jest"
+        - "@types/node"
+      build_command: "npm run build"
+      test_command: "npm test"
+      publish_command: "npm publish"
+    python:
+      package_manager: "pip"
+      file_extension: ".py"
+      naming_convention: "snake_case"
+      dependencies:
+        - "requests>=2.28.0"
+        - "typing-extensions>=4.0.0"
+        - "pydantic>=1.10.0"
+      dev_dependencies:
+        - "pytest>=7.0.0"
+        - "pytest-cov>=4.0.0"
+        - "black>=22.0.0"
+        - "flake8>=5.0.0"
+      build_command: "python setup.py build"
+      test_command: "python -m pytest"
+      publish_command: "python setup.py sdist bdist_wheel && twine upload dist/*"
+
+# Integration Configuration
+integration:
+  enable_webhooks: true
+  enable_callbacks: true
+  enable_sdk_generation: true
+  webhook_config:
+    max_retries: 3
+    retry_delay: "5s"
+    timeout: "30s"
+    signature_header: "X-HackAI-Signature"
+    timestamp_header: "X-HackAI-Timestamp"
+    verify_ssl: true
+  callback_config:
+    timeout: "30s"
+    max_redirects: 3
+    verify_ssl: true
+  sdk_config:
+    auto_generate: true
+    update_frequency: "daily"
+    include_examples: true
+    include_tests: true
+  third_party_integrations:
+    github:
+      enabled: true
+      webhook_url: "https://api.github.com/repos/hackai/api/hooks"
+      secret: "${GITHUB_WEBHOOK_SECRET}"
+    slack:
+      enabled: true
+      webhook_url: "${SLACK_WEBHOOK_URL}"
+      channel: "#api-notifications"
+    discord:
+      enabled: false
+      webhook_url: "${DISCORD_WEBHOOK_URL}"
+
+# Versioning Configuration
+versioning:
+  strategy: "header" # header, path, query
+  header_name: "Accept"
+  header_format: "application/vnd.hackai.{{.version}}+json"
+  path_prefix: "/api"
+  query_parameter: "version"
+  default_version: "v1"
+  supported_versions:
+    - "v1"
+    - "v2"
+  deprecation_policy:
+    warning_period: "6 months"
+    sunset_period: "12 months"
+    notification_channels:
+      - "email"
+      - "api_response_headers"
+      - "documentation"
+
+# Security Configuration
+security:
+  authentication:
+    jwt:
+      enabled: true
+      secret_key: "${JWT_SECRET_KEY}"
+      expiration: "24h"
+      refresh_enabled: true
+      refresh_expiration: "7d"
+      algorithm: "HS256"
+    api_key:
+      enabled: true
+      header_name: "X-API-Key"
+      query_parameter: "api_key"
+      prefix: "hackai_"
+    oauth2:
+      enabled: true
+      authorization_url: "https://auth.hackai.dev/oauth/authorize"
+      token_url: "https://auth.hackai.dev/oauth/token"
+      scopes:
+        read: "Read access to API resources"
+        write: "Write access to API resources"
+        admin: "Administrative access to API resources"
+  authorization:
+    rbac_enabled: true
+    default_role: "user"
+    roles:
+      - name: "user"
+        permissions: ["read"]
+      - name: "developer"
+        permissions: ["read", "write"]
+      - name: "admin"
+        permissions: ["read", "write", "admin"]
+  cors:
+    allowed_origins:
+      - "https://hackai.dev"
+      - "https://app.hackai.dev"
+      - "https://docs.hackai.dev"
+    allowed_methods:
+      - "GET"
+      - "POST"
+      - "PUT"
+      - "DELETE"
+      - "PATCH"
+      - "OPTIONS"
+    allowed_headers:
+      - "Authorization"
+      - "Content-Type"
+      - "X-API-Key"
+      - "X-Request-ID"
+    exposed_headers:
+      - "X-Request-ID"
+      - "X-Rate-Limit-Remaining"
+      - "X-Rate-Limit-Reset"
+    allow_credentials: true
+    max_age: "86400"
+
+# Rate Limiting Configuration
+rate_limit:
+  enabled: true
+  strategy: "sliding_window" # fixed_window, sliding_window, token_bucket
+  global_limit:
+    requests: 1000
+    window: "1h"
+  per_user_limit:
+    requests: 100
+    window: "1h"
+  per_ip_limit:
+    requests: 50
+    window: "1h"
+  endpoint_limits:
+    "/api/v1/auth/login":
+      requests: 5
+      window: "15m"
+    "/api/v1/security/scan":
+      requests: 10
+      window: "1h"
+  headers:
+    limit: "X-Rate-Limit-Limit"
+    remaining: "X-Rate-Limit-Remaining"
+    reset: "X-Rate-Limit-Reset"
+    retry_after: "Retry-After"
+  storage: "redis"
+  redis_url: "${REDIS_URL}"
+
+# Analytics Configuration
+analytics:
+  enabled: true
+  providers:
+    - "prometheus"
+    - "datadog"
+    - "newrelic"
+  metrics:
+    - "request_count"
+    - "request_duration"
+    - "response_size"
+    - "error_rate"
+    - "endpoint_usage"
+    - "user_activity"
+  custom_metrics:
+    - name: "api_business_metric"
+      type: "counter"
+      description: "Business-specific API metric"
+  retention_period: "90d"
+  sampling_rate: 1.0
+  export_interval: "30s"
+
+# Testing Configuration
+testing:
+  enable_api_testing: true
+  test_environments:
+    - "development"
+    - "staging"
+    - "production"
+  test_types:
+    - "unit"
+    - "integration"
+    - "contract"
+    - "load"
+    - "security"
+  contract_testing:
+    provider: "pact"
+    broker_url: "${PACT_BROKER_URL}"
+    publish_results: true
+  load_testing:
+    tool: "k6"
+    scenarios:
+      - name: "baseline"
+        virtual_users: 10
+        duration: "5m"
+      - name: "stress"
+        virtual_users: 100
+        duration: "10m"
+  security_testing:
+    tools:
+      - "owasp-zap"
+      - "burp-suite"
+    scan_frequency: "weekly"
+
+# Mocking Configuration
+mocking:
+  enabled: true
+  mock_server_port: "8081"
+  response_delay: "100ms"
+  error_rate: 0.05
+  dynamic_responses: true
+  record_requests: true
+  replay_responses: true
+  mock_data_directory: "./mocks"
+
+# Validation Configuration
+validation:
+  request_validation: true
+  response_validation: true
+  schema_validation: true
+  strict_mode: false
+  custom_validators:
+    - "email_validator"
+    - "phone_validator"
+    - "url_validator"
+  error_format: "json_api"
+
+# Transformation Configuration
+transformation:
+  enabled: true
+  request_transformations:
+    - name: "normalize_headers"
+      type: "header"
+      rules:
+        - "lowercase_keys"
+        - "remove_empty_values"
+    - name: "validate_json"
+      type: "body"
+      rules:
+        - "parse_json"
+        - "validate_schema"
+  response_transformations:
+    - name: "add_metadata"
+      type: "body"
+      rules:
+        - "add_timestamp"
+        - "add_request_id"
+    - name: "format_errors"
+      type: "error"
+      rules:
+        - "standardize_format"
+        - "add_error_codes"
+
+# Caching Configuration
+caching:
+  enabled: true
+  provider: "redis"
+  redis_url: "${REDIS_URL}"
+  default_ttl: "1h"
+  cache_strategies:
+    - endpoint: "/api/v1/users/profile"
+      ttl: "15m"
+      cache_key: "user_profile_{{.user_id}}"
+    - endpoint: "/api/v1/security/threats"
+      ttl: "5m"
+      cache_key: "threats_{{.query_hash}}"
+  cache_headers:
+    - "Cache-Control"
+    - "ETag"
+    - "Last-Modified"
+  invalidation:
+    enabled: true
+    strategies:
+      - "time_based"
+      - "event_based"
+      - "manual"
+
+# Monitoring Configuration
+monitoring:
+  enabled: true
+  health_checks:
+    - name: "database"
+      endpoint: "/health/database"
+      interval: "30s"
+      timeout: "5s"
+    - name: "redis"
+      endpoint: "/health/redis"
+      interval: "30s"
+      timeout: "5s"
+    - name: "external_apis"
+      endpoint: "/health/external"
+      interval: "60s"
+      timeout: "10s"
+  alerts:
+    - name: "high_error_rate"
+      condition: "error_rate > 5%"
+      duration: "5m"
+      channels: ["slack", "email"]
+    - name: "high_latency"
+      condition: "p95_latency > 2s"
+      duration: "5m"
+      channels: ["slack"]
+  dashboards:
+    - name: "api_overview"
+      panels:
+        - "request_rate"
+        - "error_rate"
+        - "latency"
+        - "throughput"
+    - name: "security_metrics"
+      panels:
+        - "authentication_failures"
+        - "rate_limit_hits"
+        - "suspicious_activity"
+
+# Logging Configuration
+logging:
+  level: "info"
+  format: "json"
+  output: "stdout"
+  include_request_body: false
+  include_response_body: false
+  mask_sensitive_data: true
+  sensitive_fields:
+    - "password"
+    - "token"
+    - "api_key"
+    - "secret"
+  structured_logging: true
+  correlation_id_header: "X-Request-ID"

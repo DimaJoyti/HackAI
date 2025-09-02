@@ -242,7 +242,7 @@ func (aso *AdaptiveSecurityOrchestrator) calculateFinalPerformanceMetrics(orches
 
 	return &OrchestrationPerformanceMetrics{
 		ExecutionTime: totalDuration,
-		ResourceUsage: &ResourceUsage{
+		ResourceUsage: &OrchestrationResourceUsage{
 			CPU:      0.6,
 			Memory:   1024,
 			Storage:  512,

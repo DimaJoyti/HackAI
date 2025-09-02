@@ -38,14 +38,14 @@ type ThreatIndicator struct {
 
 // ThreatReport represents a comprehensive threat analysis
 type ThreatReport struct {
-	ID          uuid.UUID         `json:"id"`
-	Target      string            `json:"target"`
-	Indicators  []ThreatIndicator `json:"indicators"`
-	RiskScore   float64           `json:"risk_score"`   // 0.0 to 10.0
-	Confidence  float64           `json:"confidence"`   // 0.0 to 1.0
-	Summary     string            `json:"summary"`
-	Recommendations []string      `json:"recommendations"`
-	CreatedAt   time.Time         `json:"created_at"`
+	ID              uuid.UUID         `json:"id"`
+	Target          string            `json:"target"`
+	Indicators      []ThreatIndicator `json:"indicators"`
+	RiskScore       float64           `json:"risk_score"` // 0.0 to 10.0
+	Confidence      float64           `json:"confidence"` // 0.0 to 1.0
+	Summary         string            `json:"summary"`
+	Recommendations []string          `json:"recommendations"`
+	CreatedAt       time.Time         `json:"created_at"`
 }
 
 // NewThreatIntelligenceUseCase creates a new threat intelligence use case
@@ -69,7 +69,7 @@ func (t *ThreatIntelligenceUseCase) AnalyzeThreat(ctx context.Context, target st
 
 	// Determine target type and analyze accordingly
 	targetType := t.determineTargetType(target)
-	
+
 	var indicators []ThreatIndicator
 	var err error
 
@@ -266,10 +266,10 @@ func (t *ThreatIntelligenceUseCase) analyzeGeolocation(ip string) *ThreatIndicat
 
 	// Check for high-risk countries (simplified example)
 	highRiskCountries := []string{"CN", "RU", "KP", "IR"}
-	
+
 	// Simulate geolocation lookup
 	country := t.simulateGeolocation(ip)
-	
+
 	for _, riskCountry := range highRiskCountries {
 		if country == riskCountry {
 			return &ThreatIndicator{
@@ -620,7 +620,7 @@ func (t *ThreatIntelligenceUseCase) simulateGeolocation(ip string) string {
 		"10.0.0.1":      "US",
 		"172.16.0.1":    "RU",
 	}
-	
+
 	if country, exists := geoMap[ip]; exists {
 		return country
 	}
@@ -633,7 +633,7 @@ func (t *ThreatIntelligenceUseCase) isSuspiciousIPRange(ip string) bool {
 		"192.168.1.0/24",
 		"10.0.0.0/8",
 	}
-	
+
 	for _, cidr := range suspiciousRanges {
 		if _, ipnet, err := net.ParseCIDR(cidr); err == nil {
 			if ipnet.Contains(net.ParseIP(ip)) {
@@ -668,14 +668,14 @@ func (t *ThreatIntelligenceUseCase) hasSuspiciousCharacterPatterns(domain string
 			digitCount++
 		}
 	}
-	
+
 	return hyphenCount > 3 || digitCount > len(domain)/2
 }
 
 func (t *ThreatIntelligenceUseCase) isPotentialTyposquatting(domain string) bool {
 	// Check against common legitimate domains (simplified)
 	legitimateDomains := []string{"google.com", "facebook.com", "microsoft.com", "apple.com"}
-	
+
 	for _, legitDomain := range legitimateDomains {
 		if t.calculateLevenshteinDistance(domain, legitDomain) <= 2 && domain != legitDomain {
 			return true
@@ -692,24 +692,24 @@ func (t *ThreatIntelligenceUseCase) calculateLevenshteinDistance(s1, s2 string) 
 	if len(s2) == 0 {
 		return len(s1)
 	}
-	
+
 	matrix := make([][]int, len(s1)+1)
 	for i := range matrix {
 		matrix[i] = make([]int, len(s2)+1)
 		matrix[i][0] = i
 	}
-	
+
 	for j := 0; j <= len(s2); j++ {
 		matrix[0][j] = j
 	}
-	
+
 	for i := 1; i <= len(s1); i++ {
 		for j := 1; j <= len(s2); j++ {
 			cost := 0
 			if s1[i-1] != s2[j-1] {
 				cost = 1
 			}
-			
+
 			matrix[i][j] = min(
 				matrix[i-1][j]+1,      // deletion
 				matrix[i][j-1]+1,      // insertion
@@ -717,7 +717,7 @@ func (t *ThreatIntelligenceUseCase) calculateLevenshteinDistance(s1, s2 string) 
 			)
 		}
 	}
-	
+
 	return matrix[len(s1)][len(s2)]
 }
 

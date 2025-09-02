@@ -221,7 +221,7 @@ func (mm *MemoryManager) CompressOldMemories(ctx context.Context, agentMemory *A
 			if !entry.Compressed {
 				// Compress the entry
 				compressedEntry := mm.compressMemoryEntry(entry)
-				
+
 				if err := agentMemory.Update(ctx, compressedEntry); err != nil {
 					mm.logger.Warn("Failed to compress memory entry",
 						"entry_id", entry.ID,
@@ -307,9 +307,9 @@ func (mm *MemoryManager) getEpisodicMemoryConsolidationCandidates(episodicMemory
 	consolidationAge := time.Now().Add(-24 * time.Hour) // Consolidate entries older than 24 hours
 
 	for _, entry := range result.Entries {
-		if entry.Timestamp.Before(consolidationAge) && 
-		   entry.Importance > 0.5 && 
-		   !mm.isAlreadyConsolidated(entry) {
+		if entry.Timestamp.Before(consolidationAge) &&
+			entry.Importance > 0.5 &&
+			!mm.isAlreadyConsolidated(entry) {
 			candidates = append(candidates, entry)
 		}
 	}
@@ -319,28 +319,28 @@ func (mm *MemoryManager) getEpisodicMemoryConsolidationCandidates(episodicMemory
 
 func (mm *MemoryManager) shouldConsolidateToEpisodic(entry *MemoryEntry) bool {
 	// Consolidate if entry is important enough and old enough
-	return entry.Importance > 0.3 && 
-		   time.Since(entry.Timestamp) > time.Hour &&
-		   entry.AccessCount > 1
+	return entry.Importance > 0.3 &&
+		time.Since(entry.Timestamp) > time.Hour &&
+		entry.AccessCount > 1
 }
 
 func (mm *MemoryManager) shouldConsolidateToSemantic(entry *MemoryEntry) bool {
 	// Consolidate if entry represents generalizable knowledge
-	return entry.Importance > 0.5 && 
-		   time.Since(entry.Timestamp) > 24*time.Hour &&
-		   entry.AccessCount > 3
+	return entry.Importance > 0.5 &&
+		time.Since(entry.Timestamp) > 24*time.Hour &&
+		entry.AccessCount > 3
 }
 
 func (mm *MemoryManager) isAlreadyConsolidated(entry *MemoryEntry) bool {
 	if entry.Metadata == nil {
 		return false
 	}
-	
+
 	consolidated, exists := entry.Metadata["consolidated"]
 	if !exists {
 		return false
 	}
-	
+
 	consolidatedBool, ok := consolidated.(bool)
 	return ok && consolidatedBool
 }
@@ -438,7 +438,7 @@ func (mm *MemoryManager) compressContent(content interface{}) interface{} {
 			return contentStr[:100] + "..." + contentStr[len(contentStr)-100:]
 		}
 	}
-	
+
 	return content
 }
 

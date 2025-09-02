@@ -18,21 +18,21 @@ type Chain interface {
 
 // ChainConfig extends the base chain configuration
 type ChainConfig struct {
-	ID              string                 `json:"id"`
-	Name            string                 `json:"name"`
-	Description     string                 `json:"description"`
-	Type            ChainType              `json:"type"`
-	Enabled         bool                   `json:"enabled"`
-	MaxRetries      int                    `json:"max_retries"`
-	Timeout         time.Duration          `json:"timeout"`
-	Temperature     float64                `json:"temperature"`
-	MaxTokens       int                    `json:"max_tokens"`
-	EnableTracing   bool                   `json:"enable_tracing"`
-	EnableMetrics   bool                   `json:"enable_metrics"`
-	SecurityLevel   SecurityLevel          `json:"security_level"`
-	Parameters      map[string]interface{} `json:"parameters"`
-	CreatedAt       time.Time              `json:"created_at"`
-	UpdatedAt       time.Time              `json:"updated_at"`
+	ID            string                 `json:"id"`
+	Name          string                 `json:"name"`
+	Description   string                 `json:"description"`
+	Type          ChainType              `json:"type"`
+	Enabled       bool                   `json:"enabled"`
+	MaxRetries    int                    `json:"max_retries"`
+	Timeout       time.Duration          `json:"timeout"`
+	Temperature   float64                `json:"temperature"`
+	MaxTokens     int                    `json:"max_tokens"`
+	EnableTracing bool                   `json:"enable_tracing"`
+	EnableMetrics bool                   `json:"enable_metrics"`
+	SecurityLevel SecurityLevel          `json:"security_level"`
+	Parameters    map[string]interface{} `json:"parameters"`
+	CreatedAt     time.Time              `json:"created_at"`
+	UpdatedAt     time.Time              `json:"updated_at"`
 }
 
 // ChainMetrics tracks chain execution metrics
@@ -116,18 +116,18 @@ type NodeConfig struct {
 type NodeType string
 
 const (
-	NodeTypeLLM               NodeType = "llm"
-	NodeTypeCondition         NodeType = "condition"
-	NodeTypeTransform         NodeType = "transform"
-	NodeTypeMemory            NodeType = "memory"
-	NodeTypeAction            NodeType = "action"
-	NodeTypeValidator         NodeType = "validator"
-	NodeTypeTool              NodeType = "tool"
-	NodeTypeAgent             NodeType = "agent"
-	NodeTypePromptInjection   NodeType = "prompt_injection"
-	NodeTypeJailbreakTest     NodeType = "jailbreak_test"
-	NodeTypeThreatAnalysis    NodeType = "threat_analysis"
-	NodeTypeSecurityCheck     NodeType = "security_check"
+	NodeTypeLLM             NodeType = "llm"
+	NodeTypeCondition       NodeType = "condition"
+	NodeTypeTransform       NodeType = "transform"
+	NodeTypeMemory          NodeType = "memory"
+	NodeTypeAction          NodeType = "action"
+	NodeTypeValidator       NodeType = "validator"
+	NodeTypeTool            NodeType = "tool"
+	NodeTypeAgent           NodeType = "agent"
+	NodeTypePromptInjection NodeType = "prompt_injection"
+	NodeTypeJailbreakTest   NodeType = "jailbreak_test"
+	NodeTypeThreatAnalysis  NodeType = "threat_analysis"
+	NodeTypeSecurityCheck   NodeType = "security_check"
 )
 
 // EdgeCondition determines which edge to follow based on state
@@ -135,12 +135,12 @@ type EdgeCondition func(state GraphState) string
 
 // GraphMetrics tracks graph execution metrics
 type GraphMetrics struct {
-	TotalExecutions   int64                    `json:"total_executions"`
-	SuccessfulRuns    int64                    `json:"successful_runs"`
-	FailedRuns        int64                    `json:"failed_runs"`
-	AverageLatency    time.Duration            `json:"average_latency"`
-	NodeMetrics       map[string]NodeMetrics   `json:"node_metrics"`
-	LastExecutionTime time.Time                `json:"last_execution_time"`
+	TotalExecutions   int64                  `json:"total_executions"`
+	SuccessfulRuns    int64                  `json:"successful_runs"`
+	FailedRuns        int64                  `json:"failed_runs"`
+	AverageLatency    time.Duration          `json:"average_latency"`
+	NodeMetrics       map[string]NodeMetrics `json:"node_metrics"`
+	LastExecutionTime time.Time              `json:"last_execution_time"`
 }
 
 // NodeMetrics tracks individual node execution metrics
@@ -177,27 +177,27 @@ type AgentInput struct {
 
 // AgentOutput represents agent execution results
 type AgentOutput struct {
-	Response    string                 `json:"response"`
-	Steps       []AgentStep            `json:"steps"`
-	ToolsUsed   []string               `json:"tools_used"`
-	Confidence  float64                `json:"confidence"`
-	Success     bool                   `json:"success"`
-	Metadata    map[string]interface{} `json:"metadata"`
-	Duration    time.Duration          `json:"duration"`
+	Response   string                 `json:"response"`
+	Steps      []AgentStep            `json:"steps"`
+	ToolsUsed  []string               `json:"tools_used"`
+	Confidence float64                `json:"confidence"`
+	Success    bool                   `json:"success"`
+	Metadata   map[string]interface{} `json:"metadata"`
+	Duration   time.Duration          `json:"duration"`
 }
 
 // AgentStep represents a single step in agent execution
 type AgentStep struct {
-	StepID      string                 `json:"step_id"`
-	Action      string                 `json:"action"`
-	Tool        string                 `json:"tool,omitempty"`
-	Input       map[string]interface{} `json:"input"`
-	Output      map[string]interface{} `json:"output"`
-	Reasoning   string                 `json:"reasoning"`
-	Success     bool                   `json:"success"`
-	Error       string                 `json:"error,omitempty"`
-	Duration    time.Duration          `json:"duration"`
-	Timestamp   time.Time              `json:"timestamp"`
+	StepID    string                 `json:"step_id"`
+	Action    string                 `json:"action"`
+	Tool      string                 `json:"tool,omitempty"`
+	Input     map[string]interface{} `json:"input"`
+	Output    map[string]interface{} `json:"output"`
+	Reasoning string                 `json:"reasoning"`
+	Success   bool                   `json:"success"`
+	Error     string                 `json:"error,omitempty"`
+	Duration  time.Duration          `json:"duration"`
+	Timestamp time.Time              `json:"timestamp"`
 }
 
 // DecisionEngine determines which tool to use and how to proceed
@@ -209,12 +209,12 @@ type DecisionEngine interface {
 
 // AgentAction represents a decision made by the agent
 type AgentAction struct {
-	Type        string                 `json:"type"` // "tool_use", "respond", "continue", "stop"
-	ToolName    string                 `json:"tool_name,omitempty"`
-	ToolInput   map[string]interface{} `json:"tool_input,omitempty"`
-	Response    string                 `json:"response,omitempty"`
-	Reasoning   string                 `json:"reasoning"`
-	Confidence  float64                `json:"confidence"`
+	Type       string                 `json:"type"` // "tool_use", "respond", "continue", "stop"
+	ToolName   string                 `json:"tool_name,omitempty"`
+	ToolInput  map[string]interface{} `json:"tool_input,omitempty"`
+	Response   string                 `json:"response,omitempty"`
+	Reasoning  string                 `json:"reasoning"`
+	Confidence float64                `json:"confidence"`
 }
 
 // Recommendation represents a recommendation from the decision engine
@@ -229,13 +229,13 @@ type Recommendation struct {
 
 // AgentMetrics tracks agent execution metrics
 type AgentMetrics struct {
-	TotalExecutions   int64                    `json:"total_executions"`
-	SuccessfulRuns    int64                    `json:"successful_runs"`
-	FailedRuns        int64                    `json:"failed_runs"`
-	AverageSteps      float64                  `json:"average_steps"`
-	AverageLatency    time.Duration            `json:"average_latency"`
-	ToolUsageStats    map[string]int64         `json:"tool_usage_stats"`
-	LastExecutionTime time.Time                `json:"last_execution_time"`
+	TotalExecutions   int64            `json:"total_executions"`
+	SuccessfulRuns    int64            `json:"successful_runs"`
+	FailedRuns        int64            `json:"failed_runs"`
+	AverageSteps      float64          `json:"average_steps"`
+	AverageLatency    time.Duration    `json:"average_latency"`
+	ToolUsageStats    map[string]int64 `json:"tool_usage_stats"`
+	LastExecutionTime time.Time        `json:"last_execution_time"`
 }
 
 // Tool represents an external capability that agents can use
@@ -257,11 +257,11 @@ type ToolOutput map[string]interface{}
 
 // ToolSchema defines the expected input/output format
 type ToolSchema struct {
-	Name         string                        `json:"name"`
-	Description  string                        `json:"description"`
-	InputSchema  map[string]ParameterSchema    `json:"input_schema"`
-	OutputSchema map[string]ParameterSchema    `json:"output_schema"`
-	Examples     []ToolExample                 `json:"examples"`
+	Name         string                     `json:"name"`
+	Description  string                     `json:"description"`
+	InputSchema  map[string]ParameterSchema `json:"input_schema"`
+	OutputSchema map[string]ParameterSchema `json:"output_schema"`
+	Examples     []ToolExample              `json:"examples"`
 }
 
 // ParameterSchema defines parameter requirements
@@ -307,14 +307,14 @@ type SecurityContext struct {
 
 // ExecutionMetrics provides comprehensive execution metrics
 type ExecutionMetrics struct {
-	ExecutionID       string        `json:"execution_id"`
-	Type              string        `json:"type"` // "chain", "graph", "agent", "tool"
-	StartTime         time.Time     `json:"start_time"`
-	EndTime           time.Time     `json:"end_time"`
-	Duration          time.Duration `json:"duration"`
-	Success           bool          `json:"success"`
-	TokensUsed        int64         `json:"tokens_used"`
-	Cost              float64       `json:"cost"`
-	SecurityViolations []string     `json:"security_violations"`
-	Metadata          map[string]interface{} `json:"metadata"`
+	ExecutionID        string                 `json:"execution_id"`
+	Type               string                 `json:"type"` // "chain", "graph", "agent", "tool"
+	StartTime          time.Time              `json:"start_time"`
+	EndTime            time.Time              `json:"end_time"`
+	Duration           time.Duration          `json:"duration"`
+	Success            bool                   `json:"success"`
+	TokensUsed         int64                  `json:"tokens_used"`
+	Cost               float64                `json:"cost"`
+	SecurityViolations []string               `json:"security_violations"`
+	Metadata           map[string]interface{} `json:"metadata"`
 }

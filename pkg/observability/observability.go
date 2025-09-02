@@ -21,11 +21,11 @@ type Provider struct {
 	metrics *MetricsProvider
 	logger  *logger.Logger
 	config  *config.ObservabilityConfig
-	
+
 	// System monitoring
 	startTime     time.Time
 	systemMonitor *SystemMonitor
-	
+
 	// Graceful shutdown
 	shutdownOnce sync.Once
 }
@@ -308,7 +308,7 @@ func (hc *HealthChecker) Check(ctx context.Context, serviceName, serviceVersion 
 func (hc *HealthChecker) CreateHealthHandler(serviceName, serviceVersion string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
-		
+
 		// Start tracing span
 		if hc.provider.tracing != nil {
 			var span trace.Span
@@ -324,7 +324,7 @@ func (hc *HealthChecker) CreateHealthHandler(serviceName, serviceVersion string)
 
 		// Set response headers
 		w.Header().Set("Content-Type", "application/json")
-		
+
 		// Set status code based on health
 		if health.Status == "healthy" {
 			w.WriteHeader(http.StatusOK)

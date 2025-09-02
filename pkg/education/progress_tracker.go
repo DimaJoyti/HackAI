@@ -11,11 +11,11 @@ import (
 
 // ProgressTracker manages user learning progress and analytics
 type ProgressTracker struct {
-	logger        *logger.Logger
-	userProgress  map[string]*UserProgress
-	activities    map[string]*LearningActivity
-	config        *ProgressConfig
-	mu            sync.RWMutex
+	logger       *logger.Logger
+	userProgress map[string]*UserProgress
+	activities   map[string]*LearningActivity
+	config       *ProgressConfig
+	mu           sync.RWMutex
 }
 
 // ProgressConfig configuration for progress tracking
@@ -42,44 +42,44 @@ type UserProgress struct {
 
 // CourseProgress represents progress in a specific course
 type CourseProgress struct {
-	CourseID         string            `json:"course_id"`
-	ModuleProgress   map[string]float64 `json:"module_progress"`
-	CompletionRate   float64           `json:"completion_rate"`
-	TimeSpent        time.Duration     `json:"time_spent"`
-	Score            float64           `json:"score"`
-	Status           string            `json:"status"` // "not_started", "in_progress", "completed"
-	StartedAt        time.Time         `json:"started_at"`
-	CompletedAt      *time.Time        `json:"completed_at,omitempty"`
+	CourseID       string             `json:"course_id"`
+	ModuleProgress map[string]float64 `json:"module_progress"`
+	CompletionRate float64            `json:"completion_rate"`
+	TimeSpent      time.Duration      `json:"time_spent"`
+	Score          float64            `json:"score"`
+	Status         string             `json:"status"` // "not_started", "in_progress", "completed"
+	StartedAt      time.Time          `json:"started_at"`
+	CompletedAt    *time.Time         `json:"completed_at,omitempty"`
 }
 
 // LearningActivity represents a learning activity
 type LearningActivity struct {
-	ID          string                 `json:"id"`
-	UserID      string                 `json:"user_id"`
-	CourseID    string                 `json:"course_id"`
-	ModuleID    string                 `json:"module_id"`
-	ActivityType string                `json:"activity_type"` // "video", "quiz", "lab", "assignment"
-	Duration    time.Duration          `json:"duration"`
-	Score       *float64               `json:"score,omitempty"`
-	Completed   bool                   `json:"completed"`
-	Metadata    map[string]interface{} `json:"metadata"`
-	Timestamp   time.Time              `json:"timestamp"`
+	ID           string                 `json:"id"`
+	UserID       string                 `json:"user_id"`
+	CourseID     string                 `json:"course_id"`
+	ModuleID     string                 `json:"module_id"`
+	ActivityType string                 `json:"activity_type"` // "video", "quiz", "lab", "assignment"
+	Duration     time.Duration          `json:"duration"`
+	Score        *float64               `json:"score,omitempty"`
+	Completed    bool                   `json:"completed"`
+	Metadata     map[string]interface{} `json:"metadata"`
+	Timestamp    time.Time              `json:"timestamp"`
 }
 
 // LearningRecommendation represents a personalized learning recommendation
 type LearningRecommendation struct {
-	ID            string                 `json:"id"`
-	UserID        string                 `json:"user_id"`
-	Type          string                 `json:"type"` // "course", "module", "skill"
-	ContentID     string                 `json:"content_id"`
-	Title         string                 `json:"title"`
-	Description   string                 `json:"description"`
-	Reason        string                 `json:"reason"`
-	Confidence    float64                `json:"confidence"`
-	Priority      int                    `json:"priority"`
-	Metadata      map[string]interface{} `json:"metadata"`
-	GeneratedAt   time.Time              `json:"generated_at"`
-	ExpiresAt     time.Time              `json:"expires_at"`
+	ID          string                 `json:"id"`
+	UserID      string                 `json:"user_id"`
+	Type        string                 `json:"type"` // "course", "module", "skill"
+	ContentID   string                 `json:"content_id"`
+	Title       string                 `json:"title"`
+	Description string                 `json:"description"`
+	Reason      string                 `json:"reason"`
+	Confidence  float64                `json:"confidence"`
+	Priority    int                    `json:"priority"`
+	Metadata    map[string]interface{} `json:"metadata"`
+	GeneratedAt time.Time              `json:"generated_at"`
+	ExpiresAt   time.Time              `json:"expires_at"`
 }
 
 // NewProgressTracker creates a new progress tracker
@@ -125,7 +125,7 @@ func (pt *ProgressTracker) TrackActivity(ctx context.Context, activity *Learning
 		return err
 	}
 
-	pt.logger.Info("Learning activity tracked", 
+	pt.logger.Info("Learning activity tracked",
 		"activity_id", activity.ID,
 		"user_id", activity.UserID,
 		"course_id", activity.CourseID,
@@ -190,8 +190,8 @@ func (pt *ProgressTracker) GetRecommendations(ctx context.Context, userID string
 		}
 	}
 
-	pt.logger.Info("Generated recommendations", 
-		"user_id", userID, 
+	pt.logger.Info("Generated recommendations",
+		"user_id", userID,
 		"count", len(recommendations))
 
 	return recommendations, nil
@@ -236,7 +236,7 @@ func (pt *ProgressTracker) updateUserProgress(activity *LearningActivity) error 
 		courseProgress.ModuleProgress[activity.ModuleID] = 1.0
 		// Recalculate completion rate
 		courseProgress.CompletionRate = pt.calculateCompletionRate(courseProgress)
-		
+
 		if courseProgress.CompletionRate >= 1.0 {
 			courseProgress.Status = "completed"
 			now := time.Now()
@@ -263,4 +263,47 @@ func (pt *ProgressTracker) calculateCompletionRate(courseProgress *CourseProgres
 	}
 
 	return total / float64(len(courseProgress.ModuleProgress))
+}
+
+// EnrollUser enrolls a user in a course
+func (pt *ProgressTracker) EnrollUser(ctx context.Context, userID, courseID string) error {
+	pt.mu.Lock()
+	defer pt.mu.Unlock()
+
+	// Get or create user progress
+	progress, exists := pt.userProgress[userID]
+	if !exists {
+		progress = &UserProgress{
+			UserID:         userID,
+			CourseProgress: make(map[string]*CourseProgress),
+			CreatedAt:      time.Now(),
+			UpdatedAt:      time.Now(),
+		}
+		pt.userProgress[userID] = progress
+	}
+
+	// Check if already enrolled
+	if _, enrolled := progress.CourseProgress[courseID]; enrolled {
+		return nil // Already enrolled
+	}
+
+	// Create course progress entry
+	courseProgress := &CourseProgress{
+		CourseID:       courseID,
+		ModuleProgress: make(map[string]float64),
+		CompletionRate: 0.0,
+		TimeSpent:      0,
+		Score:          0.0,
+		Status:         "not_started",
+		StartedAt:      time.Now(),
+	}
+
+	progress.CourseProgress[courseID] = courseProgress
+	progress.UpdatedAt = time.Now()
+
+	pt.logger.Info("User enrolled in course",
+		"user_id", userID,
+		"course_id", courseID)
+
+	return nil
 }

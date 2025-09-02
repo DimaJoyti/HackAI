@@ -12,11 +12,11 @@ import (
 
 // SnapshotManager manages state snapshots for backup and recovery
 type SnapshotManager struct {
-	store           StateStore
-	snapshots       map[string]*StateSnapshot
-	interval        time.Duration
-	logger          *logger.Logger
-	mutex           sync.RWMutex
+	store              StateStore
+	snapshots          map[string]*StateSnapshot
+	interval           time.Duration
+	logger             *logger.Logger
+	mutex              sync.RWMutex
 	autoSnapshotTicker *time.Ticker
 	autoSnapshotDone   chan bool
 }
@@ -53,14 +53,14 @@ type SnapshotDiff struct {
 
 // SnapshotPolicy defines snapshot retention and creation policies
 type SnapshotPolicy struct {
-	AutoSnapshot     bool          `json:"auto_snapshot"`
-	Interval         time.Duration `json:"interval"`
-	MaxSnapshots     int           `json:"max_snapshots"`
-	RetentionPeriod  time.Duration `json:"retention_period"`
-	CompressAfter    time.Duration `json:"compress_after"`
-	NameTemplate     string        `json:"name_template"`
-	IncludePatterns  []StateKeyPattern `json:"include_patterns"`
-	ExcludePatterns  []StateKeyPattern `json:"exclude_patterns"`
+	AutoSnapshot    bool              `json:"auto_snapshot"`
+	Interval        time.Duration     `json:"interval"`
+	MaxSnapshots    int               `json:"max_snapshots"`
+	RetentionPeriod time.Duration     `json:"retention_period"`
+	CompressAfter   time.Duration     `json:"compress_after"`
+	NameTemplate    string            `json:"name_template"`
+	IncludePatterns []StateKeyPattern `json:"include_patterns"`
+	ExcludePatterns []StateKeyPattern `json:"exclude_patterns"`
 }
 
 // SnapshotStats holds statistics about snapshots

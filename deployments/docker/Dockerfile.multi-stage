@@ -1,0 +1,223 @@
+# Multi-stage Dockerfile for HackAI Services
+# This Dockerfile uses multi-stage builds for optimal image size and security
+
+# Build stage
+FROM golang:1.21-alpine AS builder
+
+# Install build dependencies
+RUN apk add --no-cache git ca-certificates tzdata
+
+# Set working directory
+WORKDIR /app
+
+# Copy go mod files
+COPY go.mod go.sum ./
+
+# Download dependencies
+RUN go mod download
+
+# Copy source code
+COPY . .
+
+# Build arguments
+ARG SERVICE_NAME
+ARG VERSION=latest
+ARG BUILD_TIME
+ARG COMMIT_HASH
+ARG CGO_ENABLED=0
+ARG GOOS=linux
+ARG GOARCH=amd64
+
+# Build the application
+RUN CGO_ENABLED=${CGO_ENABLED} GOOS=${GOOS} GOARCH=${GOARCH} go build \
+    -ldflags="-w -s -X main.version=${VERSION} -X main.buildTime=${BUILD_TIME} -X main.commitHash=${COMMIT_HASH}" \
+    -a -installsuffix cgo \
+    -o /app/bin/service \
+    ./cmd/${SERVICE_NAME}
+
+# Security scanning stage (optional)
+FROM aquasec/trivy:latest AS security-scan
+COPY --from=builder /app/bin/service /tmp/service
+RUN trivy filesystem --exit-code 0 --no-progress --format table /tmp/
+
+# Runtime stage
+FROM scratch AS runtime
+
+# Import from builder
+COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
+COPY --from=builder /usr/share/zoneinfo /usr/share/zoneinfo
+COPY --from=builder /etc/passwd /etc/passwd
+COPY --from=builder /etc/group /etc/group
+
+# Copy the binary
+COPY --from=builder /app/bin/service /app/service
+
+# Create non-root user
+USER 65534:65534
+
+# Expose port
+EXPOSE 8080 9090
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD ["/app/service", "health"]
+
+# Set entrypoint
+ENTRYPOINT ["/app/service"]
+
+# Alternative runtime stage with minimal base image
+FROM gcr.io/distroless/static-debian11:nonroot AS distroless
+
+# Copy the binary
+COPY --from=builder /app/bin/service /app/service
+
+# Expose port
+EXPOSE 8080 9090
+
+# Set entrypoint
+ENTRYPOINT ["/app/service"]
+
+# Development stage
+FROM golang:1.21-alpine AS development
+
+# Install development tools
+RUN apk add --no-cache git make curl bash
+
+# Install air for hot reloading
+RUN go install github.com/cosmtrek/air@latest
+
+# Install debugging tools
+RUN go install github.com/go-delve/delve/cmd/dlv@latest
+
+# Set working directory
+WORKDIR /app
+
+# Copy source code
+COPY . .
+
+# Install dependencies
+RUN go mod download
+
+# Expose ports
+EXPOSE 8080 9090 2345
+
+# Default command for development
+CMD ["air", "-c", ".air.toml"]
+
+# Production stage with Alpine
+FROM alpine:3.18 AS alpine-runtime
+
+# Install runtime dependencies
+RUN apk add --no-cache ca-certificates tzdata curl
+
+# Create non-root user
+RUN addgroup -g 1000 appgroup && \
+    adduser -D -s /bin/sh -u 1000 -G appgroup appuser
+
+# Copy the binary
+COPY --from=builder /app/bin/service /app/service
+
+# Change ownership
+RUN chown appuser:appgroup /app/service
+
+# Switch to non-root user
+USER appuser
+
+# Set working directory
+WORKDIR /app
+
+# Expose port
+EXPOSE 8080 9090
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:8080/health || exit 1
+
+# Set entrypoint
+ENTRYPOINT ["./service"]
+
+# Debug stage
+FROM alpine-runtime AS debug
+
+# Switch back to root to install debugging tools
+USER root
+
+# Install debugging tools
+RUN apk add --no-cache gdb strace tcpdump
+
+# Install delve for Go debugging
+COPY --from=builder /go/bin/dlv /usr/local/bin/dlv
+
+# Switch back to app user
+USER appuser
+
+# Expose debug port
+EXPOSE 2345
+
+# Debug entrypoint
+ENTRYPOINT ["dlv", "--listen=:2345", "--headless=true", "--api-version=2", "--accept-multiclient", "exec", "./service"]
+
+# Testing stage
+FROM golang:1.21-alpine AS testing
+
+# Install testing dependencies
+RUN apk add --no-cache git make curl bash
+
+# Set working directory
+WORKDIR /app
+
+# Copy source code
+COPY . .
+
+# Install dependencies
+RUN go mod download
+
+# Install testing tools
+RUN go install github.com/onsi/ginkgo/v2/ginkgo@latest
+RUN go install github.com/onsi/gomega/...@latest
+RUN go install github.com/golang/mock/mockgen@latest
+
+# Run tests
+RUN go test -v ./...
+
+# Benchmark stage
+FROM testing AS benchmark
+
+# Run benchmarks
+RUN go test -bench=. -benchmem ./...
+
+# Coverage stage
+FROM testing AS coverage
+
+# Install coverage tools
+RUN go install github.com/axw/gocov/gocov@latest
+RUN go install github.com/AlekSi/gocov-xml@latest
+
+# Generate coverage report
+RUN go test -coverprofile=coverage.out ./...
+RUN go tool cover -html=coverage.out -o coverage.html
+
+# Documentation stage
+FROM golang:1.21-alpine AS docs
+
+# Install documentation tools
+RUN go install golang.org/x/tools/cmd/godoc@latest
+
+# Set working directory
+WORKDIR /app
+
+# Copy source code
+COPY . .
+
+# Generate documentation
+RUN godoc -http=:6060 &
+
+# Expose documentation port
+EXPOSE 6060
+
+# Keep container running
+CMD ["tail", "-f", "/dev/null"]
+
+# Final stage selection based on build argument
+ARG STAGE=runtime
+FROM ${STAGE} AS final

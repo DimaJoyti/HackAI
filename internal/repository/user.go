@@ -115,8 +115,8 @@ func (r *UserRepository) List(limit, offset int) ([]*domain.User, error) {
 func (r *UserRepository) Search(query string, limit, offset int) ([]*domain.User, error) {
 	var users []*domain.User
 	searchPattern := "%" + query + "%"
-	
-	if err := r.db.Where("username ILIKE ? OR email ILIKE ? OR first_name ILIKE ? OR last_name ILIKE ?", 
+
+	if err := r.db.Where("username ILIKE ? OR email ILIKE ? OR first_name ILIKE ? OR last_name ILIKE ?",
 		searchPattern, searchPattern, searchPattern, searchPattern).
 		Limit(limit).Offset(offset).Find(&users).Error; err != nil {
 		r.logger.WithError(err).WithField("query", query).Error("Failed to search users")
@@ -269,4 +269,47 @@ func (r *UserRepository) GetUserActivity(userID uuid.UUID, limit, offset int) ([
 	}
 
 	return activities, nil
+}
+
+// GetByFirebaseUID retrieves a user by Firebase UID
+func (r *UserRepository) GetByFirebaseUID(firebaseUID string) (*domain.User, error) {
+	var user domain.User
+	if err := r.db.Where("firebase_uid = ?", firebaseUID).First(&user).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, fmt.Errorf("user not found")
+		}
+		r.logger.WithError(err).WithField("firebase_uid", firebaseUID).Error("Failed to get user by Firebase UID")
+		return nil, fmt.Errorf("failed to get user: %w", err)
+	}
+
+	return &user, nil
+}
+
+// UpdateFirebaseUID updates a user's Firebase UID
+func (r *UserRepository) UpdateFirebaseUID(userID uuid.UUID, firebaseUID string) error {
+	if err := r.db.Model(&domain.User{}).Where("id = ?", userID).Update("firebase_uid", firebaseUID).Error; err != nil {
+		r.logger.WithError(err).WithFields(map[string]interface{}{
+			"user_id":      userID,
+			"firebase_uid": firebaseUID,
+		}).Error("Failed to update Firebase UID")
+		return fmt.Errorf("failed to update Firebase UID: %w", err)
+	}
+
+	r.logger.WithFields(map[string]interface{}{
+		"user_id":      userID,
+		"firebase_uid": firebaseUID,
+	}).Info("Firebase UID updated successfully")
+	return nil
+}
+
+// ListUsersWithoutFirebaseUID retrieves users without Firebase UID
+func (r *UserRepository) ListUsersWithoutFirebaseUID(limit, offset int) ([]*domain.User, error) {
+	var users []*domain.User
+	if err := r.db.Where("firebase_uid IS NULL OR firebase_uid = ''").
+		Limit(limit).Offset(offset).Find(&users).Error; err != nil {
+		r.logger.WithError(err).Error("Failed to list users without Firebase UID")
+		return nil, fmt.Errorf("failed to list users without Firebase UID: %w", err)
+	}
+
+	return users, nil
 }

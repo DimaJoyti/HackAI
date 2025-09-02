@@ -12,8 +12,8 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 
-	"github.com/google/uuid"
 	"github.com/dimajoyti/hackai/pkg/logger"
+	"github.com/google/uuid"
 )
 
 var episodicTracer = otel.Tracer("hackai/llm/memory/episodic")
@@ -81,8 +81,8 @@ func (m *InMemoryEpisodicMemory) StoreEpisode(ctx context.Context, episode Episo
 		attribute.Bool("success", true),
 	)
 
-	m.logger.Debug("Episode stored", 
-		"episode_id", episode.ID, 
+	m.logger.Debug("Episode stored",
+		"episode_id", episode.ID,
 		"title", episode.Title,
 		"tags", episode.Tags,
 	)
@@ -146,7 +146,7 @@ func (m *InMemoryEpisodicMemory) RetrieveEpisodes(ctx context.Context, query Epi
 		attribute.Bool("success", true),
 	)
 
-	m.logger.Debug("Episodes retrieved", 
+	m.logger.Debug("Episodes retrieved",
 		"query", query.Query,
 		"tags", query.Tags,
 		"results_count", len(candidates),
@@ -311,7 +311,7 @@ func (m *InMemoryEpisodicMemory) removeFromTagIndex(episodeID string, tags []str
 // getEpisodesByTags gets episode IDs that match any of the given tags
 func (m *InMemoryEpisodicMemory) getEpisodesByTags(tags []string) []string {
 	episodeSet := make(map[string]bool)
-	
+
 	for _, tag := range tags {
 		if episodeIDs, exists := m.tagIndex[tag]; exists {
 			for _, id := range episodeIDs {

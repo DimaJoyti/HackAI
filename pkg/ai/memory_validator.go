@@ -17,12 +17,12 @@ type MemoryValidator struct {
 
 // ValidationConfig configures memory validation
 type ValidationConfig struct {
-	EnableChecksumValidation bool `json:"enable_checksum_validation"`
-	EnableSchemaValidation   bool `json:"enable_schema_validation"`
-	EnableContentValidation  bool `json:"enable_content_validation"`
-	MaxMessageLength         int  `json:"max_message_length"`
-	MaxMessagesPerSession    int  `json:"max_messages_per_session"`
-	MaxContextSize           int  `json:"max_context_size"`
+	EnableChecksumValidation bool     `json:"enable_checksum_validation"`
+	EnableSchemaValidation   bool     `json:"enable_schema_validation"`
+	EnableContentValidation  bool     `json:"enable_content_validation"`
+	MaxMessageLength         int      `json:"max_message_length"`
+	MaxMessagesPerSession    int      `json:"max_messages_per_session"`
+	MaxContextSize           int      `json:"max_context_size"`
 	RequiredFields           []string `json:"required_fields"`
 }
 

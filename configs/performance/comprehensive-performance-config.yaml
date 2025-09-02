@@ -1,0 +1,461 @@
+# HackAI Comprehensive Performance Optimization & Scaling Configuration
+# Enterprise-grade performance optimization and auto-scaling settings
+
+# Global Performance Settings
+global:
+  enable_optimization: true
+  optimization_level: "aggressive"
+  monitoring_interval: "30s"
+  metrics_retention: "7d"
+  enable_profiling: true
+  enable_benchmarking: true
+  enable_auto_tuning: true
+
+# CPU Optimization Configuration
+cpu:
+  enable_optimization: true
+  gomaxprocs: 0  # 0 = auto-detect
+  max_goroutines: 10000
+  cpu_profile_enabled: true
+  cpu_profile_duration: "60s"
+  cpu_throttle_threshold: 85.0
+  cpu_boost_threshold: 50.0
+  enable_cpu_affinity: false
+  cpu_affinity_mask: []
+  enable_turbo_boost: true
+  power_management_mode: "performance"
+
+# Memory Optimization Configuration
+memory:
+  enable_optimization: true
+  gc_target_percent: 100
+  gc_max_pause_time: "10ms"
+  memory_limit: "8GB"
+  memory_threshold: 80.0
+  enable_memory_profiling: true
+  memory_pool_size: 1000
+  enable_memory_mapping: true
+  enable_huge_pages_support: false
+  memory_compaction_enabled: true
+  memory_preallocation: true
+
+# I/O Optimization Configuration
+io:
+  enable_optimization: true
+  max_open_files: 65536
+  read_buffer_size: "64KB"
+  write_buffer_size: "64KB"
+  enable_async_io: true
+  io_queue_depth: 32
+  enable_direct_io: false
+  enable_io_uring: false
+  file_cache_size: "1GB"
+  enable_compression: true
+  compression_level: 6
+
+# Network Optimization Configuration
+network:
+  enable_optimization: true
+  max_connections: 10000
+  connection_timeout: "30s"
+  read_timeout: "30s"
+  write_timeout: "30s"
+  idle_timeout: "60s"
+  keep_alive_timeout: "60s"
+  tcp_nodelay: true
+  tcp_keepalive: true
+  socket_buffer_size: "256KB"
+  enable_http2: true
+  enable_compression: true
+  max_header_size: "1MB"
+
+# Database Optimization Configuration
+database:
+  enable_optimization: true
+  max_connections: 100
+  max_idle_connections: 10
+  connection_max_lifetime: "1h"
+  connection_timeout: "30s"
+  query_timeout: "30s"
+  enable_connection_pooling: true
+  enable_prepared_statements: true
+  enable_query_cache: true
+  query_cache_size: "256MB"
+  enable_read_replicas: true
+  read_replica_ratio: 0.7
+  enable_sharding: false
+  shard_count: 4
+
+# Cache Optimization Configuration
+cache:
+  enable_optimization: true
+  cache_type: "redis"
+  max_memory: "2GB"
+  eviction_policy: "allkeys-lru"
+  ttl_default: "1h"
+  ttl_max: "24h"
+  enable_compression: true
+  compression_threshold: "1KB"
+  enable_clustering: false
+  cluster_nodes: 3
+  enable_persistence: true
+  persistence_interval: "60s"
+  enable_multi_level_cache: true
+  l1_cache_size: "256MB"
+  l2_cache_size: "1GB"
+
+# Concurrency Optimization Configuration
+concurrency:
+  enable_optimization: true
+  worker_pool_size: 100
+  max_concurrent_requests: 1000
+  queue_size: 10000
+  enable_work_stealing: true
+  enable_priority_queues: true
+  enable_backpressure: true
+  backpressure_threshold: 0.8
+  enable_circuit_breaker: true
+  circuit_breaker_threshold: 0.1
+  circuit_breaker_timeout: "30s"
+
+# Garbage Collection Configuration
+garbage_collection:
+  enable_optimization: true
+  gc_strategy: "adaptive"
+  gc_target_percent: 100
+  gc_max_pause_time: "10ms"
+  enable_concurrent_gc: true
+  enable_incremental_gc: true
+  gc_trigger_ratio: 0.8
+  enable_gc_tuning: true
+  gc_debug_enabled: false
+
+# Resource Management Configuration
+resource_management:
+  enable_optimization: true
+  enable_resource_limits: true
+  cpu_limit: "8"
+  memory_limit: "16GB"
+  disk_limit: "100GB"
+  network_limit: "1Gbps"
+  enable_resource_monitoring: true
+  enable_resource_alerts: true
+  resource_alert_threshold: 0.9
+  enable_resource_quotas: true
+
+# Auto-Scaling Configuration
+auto_scaling:
+  enabled: true
+  scaling_interval: "60s"
+  metrics_window: "5m"
+  cooldown_period: "5m"
+  
+  # Horizontal Scaling
+  horizontal_scaling:
+    enabled: true
+    min_instances: 2
+    max_instances: 20
+    target_cpu_percent: 70.0
+    target_memory_percent: 80.0
+    scale_up_cooldown: "3m"
+    scale_down_cooldown: "5m"
+    scale_up_step_size: 2
+    scale_down_step_size: 1
+  
+  # Vertical Scaling
+  vertical_scaling:
+    enabled: true
+    min_cpu: 0.5
+    max_cpu: 8.0
+    min_memory: 1073741824  # 1GB
+    max_memory: 17179869184 # 16GB
+    cpu_step_size: 0.5
+    memory_step_size: 1073741824  # 1GB
+    scaling_threshold: 0.8
+  
+  # Predictive Scaling
+  predictive_scaling:
+    enabled: true
+    prediction_window: "1h"
+    history_window: "7d"
+    confidence_threshold: 0.8
+    model_update_interval: "1h"
+    enable_ml_prediction: true
+  
+  # Scaling Triggers
+  scaling_triggers:
+    cpu_thresholds:
+      scale_up_threshold: 80.0
+      scale_down_threshold: 30.0
+      evaluation_period: "2m"
+      consecutive_checks: 3
+    memory_thresholds:
+      scale_up_threshold: 85.0
+      scale_down_threshold: 40.0
+      evaluation_period: "2m"
+      consecutive_checks: 3
+    latency_thresholds:
+      scale_up_threshold: 1000.0  # ms
+      scale_down_threshold: 200.0  # ms
+      evaluation_period: "2m"
+      consecutive_checks: 3
+    queue_thresholds:
+      scale_up_threshold: 100.0
+      scale_down_threshold: 10.0
+      evaluation_period: "1m"
+      consecutive_checks: 2
+    custom_metrics:
+      - name: "request_rate"
+        metric_path: "/metrics/request_rate"
+        scale_up_threshold: 1000.0
+        scale_down_threshold: 100.0
+        weight: 1.0
+  
+  # Safety Limits
+  safety_limits:
+    max_scale_up_rate: 2.0
+    max_scale_down_rate: 0.5
+    emergency_threshold: 95.0
+    enable_circuit_breaker: true
+
+# Load Balancing Configuration
+load_balancing:
+  enabled: true
+  algorithm: "weighted_least_connections"
+  health_check_interval: "30s"
+  
+  # Backend Configuration
+  backends:
+    - id: "backend-1"
+      url: "http://localhost:8081"
+      weight: 100
+      priority: 1
+      max_connections: 1000
+      metadata:
+        zone: "us-west-1a"
+        instance_type: "m5.large"
+    - id: "backend-2"
+      url: "http://localhost:8082"
+      weight: 100
+      priority: 1
+      max_connections: 1000
+      metadata:
+        zone: "us-west-1b"
+        instance_type: "m5.large"
+    - id: "backend-3"
+      url: "http://localhost:8083"
+      weight: 50
+      priority: 2
+      max_connections: 500
+      metadata:
+        zone: "us-west-1c"
+        instance_type: "m5.medium"
+  
+  # Health Check Configuration
+  health_check:
+    enabled: true
+    path: "/health"
+    interval: "30s"
+    timeout: "5s"
+    healthy_threshold: 2
+    unhealthy_threshold: 3
+    expected_status: [200, 204]
+    expected_body: ""
+  
+  # Circuit Breaker Configuration
+  circuit_breaker:
+    enabled: true
+    failure_threshold: 5
+    recovery_timeout: "30s"
+    half_open_requests: 3
+  
+  # Rate Limiting Configuration
+  rate_limit:
+    enabled: true
+    requests_per_second: 1000
+    burst_size: 100
+    window_size: "1s"
+  
+  # Session Affinity Configuration
+  session_affinity:
+    enabled: false
+    cookie_name: "HACKAI_SESSION"
+    ttl: "1h"
+  
+  # Retry Configuration
+  retry:
+    enabled: true
+    max_retries: 3
+    retry_delay: "100ms"
+    backoff_type: "exponential"
+  
+  # Timeout Configuration
+  timeout:
+    connect: "5s"
+    read: "30s"
+    write: "30s"
+    idle: "60s"
+
+# Performance Monitoring Configuration
+monitoring:
+  enabled: true
+  metrics_interval: "15s"
+  metrics_retention: "7d"
+  enable_detailed_metrics: true
+  enable_custom_metrics: true
+  enable_alerting: true
+  
+  # Metrics Collection
+  metrics:
+    cpu_metrics: true
+    memory_metrics: true
+    io_metrics: true
+    network_metrics: true
+    database_metrics: true
+    cache_metrics: true
+    application_metrics: true
+    business_metrics: true
+  
+  # Performance Thresholds
+  thresholds:
+    cpu_utilization: 80.0
+    memory_utilization: 85.0
+    disk_utilization: 90.0
+    network_utilization: 80.0
+    response_time: 1000.0  # ms
+    error_rate: 5.0        # %
+    throughput: 1000.0     # req/s
+  
+  # Alerting Configuration
+  alerts:
+    - name: "high_cpu_usage"
+      condition: "cpu_utilization > 85"
+      duration: "5m"
+      severity: "warning"
+      channels: ["slack", "email"]
+    - name: "high_memory_usage"
+      condition: "memory_utilization > 90"
+      duration: "3m"
+      severity: "critical"
+      channels: ["slack", "email", "pagerduty"]
+    - name: "high_response_time"
+      condition: "response_time > 2000"
+      duration: "2m"
+      severity: "warning"
+      channels: ["slack"]
+    - name: "high_error_rate"
+      condition: "error_rate > 10"
+      duration: "1m"
+      severity: "critical"
+      channels: ["slack", "email", "pagerduty"]
+
+# Benchmarking Configuration
+benchmarking:
+  enabled: true
+  benchmark_interval: "1h"
+  benchmark_duration: "5m"
+  enable_load_testing: true
+  enable_stress_testing: true
+  enable_endurance_testing: true
+  
+  # Load Testing Configuration
+  load_testing:
+    virtual_users: 100
+    ramp_up_time: "1m"
+    test_duration: "5m"
+    target_rps: 1000
+    scenarios:
+      - name: "baseline"
+        virtual_users: 50
+        duration: "3m"
+      - name: "peak_load"
+        virtual_users: 200
+        duration: "2m"
+  
+  # Stress Testing Configuration
+  stress_testing:
+    max_virtual_users: 500
+    ramp_up_time: "2m"
+    test_duration: "10m"
+    break_point_detection: true
+  
+  # Endurance Testing Configuration
+  endurance_testing:
+    virtual_users: 100
+    test_duration: "1h"
+    memory_leak_detection: true
+    performance_degradation_detection: true
+
+# Profiling Configuration
+profiling:
+  enabled: true
+  profile_interval: "5m"
+  profile_duration: "60s"
+  enable_cpu_profiling: true
+  enable_memory_profiling: true
+  enable_goroutine_profiling: true
+  enable_block_profiling: true
+  enable_mutex_profiling: true
+  profile_storage_path: "/tmp/profiles"
+  profile_retention: "24h"
+
+# Optimization Strategies
+optimization_strategies:
+  enable_adaptive_optimization: true
+  optimization_frequency: "1h"
+  enable_machine_learning: true
+  ml_model_update_interval: "6h"
+  enable_a_b_testing: true
+  a_b_test_duration: "1h"
+  enable_canary_optimization: true
+  canary_percentage: 10.0
+
+# Environment-Specific Overrides
+environments:
+  development:
+    auto_scaling:
+      enabled: false
+    load_balancing:
+      enabled: false
+    monitoring:
+      metrics_interval: "60s"
+    profiling:
+      profile_interval: "10m"
+  
+  staging:
+    auto_scaling:
+      horizontal_scaling:
+        min_instances: 1
+        max_instances: 5
+    load_balancing:
+      backends:
+        - id: "staging-backend-1"
+          url: "http://staging-1:8080"
+          weight: 100
+    monitoring:
+      enable_alerting: false
+  
+  production:
+    auto_scaling:
+      horizontal_scaling:
+        min_instances: 3
+        max_instances: 50
+    load_balancing:
+      backends:
+        - id: "prod-backend-1"
+          url: "http://prod-1:8080"
+          weight: 100
+        - id: "prod-backend-2"
+          url: "http://prod-2:8080"
+          weight: 100
+        - id: "prod-backend-3"
+          url: "http://prod-3:8080"
+          weight: 100
+    monitoring:
+      enable_alerting: true
+      alerts:
+        - name: "production_high_cpu"
+          condition: "cpu_utilization > 80"
+          duration: "2m"
+          severity: "critical"
+          channels: ["slack", "email", "pagerduty"]

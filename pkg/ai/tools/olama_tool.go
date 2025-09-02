@@ -32,11 +32,11 @@ type OlamaToolConfig struct {
 
 // Preset defines model-specific presets for different use cases
 type Preset struct {
-	Model       string  `json:"model"`
-	Temperature float64 `json:"temperature"`
-	MaxTokens   int     `json:"max_tokens"`
-	SystemPrompt string `json:"system_prompt"`
-	Description string  `json:"description"`
+	Model        string  `json:"model"`
+	Temperature  float64 `json:"temperature"`
+	MaxTokens    int     `json:"max_tokens"`
+	SystemPrompt string  `json:"system_prompt"`
+	Description  string  `json:"description"`
 }
 
 // NewOlamaTool creates a new OLAMA tool
@@ -68,39 +68,39 @@ func NewOlamaTool(provider *providers.OlamaProvider, config OlamaToolConfig) *Ol
 func getDefaultPresets() map[string]Preset {
 	return map[string]Preset{
 		"creative": {
-			Model:       "llama2",
-			Temperature: 0.9,
-			MaxTokens:   2048,
+			Model:        "llama2",
+			Temperature:  0.9,
+			MaxTokens:    2048,
 			SystemPrompt: "You are a creative and imaginative AI assistant. Think outside the box and provide innovative solutions.",
-			Description: "High creativity for brainstorming and creative writing",
+			Description:  "High creativity for brainstorming and creative writing",
 		},
 		"analytical": {
-			Model:       "llama2",
-			Temperature: 0.3,
-			MaxTokens:   2048,
+			Model:        "llama2",
+			Temperature:  0.3,
+			MaxTokens:    2048,
 			SystemPrompt: "You are a precise and analytical AI assistant. Focus on accuracy, logic, and detailed analysis.",
-			Description: "Low temperature for analytical and factual tasks",
+			Description:  "Low temperature for analytical and factual tasks",
 		},
 		"coding": {
-			Model:       "codellama",
-			Temperature: 0.1,
-			MaxTokens:   4096,
+			Model:        "codellama",
+			Temperature:  0.1,
+			MaxTokens:    4096,
 			SystemPrompt: "You are an expert programmer. Provide clean, efficient, and well-documented code solutions.",
-			Description: "Specialized for code generation and programming tasks",
+			Description:  "Specialized for code generation and programming tasks",
 		},
 		"security": {
-			Model:       "llama2",
-			Temperature: 0.2,
-			MaxTokens:   2048,
+			Model:        "llama2",
+			Temperature:  0.2,
+			MaxTokens:    2048,
 			SystemPrompt: "You are a cybersecurity expert. Focus on security analysis, threat detection, and vulnerability assessment.",
-			Description: "Specialized for security analysis and penetration testing",
+			Description:  "Specialized for security analysis and penetration testing",
 		},
 		"conversational": {
-			Model:       "neural-chat",
-			Temperature: 0.7,
-			MaxTokens:   1024,
+			Model:        "neural-chat",
+			Temperature:  0.7,
+			MaxTokens:    1024,
 			SystemPrompt: "You are a helpful and friendly AI assistant. Engage in natural conversation and provide helpful responses.",
-			Description: "Optimized for natural conversation and chat",
+			Description:  "Optimized for natural conversation and chat",
 		},
 	}
 }
@@ -177,23 +177,23 @@ func (t *OlamaTool) executeNonStreaming(ctx context.Context, request providers.G
 	start := time.Now()
 	response, err := t.provider.Generate(ctx, request)
 	latency := time.Since(start)
-	
+
 	success := err == nil
 	t.updateMetrics(success, latency)
-	
+
 	if err != nil {
 		return nil, fmt.Errorf("OLAMA generation failed: %w", err)
 	}
 
 	return ai.ToolOutput{
-		"response":      response.Content,
-		"model":         response.Model,
-		"finish_reason": response.FinishReason,
-		"tokens_used":   response.TokensUsed.TotalTokens,
-		"prompt_tokens": response.TokensUsed.PromptTokens,
+		"response":          response.Content,
+		"model":             response.Model,
+		"finish_reason":     response.FinishReason,
+		"tokens_used":       response.TokensUsed.TotalTokens,
+		"prompt_tokens":     response.TokensUsed.PromptTokens,
 		"completion_tokens": response.TokensUsed.CompletionTokens,
-		"metadata":      response.Metadata,
-		"streaming":     false,
+		"metadata":          response.Metadata,
+		"streaming":         false,
 	}, nil
 }
 
@@ -411,16 +411,16 @@ func (t *OlamaTool) IsHealthy(ctx context.Context) bool {
 func (t *OlamaTool) updateMetrics(success bool, latency time.Duration) {
 	t.metricsMux.Lock()
 	defer t.metricsMux.Unlock()
-	
+
 	t.metrics.TotalExecutions++
 	t.metrics.LastExecutionTime = time.Now()
-	
+
 	if success {
 		t.metrics.SuccessfulRuns++
 	} else {
 		t.metrics.FailedRuns++
 	}
-	
+
 	// Update average latency (simple moving average)
 	if t.metrics.TotalExecutions == 1 {
 		t.metrics.AverageLatency = latency
@@ -429,7 +429,7 @@ func (t *OlamaTool) updateMetrics(success bool, latency time.Duration) {
 		totalLatency := t.metrics.AverageLatency * time.Duration(t.metrics.TotalExecutions-1)
 		t.metrics.AverageLatency = (totalLatency + latency) / time.Duration(t.metrics.TotalExecutions)
 	}
-	
+
 	// Update error rate
 	if t.metrics.TotalExecutions > 0 {
 		t.metrics.ErrorRate = float64(t.metrics.FailedRuns) / float64(t.metrics.TotalExecutions)

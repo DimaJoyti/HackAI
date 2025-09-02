@@ -16,9 +16,9 @@ import (
 type EncryptionType string
 
 const (
-	EncryptionNone        EncryptionType = "none"
-	EncryptionAES256GCM   EncryptionType = "aes256gcm"
-	EncryptionChaCha20    EncryptionType = "chacha20poly1305"
+	EncryptionNone      EncryptionType = "none"
+	EncryptionAES256GCM EncryptionType = "aes256gcm"
+	EncryptionChaCha20  EncryptionType = "chacha20poly1305"
 )
 
 // Encryptor interface for different encryption algorithms
@@ -240,11 +240,11 @@ func (n *NoEncryptor) Decrypt(data []byte) ([]byte, error) {
 
 // EncryptionStats tracks encryption statistics
 type EncryptionStats struct {
-	TotalOperations   int64 `json:"total_operations"`
+	TotalOperations     int64 `json:"total_operations"`
 	TotalBytesProcessed int64 `json:"total_bytes_processed"`
-	EncryptionTime    int64 `json:"encryption_time_ns"`
-	DecryptionTime    int64 `json:"decryption_time_ns"`
-	ErrorCount        int64 `json:"error_count"`
+	EncryptionTime      int64 `json:"encryption_time_ns"`
+	DecryptionTime      int64 `json:"decryption_time_ns"`
+	ErrorCount          int64 `json:"error_count"`
 }
 
 // UpdateStats updates encryption statistics
@@ -272,9 +272,9 @@ func (es *EncryptionStats) GetEncryptionEfficiency() map[string]interface{} {
 	}
 
 	return map[string]interface{}{
-		"avg_encryption_time_ms":   avgEncryptionTime,
-		"avg_decryption_time_ms":   avgDecryptionTime,
-		"throughput_mbps":          float64(es.TotalBytesProcessed) / 1024 / 1024 / (float64(es.EncryptionTime + es.DecryptionTime) / 1e9),
-		"error_rate_percent":       errorRate,
+		"avg_encryption_time_ms": avgEncryptionTime,
+		"avg_decryption_time_ms": avgDecryptionTime,
+		"throughput_mbps":        float64(es.TotalBytesProcessed) / 1024 / 1024 / (float64(es.EncryptionTime+es.DecryptionTime) / 1e9),
+		"error_rate_percent":     errorRate,
 	}
 }

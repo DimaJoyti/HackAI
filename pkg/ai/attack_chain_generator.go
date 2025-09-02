@@ -98,11 +98,11 @@ func (g *AttackChainGenerator) selectStrategies(objectives []string, config Camp
 
 	// Strategy selection logic based on objectives
 	objectiveStrategyMap := map[string][]string{
-		"jailbreak":         {"direct_jailbreak", "social_engineering", "technical_bypass"},
-		"bypass_filters":    {"encoding_bypass", "obfuscation", "context_manipulation"},
-		"privilege_escalation": {"role_manipulation", "authority_exploitation"},
+		"jailbreak":              {"direct_jailbreak", "social_engineering", "technical_bypass"},
+		"bypass_filters":         {"encoding_bypass", "obfuscation", "context_manipulation"},
+		"privilege_escalation":   {"role_manipulation", "authority_exploitation"},
 		"information_extraction": {"social_engineering", "technical_exploitation"},
-		"persistence":       {"session_hijacking", "memory_persistence"},
+		"persistence":            {"session_hijacking", "memory_persistence"},
 	}
 
 	// Select strategies based on objectives
@@ -342,14 +342,14 @@ func (p *PayloadGenerator) GeneratePayload(templateID string, target string, con
 	if templates, exists := p.templates[templateID]; exists {
 		// Select a random template variant
 		template := templates[0] // Simplified selection
-		
+
 		// Apply context substitutions
 		payload := template
 		if target != "" {
 			// Simple substitution - in a real implementation, this would be more sophisticated
 			payload = fmt.Sprintf(template, target)
 		}
-		
+
 		return payload, nil
 	}
 
@@ -388,6 +388,6 @@ func (p *PayloadGenerator) initializePayloadTemplates() {
 
 	p.templates["unicode_obfuscation"] = []string{
 		"Ｐｌｅａｓｅ ｈｅｌｐ ｗｉｔｈ %s", // Fullwidth characters
-		"Plеаse help with %s",              // Cyrillic characters that look like Latin
+		"Plеаse help with %s", // Cyrillic characters that look like Latin
 	}
 }

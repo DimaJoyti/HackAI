@@ -3,13 +3,32 @@ web/node_modules
 web.open-next
 web/.next
 bin
+# Environment files and secrets
 .env
+.env.*
+!.env.example
+!.env.template
+web/.env.local
 CLAUDE.md
 POMPT.md
-web/.env.local
-.env.development
-.env.production
-.env.staging
+
+# Secret files
+*.key
+*.pem
+*.p12
+*.pfx
+*.crt
+*.csr
+secrets/
+credentials/
+service-account*.json
+firebase-adminsdk*.json
+
+# Backup files that might contain secrets
+*.backup
+*.bak
+*.old
+*.orig
 
 .terraform/
 *.tfstate
@@ -34,3 +53,4 @@ yarn-debug.log*
 yarn-error.log*
 workers/api-gateway/.wrangler
 workers/auth-service/.wrangler
+web/.open-next

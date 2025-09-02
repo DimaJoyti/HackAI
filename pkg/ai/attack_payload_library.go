@@ -22,10 +22,10 @@ type AttackPayload struct {
 
 // AttackPayloadLibrary manages a comprehensive library of attack payloads
 type AttackPayloadLibrary struct {
-	basicPayloads   []AttackPayload
-	evasionPayloads []AttackPayload
+	basicPayloads    []AttackPayload
+	evasionPayloads  []AttackPayload
 	advancedPayloads []AttackPayload
-	customPayloads  []AttackPayload
+	customPayloads   []AttackPayload
 }
 
 // NewAttackPayloadLibrary creates a new attack payload library
@@ -312,9 +312,9 @@ func (l *AttackPayloadLibrary) initializeAdvancedPayloads() {
 
 // AdaptiveTestStrategy implements adaptive testing based on previous results
 type AdaptiveTestStrategy struct {
-	logger           *logger.Logger
-	successPatterns  []string
-	failurePatterns  []string
+	logger             *logger.Logger
+	successPatterns    []string
+	failurePatterns    []string
 	mutationStrategies []MutationStrategy
 }
 
@@ -343,7 +343,7 @@ func (s *AdaptiveTestStrategy) GenerateAdaptivePayloads(previousResults []TestRe
 
 	// Analyze successful patterns
 	successfulPayloads := s.extractSuccessfulPayloads(previousResults)
-	
+
 	// Generate mutations of successful payloads
 	for _, successfulPayload := range successfulPayloads {
 		mutations := s.generateMutations(successfulPayload)
@@ -356,7 +356,7 @@ func (s *AdaptiveTestStrategy) GenerateAdaptivePayloads(previousResults []TestRe
 		payloads = append(payloads, hybrids...)
 	}
 
-	s.logger.Info("Generated adaptive payloads", 
+	s.logger.Info("Generated adaptive payloads",
 		"count", len(payloads),
 		"successful_base_payloads", len(successfulPayloads))
 
@@ -392,7 +392,7 @@ func (s *AdaptiveTestStrategy) generateMutations(payload string) []AttackPayload
 				Category:    "adaptive_mutation",
 				Tags:        []string{"adaptive", "mutation", strategy.Name},
 				Metadata: map[string]interface{}{
-					"original_payload": payload,
+					"original_payload":  payload,
 					"mutation_strategy": strategy.Name,
 				},
 			})
@@ -486,14 +486,14 @@ func (s *AdaptiveTestStrategy) initializeMutationStrategies() {
 			Mutator: func(payload string) string {
 				punctuation := []string{"!", "?", ".", ",", ";", ":", "-", "_"}
 				words := strings.Fields(payload)
-				
+
 				for i := range words {
 					if rand.Float32() < 0.2 {
 						punct := punctuation[rand.Intn(len(punctuation))]
 						words[i] = words[i] + punct
 					}
 				}
-				
+
 				return strings.Join(words, " ")
 			},
 		},

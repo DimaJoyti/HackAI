@@ -13,9 +13,9 @@ import (
 
 // TaskPlanner creates execution plans for objectives
 type TaskPlanner struct {
-	logger            *logger.Logger
+	logger             *logger.Logger
 	planningStrategies map[string]PlanningStrategy
-	taskTemplates     map[string]TaskTemplate
+	taskTemplates      map[string]TaskTemplate
 	dependencyAnalyzer *DependencyAnalyzer
 }
 
@@ -40,13 +40,13 @@ const (
 
 // TaskTemplate defines a template for common task types
 type TaskTemplate struct {
-	Type         TaskType               `json:"type"`
-	Name         string                 `json:"name"`
-	Description  string                 `json:"description"`
-	RequiredTools []string              `json:"required_tools"`
-	EstimatedDuration time.Duration     `json:"estimated_duration"`
-	DefaultInput map[string]interface{} `json:"default_input"`
-	Dependencies []string               `json:"dependencies"`
+	Type              TaskType               `json:"type"`
+	Name              string                 `json:"name"`
+	Description       string                 `json:"description"`
+	RequiredTools     []string               `json:"required_tools"`
+	EstimatedDuration time.Duration          `json:"estimated_duration"`
+	DefaultInput      map[string]interface{} `json:"default_input"`
+	Dependencies      []string               `json:"dependencies"`
 }
 
 // DependencyAnalyzer analyzes task dependencies
@@ -172,7 +172,7 @@ func (tp *TaskPlanner) CreatePlan(ctx context.Context, input AgentInput, availab
 
 	// Analyze objective to determine planning strategy
 	strategy := tp.selectPlanningStrategy(input.Objective)
-	
+
 	// Create base plan
 	plan := &ExecutionPlan{
 		ID:           uuid.New().String(),
@@ -222,7 +222,7 @@ func (tp *TaskPlanner) CreatePlan(ctx context.Context, input AgentInput, availab
 // selectPlanningStrategy selects the most appropriate planning strategy
 func (tp *TaskPlanner) selectPlanningStrategy(objective string) PlanningStrategy {
 	objectiveLower := strings.ToLower(objective)
-	
+
 	// Score each strategy based on keyword matches
 	bestStrategy := tp.planningStrategies["investigation"] // Default
 	bestScore := 0
@@ -234,7 +234,7 @@ func (tp *TaskPlanner) selectPlanningStrategy(objective string) PlanningStrategy
 				score++
 			}
 		}
-		
+
 		if score > bestScore {
 			bestScore = score
 			bestStrategy = strategy
@@ -292,13 +292,13 @@ func (tp *TaskPlanner) generateSequentialTasks(input AgentInput, availableTools 
 		if template, exists := tp.taskTemplates[string(taskType)]; exists {
 			task := tp.createTaskFromTemplate(template, input)
 			task.Priority = len(taskSequence) - i // Higher priority for earlier tasks
-			
+
 			// Set dependencies (each task depends on the previous one)
 			if i > 0 {
 				prevTask := tasks[i-1]
 				task.Dependencies = []string{prevTask.ID}
 			}
-			
+
 			tasks = append(tasks, task)
 		}
 	}
@@ -327,15 +327,15 @@ func (tp *TaskPlanner) generateParallelTasks(input AgentInput, availableTools ma
 	// Add a final aggregation task that depends on all parallel tasks
 	if len(tasks) > 0 {
 		aggregationTask := &Task{
-			ID:          uuid.New().String(),
-			Name:        "Aggregate Results",
-			Description: "Aggregate results from parallel tasks",
-			Type:        TaskTypeProcessing,
-			Priority:    1,
-			Dependencies: make([]string, 0),
+			ID:                uuid.New().String(),
+			Name:              "Aggregate Results",
+			Description:       "Aggregate results from parallel tasks",
+			Type:              TaskTypeProcessing,
+			Priority:          1,
+			Dependencies:      make([]string, 0),
 			EstimatedDuration: 2 * time.Minute,
-			Status:      TaskStatusPending,
-			Metadata:    make(map[string]interface{}),
+			Status:            TaskStatusPending,
+			Metadata:          make(map[string]interface{}),
 		}
 
 		// Add all parallel tasks as dependencies
@@ -363,15 +363,15 @@ func (tp *TaskPlanner) generateHierarchicalTasks(input AgentInput, availableTool
 	detailedTasks := []string{"Security Scan", "Data Collection", "Vulnerability Assessment"}
 	for i, taskName := range detailedTasks {
 		task := &Task{
-			ID:          uuid.New().String(),
-			Name:        taskName,
-			Description: fmt.Sprintf("Detailed %s based on initial analysis", strings.ToLower(taskName)),
-			Type:        TaskTypeAnalysis,
-			Priority:    8 - i,
-			Dependencies: []string{analysisTask.ID},
+			ID:                uuid.New().String(),
+			Name:              taskName,
+			Description:       fmt.Sprintf("Detailed %s based on initial analysis", strings.ToLower(taskName)),
+			Type:              TaskTypeAnalysis,
+			Priority:          8 - i,
+			Dependencies:      []string{analysisTask.ID},
 			EstimatedDuration: 5 * time.Minute,
-			Status:      TaskStatusPending,
-			Metadata:    make(map[string]interface{}),
+			Status:            TaskStatusPending,
+			Metadata:          make(map[string]interface{}),
 		}
 		tasks = append(tasks, task)
 	}
@@ -379,12 +379,12 @@ func (tp *TaskPlanner) generateHierarchicalTasks(input AgentInput, availableTool
 	// Level 3: Final reporting
 	reportTask := tp.createTaskFromTemplate(tp.taskTemplates[string(TaskTypeReporting)], input)
 	reportTask.Priority = 1
-	
+
 	// Report depends on all detailed tasks
 	for _, task := range tasks[1:] { // Skip the first analysis task
 		reportTask.Dependencies = append(reportTask.Dependencies, task.ID)
 	}
-	
+
 	tasks = append(tasks, reportTask)
 
 	return tasks
@@ -398,15 +398,15 @@ func (tp *TaskPlanner) generateIterativeTasks(input AgentInput, availableTools m
 	iterations := 3
 	for i := 0; i < iterations; i++ {
 		task := &Task{
-			ID:          uuid.New().String(),
-			Name:        fmt.Sprintf("Investigation Iteration %d", i+1),
-			Description: fmt.Sprintf("Iterative investigation step %d", i+1),
-			Type:        TaskTypeAnalysis,
-			Priority:    iterations - i,
+			ID:                uuid.New().String(),
+			Name:              fmt.Sprintf("Investigation Iteration %d", i+1),
+			Description:       fmt.Sprintf("Iterative investigation step %d", i+1),
+			Type:              TaskTypeAnalysis,
+			Priority:          iterations - i,
 			EstimatedDuration: 7 * time.Minute,
-			Status:      TaskStatusPending,
+			Status:            TaskStatusPending,
 			Metadata: map[string]interface{}{
-				"iteration": i + 1,
+				"iteration":      i + 1,
 				"max_iterations": iterations,
 			},
 		}
@@ -434,16 +434,16 @@ func (tp *TaskPlanner) generateDefaultTasks(input AgentInput, availableTools map
 
 	// Create basic workflow: Analyze -> Process -> Report
 	basicTypes := []TaskType{TaskTypeAnalysis, TaskTypeProcessing, TaskTypeReporting}
-	
+
 	for i, taskType := range basicTypes {
 		if template, exists := tp.taskTemplates[string(taskType)]; exists {
 			task := tp.createTaskFromTemplate(template, input)
 			task.Priority = len(basicTypes) - i
-			
+
 			if i > 0 {
 				task.Dependencies = []string{tasks[i-1].ID}
 			}
-			
+
 			tasks = append(tasks, task)
 		}
 	}
@@ -505,10 +505,10 @@ func (tp *TaskPlanner) applyDependenciesToTasks(plan *ExecutionPlan) {
 func (tp *TaskPlanner) optimizePlan(plan *ExecutionPlan, strategy PlanningStrategy) {
 	// Optimize task ordering based on priority and dependencies
 	tp.optimizeTaskOrdering(plan)
-	
+
 	// Optimize resource allocation
 	tp.optimizeResourceAllocation(plan)
-	
+
 	// Add strategy-specific optimizations
 	switch strategy.Approach {
 	case ApproachParallel:

@@ -25,21 +25,21 @@ var binanceTracer = otel.Tracer("hackai/binance")
 
 // BinanceClient provides secure access to Binance API
 type BinanceClient struct {
-	apiKey     string
-	secretKey  string
-	baseURL    string
-	testnet    bool
-	httpClient *http.Client
-	logger     *logger.Logger
+	apiKey      string
+	secretKey   string
+	baseURL     string
+	testnet     bool
+	httpClient  *http.Client
+	logger      *logger.Logger
 	rateLimiter *RateLimiter
-	mutex      sync.RWMutex
+	mutex       sync.RWMutex
 }
 
 // BinanceConfig holds configuration for Binance client
 type BinanceConfig struct {
-	APIKey    string `json:"api_key"`
-	SecretKey string `json:"secret_key"`
-	Testnet   bool   `json:"testnet"`
+	APIKey    string        `json:"api_key"`
+	SecretKey string        `json:"secret_key"`
+	Testnet   bool          `json:"testnet"`
 	Timeout   time.Duration `json:"timeout"`
 }
 
@@ -158,8 +158,8 @@ type TickerPrice struct {
 // OrderRequest represents a new order request
 type OrderRequest struct {
 	Symbol           string  `json:"symbol"`
-	Side             string  `json:"side"`             // BUY or SELL
-	Type             string  `json:"type"`             // LIMIT, MARKET, etc.
+	Side             string  `json:"side"` // BUY or SELL
+	Type             string  `json:"type"` // LIMIT, MARKET, etc.
 	TimeInForce      string  `json:"timeInForce,omitempty"`
 	Quantity         float64 `json:"quantity,omitempty"`
 	QuoteOrderQty    float64 `json:"quoteOrderQty,omitempty"`
@@ -171,21 +171,21 @@ type OrderRequest struct {
 
 // OrderResponse represents the response from placing an order
 type OrderResponse struct {
-	Symbol                   string `json:"symbol"`
-	OrderID                  int64  `json:"orderId"`
-	OrderListID              int64  `json:"orderListId"`
-	ClientOrderID            string `json:"clientOrderId"`
-	TransactTime             int64  `json:"transactTime"`
-	Price                    string `json:"price"`
-	OrigQty                  string `json:"origQty"`
-	ExecutedQty              string `json:"executedQty"`
-	CummulativeQuoteQty      string `json:"cummulativeQuoteQty"`
-	Status                   string `json:"status"`
-	TimeInForce              string `json:"timeInForce"`
-	Type                     string `json:"type"`
-	Side                     string `json:"side"`
-	WorkingTime              int64  `json:"workingTime"`
-	SelfTradePreventionMode  string `json:"selfTradePreventionMode"`
+	Symbol                  string `json:"symbol"`
+	OrderID                 int64  `json:"orderId"`
+	OrderListID             int64  `json:"orderListId"`
+	ClientOrderID           string `json:"clientOrderId"`
+	TransactTime            int64  `json:"transactTime"`
+	Price                   string `json:"price"`
+	OrigQty                 string `json:"origQty"`
+	ExecutedQty             string `json:"executedQty"`
+	CummulativeQuoteQty     string `json:"cummulativeQuoteQty"`
+	Status                  string `json:"status"`
+	TimeInForce             string `json:"timeInForce"`
+	Type                    string `json:"type"`
+	Side                    string `json:"side"`
+	WorkingTime             int64  `json:"workingTime"`
+	SelfTradePreventionMode string `json:"selfTradePreventionMode"`
 }
 
 // GetAccountInfo retrieves account information

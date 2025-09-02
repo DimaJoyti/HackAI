@@ -1,0 +1,443 @@
+# HackAI Comprehensive Testing and Quality Assurance Configuration
+# Enterprise-grade testing framework configuration
+
+# Global Testing Settings
+global:
+  testing_framework: "comprehensive"
+  environment: "test"
+  enable_parallel_execution: true
+  max_concurrent_tests: 8
+  default_test_timeout: "10m"
+  enable_test_retries: true
+  max_retries: 3
+  enable_test_isolation: true
+  enable_test_profiling: true
+  enable_test_tracing: true
+  enable_test_metrics: true
+  enable_test_caching: true
+  enable_test_sharding: true
+  shard_count: 4
+  enable_test_prioritization: true
+  enable_smart_test_selection: true
+
+# Framework Configuration
+framework:
+  enable_parallel_execution: true
+  max_concurrent_tests: 8
+  default_test_timeout: "10m"
+  enable_test_retries: true
+  max_retries: 3
+  enable_test_isolation: true
+  enable_test_profiling: true
+  enable_test_tracing: true
+  enable_test_metrics: true
+  enable_test_caching: true
+  enable_test_sharding: true
+  shard_count: 4
+  enable_test_prioritization: true
+  enable_smart_test_selection: true
+
+# Test Execution Configuration
+execution:
+  parallel_execution: true
+  max_workers: 8
+  timeout_per_test: "5m"
+  timeout_per_suite: "30m"
+  retry_failed_tests: true
+  max_retries: 3
+  fail_fast: false
+  enable_race_detection: true
+  enable_memory_profiling: true
+  enable_cpu_profiling: true
+  enable_coverage: true
+  coverage_mode: "atomic"
+  enable_benchmarking: true
+  benchmark_time: "10s"
+  enable_fuzzing: false
+  fuzz_time: "30s"
+
+# Quality Gates Configuration
+quality_gates:
+  enable_quality_gates: true
+  min_code_coverage: 80.0
+  min_branch_coverage: 75.0
+  min_function_coverage: 85.0
+  max_test_failure_rate: 5.0
+  max_test_duration: "30m"
+  min_performance_score: 70.0
+  max_security_vulnerabilities: 0
+  min_code_quality_score: 80.0
+  enable_mutation_testing: true
+  min_mutation_score: 70.0
+  enable_complexity_analysis: true
+  max_cyclomatic_complexity: 10
+  enable_duplication_check: true
+  max_duplication_percentage: 5.0
+  enable_maintainability_check: true
+  min_maintainability_score: 70.0
+  enable_reliability_check: true
+  min_reliability_score: 80.0
+
+# Coverage Configuration
+coverage:
+  enable_coverage: true
+  coverage_mode: "atomic"
+  min_coverage_threshold: 80.0
+  min_branch_coverage: 75.0
+  min_function_coverage: 85.0
+  coverage_output_format: ["html", "xml", "json"]
+  exclude_patterns:
+    - "*.pb.go"
+    - "*_mock.go"
+    - "*_test.go"
+    - "vendor/*"
+    - "test/*"
+  include_patterns:
+    - "pkg/*"
+    - "cmd/*"
+    - "internal/*"
+  enable_differential_coverage: true
+  differential_coverage_threshold: 90.0
+
+# Performance Testing Configuration
+performance:
+  enable_performance_testing: true
+  benchmark_timeout: "30m"
+  benchmark_time: "10s"
+  benchmark_memory: true
+  benchmark_cpu: true
+  benchmark_allocations: true
+  performance_thresholds:
+    max_response_time: "1s"
+    max_p95_response_time: "2s"
+    max_p99_response_time: "5s"
+    min_throughput: 1000
+    max_memory_usage: "512MB"
+    max_cpu_usage: 80.0
+  load_testing:
+    enable_load_testing: true
+    concurrent_users: 100
+    ramp_up_time: "30s"
+    test_duration: "5m"
+    target_rps: 1000
+  stress_testing:
+    enable_stress_testing: true
+    max_concurrent_users: 500
+    stress_duration: "10m"
+    cpu_stress_threshold: 95.0
+    memory_stress_threshold: 90.0
+
+# Security Testing Configuration
+security:
+  enable_security_testing: true
+  vulnerability_scanning: true
+  dependency_scanning: true
+  secret_scanning: true
+  static_analysis_security: true
+  dynamic_analysis_security: true
+  container_security_scanning: true
+  infrastructure_security_testing: true
+  api_security_testing: true
+  authentication_testing: true
+  authorization_testing: true
+  input_validation_testing: true
+  sql_injection_testing: true
+  xss_testing: true
+  csrf_testing: true
+  security_headers_testing: true
+  tls_testing: true
+  encryption_testing: true
+  security_tools:
+    - "gosec"
+    - "nancy"
+    - "trivy"
+    - "grype"
+    - "semgrep"
+  security_thresholds:
+    max_critical_vulnerabilities: 0
+    max_high_vulnerabilities: 0
+    max_medium_vulnerabilities: 5
+    max_low_vulnerabilities: 10
+
+# AI Testing Configuration
+ai:
+  enable_ai_testing: true
+  model_testing: true
+  data_quality_testing: true
+  bias_testing: true
+  fairness_testing: true
+  explainability_testing: true
+  robustness_testing: true
+  adversarial_testing: true
+  performance_testing: true
+  accuracy_testing: true
+  precision_recall_testing: true
+  f1_score_testing: true
+  confusion_matrix_testing: true
+  feature_importance_testing: true
+  model_drift_testing: true
+  data_drift_testing: true
+  concept_drift_testing: true
+  ai_thresholds:
+    min_accuracy: 85.0
+    min_precision: 80.0
+    min_recall: 80.0
+    min_f1_score: 80.0
+    max_bias_score: 10.0
+    min_fairness_score: 80.0
+    min_explainability_score: 70.0
+    max_drift_score: 15.0
+
+# Test Environment Configuration
+environment:
+  test_environments:
+    - name: "unit"
+      type: "isolated"
+      setup_script: "scripts/setup-unit-env.sh"
+      cleanup_script: "scripts/cleanup-unit-env.sh"
+      resources:
+        cpu: "1"
+        memory: "1Gi"
+        disk: "10Gi"
+    - name: "integration"
+      type: "containerized"
+      setup_script: "scripts/setup-integration-env.sh"
+      cleanup_script: "scripts/cleanup-integration-env.sh"
+      dependencies:
+        - "postgres:15"
+        - "redis:7"
+        - "elasticsearch:8"
+      resources:
+        cpu: "2"
+        memory: "4Gi"
+        disk: "20Gi"
+    - name: "e2e"
+      type: "kubernetes"
+      setup_script: "scripts/setup-e2e-env.sh"
+      cleanup_script: "scripts/cleanup-e2e-env.sh"
+      namespace: "hackai-e2e"
+      resources:
+        cpu: "4"
+        memory: "8Gi"
+        disk: "50Gi"
+  environment_isolation: true
+  auto_cleanup: true
+  resource_limits: true
+  monitoring_enabled: true
+
+# Reporting Configuration
+reporting:
+  enable_reporting: true
+  report_formats: ["html", "xml", "json", "junit"]
+  report_output_dir: "test-results/reports"
+  include_coverage_report: true
+  include_performance_report: true
+  include_security_report: true
+  include_quality_report: true
+  include_trend_analysis: true
+  real_time_reporting: true
+  notification_channels:
+    - type: "slack"
+      webhook_url: "${SLACK_WEBHOOK_URL}"
+      channels: ["#testing", "#quality"]
+    - type: "email"
+      smtp_server: "${SMTP_SERVER}"
+      recipients: ["qa@hackai.dev", "dev@hackai.dev"]
+    - type: "webhook"
+      url: "${WEBHOOK_URL}"
+      headers:
+        Authorization: "Bearer ${WEBHOOK_TOKEN}"
+
+# CI/CD Integration Configuration
+cicd:
+  enable_integration: true
+  platforms:
+    - name: "github_actions"
+      enabled: true
+      workflow_file: ".github/workflows/test.yml"
+      upload_artifacts: true
+      publish_results: true
+    - name: "gitlab_ci"
+      enabled: false
+      pipeline_file: ".gitlab-ci.yml"
+      upload_artifacts: true
+      publish_results: true
+    - name: "jenkins"
+      enabled: false
+      jenkinsfile: "Jenkinsfile"
+      upload_artifacts: true
+      publish_results: true
+  quality_gate_integration: true
+  fail_build_on_quality_gate_failure: true
+  upload_test_results: true
+  upload_coverage_results: true
+  upload_security_results: true
+  publish_test_reports: true
+  cache_dependencies: true
+  cache_test_results: true
+  parallel_job_execution: true
+  max_parallel_jobs: 4
+
+# Code Quality Configuration
+code_quality:
+  enable_static_analysis: true
+  enable_linting: true
+  enable_formatting: true
+  enable_vet_checks: true
+  enable_security_checks: true
+  enable_performance_checks: true
+  linting_rules:
+    - "gofmt"
+    - "goimports"
+    - "golint"
+    - "govet"
+    - "ineffassign"
+    - "misspell"
+    - "unparam"
+    - "unused"
+  static_analysis_tools:
+    - "staticcheck"
+    - "gosec"
+    - "errcheck"
+    - "goconst"
+    - "gocyclo"
+    - "dupl"
+  custom_rules:
+    - "no-fmt-print"
+    - "no-panic"
+    - "require-error-handling"
+  ignore_patterns:
+    - "vendor/*"
+    - "*.pb.go"
+    - "*_mock.go"
+  fail_on_warnings: false
+  max_issues_per_file: 10
+  max_total_issues: 100
+
+# Test Quality Configuration
+test_quality:
+  enable_test_analysis: true
+  min_test_coverage: 80.0
+  min_branch_coverage: 75.0
+  min_function_coverage: 85.0
+  require_test_documentation: true
+  max_test_duration: "5m"
+  max_test_complexity: 10
+  require_assertions: true
+  min_assertions_per_test: 1
+  enable_test_smells: true
+  test_naming_conventions:
+    - "Test*"
+    - "*Test"
+    - "Benchmark*"
+  test_organization:
+    require_setup_teardown: true
+    require_test_suites: true
+    max_tests_per_suite: 50
+    require_test_categories: true
+
+# Mutation Testing Configuration
+mutation_testing:
+  enable_mutation_testing: true
+  mutation_tools:
+    - "go-mutesting"
+    - "gremlins"
+  mutation_operators:
+    - "arithmetic"
+    - "conditional"
+    - "logical"
+    - "relational"
+    - "assignment"
+  mutation_score_threshold: 70.0
+  timeout_per_mutant: "30s"
+  max_mutations_per_file: 100
+  exclude_patterns:
+    - "*_test.go"
+    - "vendor/*"
+    - "*.pb.go"
+
+# Complexity Analysis Configuration
+complexity_analysis:
+  enable_complexity_analysis: true
+  complexity_tools:
+    - "gocyclo"
+    - "gocognit"
+  max_cyclomatic_complexity: 10
+  max_cognitive_complexity: 15
+  complexity_thresholds:
+    low: 5
+    medium: 10
+    high: 15
+    very_high: 20
+  report_complexity_trends: true
+
+# Duplication Detection Configuration
+duplication_detection:
+  enable_duplication_detection: true
+  duplication_tools:
+    - "dupl"
+    - "jscpd"
+  min_duplication_lines: 5
+  max_duplication_percentage: 5.0
+  exclude_patterns:
+    - "*_test.go"
+    - "vendor/*"
+    - "*.pb.go"
+  report_duplication_trends: true
+
+# Test Data Management Configuration
+test_data:
+  enable_test_data_management: true
+  test_data_sources:
+    - type: "fixtures"
+      path: "test/fixtures"
+      format: "json"
+    - type: "factories"
+      path: "test/factories"
+      format: "go"
+    - type: "generators"
+      path: "test/generators"
+      format: "go"
+  data_anonymization: true
+  data_masking: true
+  synthetic_data_generation: true
+  test_data_versioning: true
+  test_data_cleanup: true
+
+# Mock Management Configuration
+mocking:
+  enable_mocking: true
+  mock_frameworks:
+    - "gomock"
+    - "testify/mock"
+    - "counterfeiter"
+  auto_generate_mocks: true
+  mock_output_dir: "test/mocks"
+  mock_naming_convention: "Mock*"
+  verify_mock_usage: true
+  detect_unused_mocks: true
+
+# Test Metrics Configuration
+metrics:
+  enable_test_metrics: true
+  metrics_collection:
+    - "test_execution_time"
+    - "test_success_rate"
+    - "test_failure_rate"
+    - "test_coverage"
+    - "test_flakiness"
+    - "test_maintenance_cost"
+  metrics_storage:
+    type: "prometheus"
+    endpoint: "${PROMETHEUS_ENDPOINT}"
+    retention: "30d"
+  metrics_visualization:
+    type: "grafana"
+    dashboard_url: "${GRAFANA_DASHBOARD_URL}"
+  metrics_alerting:
+    enable_alerting: true
+    alert_thresholds:
+      test_failure_rate: 10.0
+      test_execution_time: "30m"
+      coverage_drop: 5.0
+      flaky_test_rate: 5.0

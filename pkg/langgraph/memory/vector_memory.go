@@ -13,15 +13,15 @@ import (
 
 // VectorMemory manages vector-based memory for similarity search
 type VectorMemory struct {
-	vectors     map[string]*VectorEntry
-	index       *VectorIndex
-	embedder    VectorEmbedder
-	maxSize     int
-	dimensions  int
-	threshold   float64
-	config      *MemoryConfig
-	logger      *logger.Logger
-	mutex       sync.RWMutex
+	vectors    map[string]*VectorEntry
+	index      *VectorIndex
+	embedder   VectorEmbedder
+	maxSize    int
+	dimensions int
+	threshold  float64
+	config     *MemoryConfig
+	logger     *logger.Logger
+	mutex      sync.RWMutex
 }
 
 // VectorEntry represents a vector memory entry
@@ -41,12 +41,12 @@ type VectorEntry struct {
 
 // VectorIndex provides efficient vector similarity search
 type VectorIndex struct {
-	entries     []*VectorEntry
-	clusters    map[string][]*VectorEntry
-	centroids   map[string][]float64
-	indexType   IndexType
-	buildTime   time.Time
-	mutex       sync.RWMutex
+	entries   []*VectorEntry
+	clusters  map[string][]*VectorEntry
+	centroids map[string][]float64
+	indexType IndexType
+	buildTime time.Time
+	mutex     sync.RWMutex
 }
 
 // VectorEmbedder interface for generating embeddings
@@ -79,17 +79,17 @@ type SimilarityMetric string
 
 const (
 	// Index Types
-	IndexTypeFlat     IndexType = "flat"
-	IndexTypeHNSW     IndexType = "hnsw"
-	IndexTypeIVF      IndexType = "ivf"
-	IndexTypeLSH      IndexType = "lsh"
-	IndexTypeKMeans   IndexType = "kmeans"
+	IndexTypeFlat   IndexType = "flat"
+	IndexTypeHNSW   IndexType = "hnsw"
+	IndexTypeIVF    IndexType = "ivf"
+	IndexTypeLSH    IndexType = "lsh"
+	IndexTypeKMeans IndexType = "kmeans"
 
 	// Similarity Metrics
-	MetricCosine    SimilarityMetric = "cosine"
-	MetricEuclidean SimilarityMetric = "euclidean"
+	MetricCosine     SimilarityMetric = "cosine"
+	MetricEuclidean  SimilarityMetric = "euclidean"
 	MetricDotProduct SimilarityMetric = "dot_product"
-	MetricManhattan SimilarityMetric = "manhattan"
+	MetricManhattan  SimilarityMetric = "manhattan"
 )
 
 // SimpleEmbedder provides a simple embedding implementation
@@ -105,13 +105,13 @@ func (se *SimpleEmbedder) Embed(ctx context.Context, content interface{}) ([]flo
 	// Simple hash-based embedding for demo purposes
 	contentStr := fmt.Sprintf("%v", content)
 	vector := make([]float64, se.dimensions)
-	
+
 	// Generate pseudo-random vector based on content hash
 	hash := simpleHash(contentStr)
 	for i := 0; i < se.dimensions; i++ {
-		vector[i] = float64((hash+uint64(i))%1000) / 1000.0 - 0.5
+		vector[i] = float64((hash+uint64(i))%1000)/1000.0 - 0.5
 	}
-	
+
 	// Normalize vector
 	norm := vectorNorm(vector)
 	if norm > 0 {
@@ -119,7 +119,7 @@ func (se *SimpleEmbedder) Embed(ctx context.Context, content interface{}) ([]flo
 			vector[i] /= norm
 		}
 	}
-	
+
 	return vector, nil
 }
 
@@ -130,7 +130,7 @@ func (se *SimpleEmbedder) GetDimensions() int {
 // NewVectorMemory creates a new vector memory instance
 func NewVectorMemory(config *MemoryConfig, logger *logger.Logger) (*VectorMemory, error) {
 	embedder := NewSimpleEmbedder(config.VectorDimensions)
-	
+
 	index := &VectorIndex{
 		entries:   make([]*VectorEntry, 0),
 		clusters:  make(map[string][]*VectorEntry),
@@ -260,10 +260,10 @@ func (vm *VectorMemory) Query(ctx context.Context, query *MemoryQuery) (*MemoryR
 	}
 
 	return &MemoryResult{
-		Entries:   matchingEntries,
+		Entries:    matchingEntries,
 		TotalCount: len(matchingEntries),
-		Relevance: relevanceScores,
-		Metadata:  map[string]interface{}{"source": "vector_memory", "metric": string(vectorQuery.Metric)},
+		Relevance:  relevanceScores,
+		Metadata:   map[string]interface{}{"source": "vector_memory", "metric": string(vectorQuery.Metric)},
 	}, nil
 }
 
@@ -333,7 +333,7 @@ func (vm *VectorMemory) similaritySearch(query *VectorQuery) ([]*SimilarityResul
 	// Search through all vectors
 	for _, vectorEntry := range vm.vectors {
 		similarity := vm.calculateSimilarity(query.Vector, vectorEntry.Vector, query.Metric)
-		
+
 		if similarity >= query.Threshold {
 			results = append(results, &SimilarityResult{
 				Entry:      vectorEntry,
@@ -438,7 +438,7 @@ func (vm *VectorMemory) evictLeastSimilar(newEntry *VectorEntry) error {
 
 	for id, vectorEntry := range vm.vectors {
 		similarity := vm.calculateSimilarity(newEntry.Vector, vectorEntry.Vector, MetricCosine)
-		
+
 		if leastSimilarID == "" || similarity < leastSimilarity {
 			leastSimilarID = id
 			leastSimilarity = similarity
@@ -492,11 +492,11 @@ func cosineSimilarity(vec1, vec2 []float64) float64 {
 	dot := dotProduct(vec1, vec2)
 	norm1 := vectorNorm(vec1)
 	norm2 := vectorNorm(vec2)
-	
+
 	if norm1 == 0 || norm2 == 0 {
 		return 0.0
 	}
-	
+
 	return dot / (norm1 * norm2)
 }
 

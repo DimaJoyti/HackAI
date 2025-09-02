@@ -30,26 +30,26 @@ type TaskValidator struct {
 
 // TaskErrorHandler handles task execution errors
 type TaskErrorHandler struct {
-	logger         *logger.Logger
+	logger          *logger.Logger
 	retryStrategies map[TaskType]RetryStrategy
 }
 
 // RetryStrategy defines retry behavior for different task types
 type RetryStrategy struct {
-	MaxRetries    int           `json:"max_retries"`
-	RetryDelay    time.Duration `json:"retry_delay"`
-	BackoffFactor float64       `json:"backoff_factor"`
-	RetryableErrors []string    `json:"retryable_errors"`
+	MaxRetries      int           `json:"max_retries"`
+	RetryDelay      time.Duration `json:"retry_delay"`
+	BackoffFactor   float64       `json:"backoff_factor"`
+	RetryableErrors []string      `json:"retryable_errors"`
 }
 
 // TaskExecutionMetrics tracks task execution metrics
 type TaskExecutionMetrics struct {
-	TotalTasks       int64                    `json:"total_tasks"`
-	SuccessfulTasks  int64                    `json:"successful_tasks"`
-	FailedTasks      int64                    `json:"failed_tasks"`
-	AverageLatency   time.Duration            `json:"average_latency"`
-	TaskTypeMetrics  map[TaskType]TypeMetrics `json:"task_type_metrics"`
-	LastUpdated      time.Time                `json:"last_updated"`
+	TotalTasks      int64                    `json:"total_tasks"`
+	SuccessfulTasks int64                    `json:"successful_tasks"`
+	FailedTasks     int64                    `json:"failed_tasks"`
+	AverageLatency  time.Duration            `json:"average_latency"`
+	TaskTypeMetrics map[TaskType]TypeMetrics `json:"task_type_metrics"`
+	LastUpdated     time.Time                `json:"last_updated"`
 }
 
 // TypeMetrics holds metrics for a specific task type
@@ -158,7 +158,7 @@ func (te *TaskExecutor) ExecuteTask(ctx context.Context, task *Task, availableTo
 
 	// Execute task with retries
 	result, err := te.executeWithRetries(ctx, task, availableTools, context)
-	
+
 	// Update task status and timing
 	endTime := time.Now()
 	task.EndTime = &endTime
@@ -169,14 +169,14 @@ func (te *TaskExecutor) ExecuteTask(ctx context.Context, task *Task, availableTo
 		task.Error = err.Error()
 		span.RecordError(err)
 		te.updateMetrics(task, false, task.ActualDuration)
-		
+
 		te.logger.Error("Task execution failed",
 			"task_id", task.ID,
 			"task_name", task.Name,
 			"error", err,
 			"duration", task.ActualDuration,
 			"retries", task.Retries)
-		
+
 		return nil, err
 	}
 
@@ -207,7 +207,7 @@ func (te *TaskExecutor) executeWithRetries(ctx context.Context, task *Task, avai
 	for attempt := 0; attempt <= strategy.MaxRetries; attempt++ {
 		// Execute the task
 		result, err := te.executeSingleAttempt(ctx, task, availableTools, context)
-		
+
 		if err == nil {
 			// Success
 			return result, nil
@@ -219,7 +219,7 @@ func (te *TaskExecutor) executeWithRetries(ctx context.Context, task *Task, avai
 		// Check if we should retry
 		if attempt < strategy.MaxRetries && te.errorHandler.IsRetryable(err, task.Type) {
 			delay := te.calculateRetryDelay(attempt, strategy)
-			
+
 			te.logger.Debug("Task execution failed, retrying",
 				"task_id", task.ID,
 				"attempt", attempt+1,
@@ -252,7 +252,7 @@ func (te *TaskExecutor) executeSingleAttempt(ctx context.Context, task *Task, av
 
 		// Prepare tool input
 		toolInput := te.prepareToolInput(task, context)
-		
+
 		// Execute tool
 		return tool.Execute(ctx, toolInput)
 	}
@@ -355,8 +355,8 @@ func (te *TaskExecutor) executeProcessingTask(ctx context.Context, task *Task, a
 	return map[string]interface{}{
 		"processing_completed": true,
 		"processed_items":      50,
-		"timestamp":           time.Now(),
-		"task_id":             task.ID,
+		"timestamp":            time.Now(),
+		"task_id":              task.ID,
 	}, nil
 }
 
@@ -395,10 +395,10 @@ func (te *TaskExecutor) executeReportingTask(ctx context.Context, task *Task, av
 // executeIntegrationTask executes an integration task
 func (te *TaskExecutor) executeIntegrationTask(ctx context.Context, task *Task, availableTools map[string]tools.Tool, context map[string]interface{}) (interface{}, error) {
 	return map[string]interface{}{
-		"integration_completed": true,
+		"integration_completed":   true,
 		"connections_established": 3,
-		"timestamp":              time.Now(),
-		"task_id":                task.ID,
+		"timestamp":               time.Now(),
+		"task_id":                 task.ID,
 	}, nil
 }
 
@@ -406,8 +406,8 @@ func (te *TaskExecutor) executeIntegrationTask(ctx context.Context, task *Task, 
 func (te *TaskExecutor) executeCustomTask(ctx context.Context, task *Task, availableTools map[string]tools.Tool, context map[string]interface{}) (interface{}, error) {
 	return map[string]interface{}{
 		"custom_task_completed": true,
-		"timestamp":            time.Now(),
-		"task_id":              task.ID,
+		"timestamp":             time.Now(),
+		"task_id":               task.ID,
 	}, nil
 }
 
@@ -474,7 +474,7 @@ func (te *TaskExecutor) calculateRetryDelay(attempt int, strategy RetryStrategy)
 // updateMetrics updates task execution metrics
 func (te *TaskExecutor) updateMetrics(task *Task, success bool, duration time.Duration) {
 	te.metrics.TotalTasks++
-	
+
 	if success {
 		te.metrics.SuccessfulTasks++
 	} else {
@@ -506,7 +506,7 @@ func (te *TaskExecutor) updateMetrics(task *Task, success bool, duration time.Du
 		typeMetrics.AvgDuration = time.Duration(
 			(int64(typeMetrics.AvgDuration)*typeMetrics.Count + int64(duration)) / (typeMetrics.Count + 1),
 		)
-		
+
 		// Update success rate
 		if success {
 			typeMetrics.SuccessRate = (typeMetrics.SuccessRate*float64(typeMetrics.Count-1) + 1.0) / float64(typeMetrics.Count)
@@ -556,9 +556,9 @@ func (teh *TaskErrorHandler) GetRetryStrategy(taskType TaskType) RetryStrategy {
 
 	// Default strategy
 	return RetryStrategy{
-		MaxRetries:    1,
-		RetryDelay:    time.Second,
-		BackoffFactor: 1.0,
+		MaxRetries:      1,
+		RetryDelay:      time.Second,
+		BackoffFactor:   1.0,
 		RetryableErrors: []string{"timeout", "temporary"},
 	}
 }
@@ -588,12 +588,12 @@ func (te *TaskExecutor) GetMetrics() TaskExecutionMetrics {
 
 // contains checks if a string contains a substring (case-insensitive)
 func contains(str, substr string) bool {
-	return len(str) >= len(substr) && 
-		   (str == substr || 
-		    (len(str) > len(substr) && 
-		     (str[:len(substr)] == substr || 
-		      str[len(str)-len(substr):] == substr ||
-		      containsSubstring(str, substr))))
+	return len(str) >= len(substr) &&
+		(str == substr ||
+			(len(str) > len(substr) &&
+				(str[:len(substr)] == substr ||
+					str[len(str)-len(substr):] == substr ||
+					containsSubstring(str, substr))))
 }
 
 // containsSubstring checks if str contains substr anywhere

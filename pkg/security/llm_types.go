@@ -9,33 +9,33 @@ import (
 
 // LLMRequest represents an incoming LLM request
 type LLMRequest struct {
-	ID          string                 `json:"id"`
-	UserID      *uuid.UUID             `json:"user_id"`
-	SessionID   *uuid.UUID             `json:"session_id"`
-	Provider    string                 `json:"provider"`
-	Model       string                 `json:"model"`
-	Endpoint    string                 `json:"endpoint"`
-	Method      string                 `json:"method"`
-	Headers     map[string]string      `json:"headers"`
-	Body        json.RawMessage        `json:"body"`
-	IPAddress   string                 `json:"ip_address"`
-	UserAgent   string                 `json:"user_agent"`
-	Timestamp   time.Time              `json:"timestamp"`
-	Context     map[string]interface{} `json:"context"`
+	ID        string                 `json:"id"`
+	UserID    *uuid.UUID             `json:"user_id"`
+	SessionID *uuid.UUID             `json:"session_id"`
+	Provider  string                 `json:"provider"`
+	Model     string                 `json:"model"`
+	Endpoint  string                 `json:"endpoint"`
+	Method    string                 `json:"method"`
+	Headers   map[string]string      `json:"headers"`
+	Body      json.RawMessage        `json:"body"`
+	IPAddress string                 `json:"ip_address"`
+	UserAgent string                 `json:"user_agent"`
+	Timestamp time.Time              `json:"timestamp"`
+	Context   map[string]interface{} `json:"context"`
 }
 
 // LLMResponse represents an LLM response
 type LLMResponse struct {
-	ID           string                 `json:"id"`
-	RequestID    string                 `json:"request_id"`
-	StatusCode   int                    `json:"status_code"`
-	Headers      map[string]string      `json:"headers"`
-	Body         json.RawMessage        `json:"body"`
-	Duration     time.Duration          `json:"duration"`
-	TokensUsed   int                    `json:"tokens_used"`
-	Cost         float64                `json:"cost"`
-	Timestamp    time.Time              `json:"timestamp"`
-	Metadata     map[string]interface{} `json:"metadata"`
+	ID         string                 `json:"id"`
+	RequestID  string                 `json:"request_id"`
+	StatusCode int                    `json:"status_code"`
+	Headers    map[string]string      `json:"headers"`
+	Body       json.RawMessage        `json:"body"`
+	Duration   time.Duration          `json:"duration"`
+	TokensUsed int                    `json:"tokens_used"`
+	Cost       float64                `json:"cost"`
+	Timestamp  time.Time              `json:"timestamp"`
+	Metadata   map[string]interface{} `json:"metadata"`
 }
 
 // SecurityResult represents the result of security analysis

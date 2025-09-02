@@ -6,8 +6,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/dimajoyti/hackai/pkg/logger"
+	"github.com/google/uuid"
 )
 
 // RBACManager manages role-based access control
@@ -26,15 +26,15 @@ type RBACManager struct {
 
 // RBACConfig configuration for RBAC manager
 type RBACConfig struct {
-	EnableAuditLogging    bool          `json:"enable_audit_logging"`
-	SessionTimeout        time.Duration `json:"session_timeout"`
-	MaxSessions           int           `json:"max_sessions"`
-	EnableMFA             bool          `json:"enable_mfa"`
+	EnableAuditLogging    bool            `json:"enable_audit_logging"`
+	SessionTimeout        time.Duration   `json:"session_timeout"`
+	MaxSessions           int             `json:"max_sessions"`
+	EnableMFA             bool            `json:"enable_mfa"`
 	PasswordPolicy        *PasswordPolicy `json:"password_policy"`
-	EnableRoleHierarchy   bool          `json:"enable_role_hierarchy"`
-	EnableDynamicRoles    bool          `json:"enable_dynamic_roles"`
-	EnableTimeBasedAccess bool          `json:"enable_time_based_access"`
-	EnableIPRestrictions  bool          `json:"enable_ip_restrictions"`
+	EnableRoleHierarchy   bool            `json:"enable_role_hierarchy"`
+	EnableDynamicRoles    bool            `json:"enable_dynamic_roles"`
+	EnableTimeBasedAccess bool            `json:"enable_time_based_access"`
+	EnableIPRestrictions  bool            `json:"enable_ip_restrictions"`
 }
 
 // Role represents a role in the system
@@ -84,14 +84,14 @@ type Policy struct {
 
 // PolicyRule represents a rule within a policy
 type PolicyRule struct {
-	ID          string                 `json:"id"`
-	Effect      string                 `json:"effect"` // allow, deny
-	Resource    string                 `json:"resource"`
-	Action      string                 `json:"action"`
-	Conditions  []*Condition           `json:"conditions"`
-	TimeWindow  *TimeWindow            `json:"time_window,omitempty"`
-	IPRestrictions []string            `json:"ip_restrictions,omitempty"`
-	Metadata    map[string]interface{} `json:"metadata"`
+	ID             string                 `json:"id"`
+	Effect         string                 `json:"effect"` // allow, deny
+	Resource       string                 `json:"resource"`
+	Action         string                 `json:"action"`
+	Conditions     []*Condition           `json:"conditions"`
+	TimeWindow     *TimeWindow            `json:"time_window,omitempty"`
+	IPRestrictions []string               `json:"ip_restrictions,omitempty"`
+	Metadata       map[string]interface{} `json:"metadata"`
 }
 
 // Condition represents a condition in a policy rule
@@ -171,27 +171,27 @@ type AuditConfig struct {
 
 // AuditEvent represents an audit event
 type AuditEvent struct {
-	ID          string                 `json:"id"`
-	Type        string                 `json:"type"`
-	UserID      string                 `json:"user_id"`
-	Resource    string                 `json:"resource"`
-	Action      string                 `json:"action"`
-	Result      string                 `json:"result"`
-	IPAddress   string                 `json:"ip_address"`
-	UserAgent   string                 `json:"user_agent"`
-	Timestamp   time.Time              `json:"timestamp"`
-	Details     map[string]interface{} `json:"details"`
+	ID        string                 `json:"id"`
+	Type      string                 `json:"type"`
+	UserID    string                 `json:"user_id"`
+	Resource  string                 `json:"resource"`
+	Action    string                 `json:"action"`
+	Result    string                 `json:"result"`
+	IPAddress string                 `json:"ip_address"`
+	UserAgent string                 `json:"user_agent"`
+	Timestamp time.Time              `json:"timestamp"`
+	Details   map[string]interface{} `json:"details"`
 }
 
 // AccessRequest represents an access request
 type AccessRequest struct {
-	UserID      string                 `json:"user_id"`
-	Resource    string                 `json:"resource"`
-	Action      string                 `json:"action"`
-	Context     map[string]interface{} `json:"context"`
-	IPAddress   string                 `json:"ip_address"`
-	UserAgent   string                 `json:"user_agent"`
-	Timestamp   time.Time              `json:"timestamp"`
+	UserID    string                 `json:"user_id"`
+	Resource  string                 `json:"resource"`
+	Action    string                 `json:"action"`
+	Context   map[string]interface{} `json:"context"`
+	IPAddress string                 `json:"ip_address"`
+	UserAgent string                 `json:"user_agent"`
+	Timestamp time.Time              `json:"timestamp"`
 }
 
 // AccessResult represents the result of an access check
@@ -338,7 +338,7 @@ func (rbac *RBACManager) CheckAccess(ctx context.Context, request *AccessRequest
 	// Check role-based permissions
 	userPermissions := rbac.getUserPermissions(user)
 	permissionKey := fmt.Sprintf("%s:%s", request.Resource, request.Action)
-	
+
 	for _, perm := range userPermissions {
 		if perm == permissionKey || perm == "*" {
 			result := &AccessResult{
@@ -428,9 +428,9 @@ func (rbac *RBACManager) AssignRoleToUser(userID, roleID string) error {
 	user.Roles = append(user.Roles, roleID)
 	user.UpdatedAt = time.Now()
 
-	rbac.logger.Info("Role assigned to user", 
-		"user_id", userID, 
-		"role_id", roleID, 
+	rbac.logger.Info("Role assigned to user",
+		"user_id", userID,
+		"role_id", roleID,
 		"role_name", role.Name)
 	return nil
 }

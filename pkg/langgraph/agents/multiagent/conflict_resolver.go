@@ -11,11 +11,11 @@ import (
 
 // ConflictResolver resolves conflicts between agent results
 type ConflictResolver struct {
-	logger             *logger.Logger
+	logger               *logger.Logger
 	resolutionStrategies map[ConflictType]ResolutionStrategy
-	consensusEngine    *ConsensusEngine
-	votingSystem       *VotingSystem
-	confidenceAnalyzer *ConfidenceAnalyzer
+	consensusEngine      *ConsensusEngine
+	votingSystem         *VotingSystem
+	confidenceAnalyzer   *ConfidenceAnalyzer
 }
 
 // ConflictType represents different types of conflicts
@@ -42,27 +42,27 @@ type ResolutionStrategy struct {
 type ResolutionMethod string
 
 const (
-	MethodConsensus        ResolutionMethod = "consensus"
-	MethodVoting           ResolutionMethod = "voting"
-	MethodConfidenceBased  ResolutionMethod = "confidence_based"
-	MethodMajorityRule     ResolutionMethod = "majority_rule"
-	MethodExpertOverride   ResolutionMethod = "expert_override"
-	MethodWeightedAverage  ResolutionMethod = "weighted_average"
-	MethodArbitration      ResolutionMethod = "arbitration"
+	MethodConsensus       ResolutionMethod = "consensus"
+	MethodVoting          ResolutionMethod = "voting"
+	MethodConfidenceBased ResolutionMethod = "confidence_based"
+	MethodMajorityRule    ResolutionMethod = "majority_rule"
+	MethodExpertOverride  ResolutionMethod = "expert_override"
+	MethodWeightedAverage ResolutionMethod = "weighted_average"
+	MethodArbitration     ResolutionMethod = "arbitration"
 )
 
 // Conflict represents a conflict between agent results
 type Conflict struct {
-	ID            string                    `json:"id"`
-	Type          ConflictType              `json:"type"`
-	Description   string                    `json:"description"`
-	Participants  []string                  `json:"participants"`
-	ConflictData  map[string]interface{}    `json:"conflict_data"`
-	Resolution    *ConflictResolution       `json:"resolution,omitempty"`
-	Status        ConflictStatus            `json:"status"`
-	CreatedAt     time.Time                 `json:"created_at"`
-	ResolvedAt    *time.Time                `json:"resolved_at,omitempty"`
-	Metadata      map[string]interface{}    `json:"metadata"`
+	ID           string                 `json:"id"`
+	Type         ConflictType           `json:"type"`
+	Description  string                 `json:"description"`
+	Participants []string               `json:"participants"`
+	ConflictData map[string]interface{} `json:"conflict_data"`
+	Resolution   *ConflictResolution    `json:"resolution,omitempty"`
+	Status       ConflictStatus         `json:"status"`
+	CreatedAt    time.Time              `json:"created_at"`
+	ResolvedAt   *time.Time             `json:"resolved_at,omitempty"`
+	Metadata     map[string]interface{} `json:"metadata"`
 }
 
 // ConflictResolution represents the resolution of a conflict
@@ -80,12 +80,12 @@ type ConflictResolution struct {
 type ConflictStatus string
 
 const (
-	ConflictStatusDetected   ConflictStatus = "detected"
-	ConflictStatusAnalyzing  ConflictStatus = "analyzing"
-	ConflictStatusResolving  ConflictStatus = "resolving"
-	ConflictStatusResolved   ConflictStatus = "resolved"
-	ConflictStatusEscalated  ConflictStatus = "escalated"
-	ConflictStatusAbandoned  ConflictStatus = "abandoned"
+	ConflictStatusDetected  ConflictStatus = "detected"
+	ConflictStatusAnalyzing ConflictStatus = "analyzing"
+	ConflictStatusResolving ConflictStatus = "resolving"
+	ConflictStatusResolved  ConflictStatus = "resolved"
+	ConflictStatusEscalated ConflictStatus = "escalated"
+	ConflictStatusAbandoned ConflictStatus = "abandoned"
 )
 
 // ConsensusEngine builds consensus among agents
@@ -136,7 +136,7 @@ func (cr *ConflictResolver) initializeResolutionStrategies() {
 			Description: "Resolve conflicts in data interpretation",
 			Method:      MethodConsensus,
 			Parameters: map[string]interface{}{
-				"min_agreement": 0.7,
+				"min_agreement":  0.7,
 				"max_iterations": 3,
 			},
 		},
@@ -146,7 +146,7 @@ func (cr *ConflictResolver) initializeResolutionStrategies() {
 			Method:      MethodConfidenceBased,
 			Parameters: map[string]interface{}{
 				"confidence_threshold": 0.8,
-				"weight_by_expertise": true,
+				"weight_by_expertise":  true,
 			},
 		},
 		ConflictTypeConfidenceGap: {
@@ -155,7 +155,7 @@ func (cr *ConflictResolver) initializeResolutionStrategies() {
 			Method:      MethodWeightedAverage,
 			Parameters: map[string]interface{}{
 				"confidence_weight": 0.6,
-				"expertise_weight": 0.4,
+				"expertise_weight":  0.4,
 			},
 		},
 		ConflictTypeTimeoutConflict: {
@@ -273,9 +273,9 @@ func (cr *ConflictResolver) detectConfidenceConflicts(results map[string]*Subtas
 		}
 
 		conflict := &Conflict{
-			ID:          fmt.Sprintf("confidence-conflict-%d", time.Now().UnixNano()),
-			Type:        ConflictTypeConfidenceGap,
-			Description: "Significant confidence gap detected between agent results",
+			ID:           fmt.Sprintf("confidence-conflict-%d", time.Now().UnixNano()),
+			Type:         ConflictTypeConfidenceGap,
+			Description:  "Significant confidence gap detected between agent results",
 			Participants: participants,
 			ConflictData: map[string]interface{}{
 				"confidences": confidences,
@@ -332,9 +332,9 @@ func (cr *ConflictResolver) detectResultConflicts(results map[string]*SubtaskRes
 			}
 
 			conflict := &Conflict{
-				ID:          fmt.Sprintf("result-conflict-%d", time.Now().UnixNano()),
-				Type:        ConflictTypeResultMismatch,
-				Description: "Contradictory boolean results detected",
+				ID:           fmt.Sprintf("result-conflict-%d", time.Now().UnixNano()),
+				Type:         ConflictTypeResultMismatch,
+				Description:  "Contradictory boolean results detected",
 				Participants: participants,
 				ConflictData: map[string]interface{}{
 					"bool_results": boolResults,
@@ -357,8 +357,8 @@ func (cr *ConflictResolver) detectTimeoutConflicts(results map[string]*SubtaskRe
 
 	timeoutResults := make([]string, 0)
 	for resultID, result := range results {
-		if !result.Success && result.Error != "" && 
-		   (result.Error == "timeout" || result.Error == "context deadline exceeded") {
+		if !result.Success && result.Error != "" &&
+			(result.Error == "timeout" || result.Error == "context deadline exceeded") {
 			timeoutResults = append(timeoutResults, resultID)
 		}
 	}
@@ -370,9 +370,9 @@ func (cr *ConflictResolver) detectTimeoutConflicts(results map[string]*SubtaskRe
 		}
 
 		conflict := &Conflict{
-			ID:          fmt.Sprintf("timeout-conflict-%d", time.Now().UnixNano()),
-			Type:        ConflictTypeTimeoutConflict,
-			Description: "Some agents timed out while others completed",
+			ID:           fmt.Sprintf("timeout-conflict-%d", time.Now().UnixNano()),
+			Type:         ConflictTypeTimeoutConflict,
+			Description:  "Some agents timed out while others completed",
 			Participants: participants,
 			ConflictData: map[string]interface{}{
 				"timeout_results": timeoutResults,
@@ -470,10 +470,10 @@ func (cr *ConflictResolver) resolveByConfidence(ctx context.Context, conflict *C
 	}
 
 	resolution := &ConflictResolution{
-		Method:     MethodConfidenceBased,
-		Result:     bestResult.Result,
-		Confidence: bestResult.Confidence,
-		Reasoning:  fmt.Sprintf("Selected result with highest confidence: %.2f", bestResult.Confidence),
+		Method:       MethodConfidenceBased,
+		Result:       bestResult.Result,
+		Confidence:   bestResult.Confidence,
+		Reasoning:    fmt.Sprintf("Selected result with highest confidence: %.2f", bestResult.Confidence),
 		Participants: []string{bestResult.AgentID},
 		Metadata: map[string]interface{}{
 			"selected_agent": bestResult.AgentID,
@@ -574,9 +574,9 @@ func (cr *ConflictResolver) resolveByWeightedAverage(ctx context.Context, confli
 		Reasoning:    fmt.Sprintf("Calculated weighted average: %.2f", average),
 		Participants: participants,
 		Metadata: map[string]interface{}{
-			"weighted_sum":   weightedSum,
-			"total_weight":   totalWeight,
-			"result_count":   len(numericResults),
+			"weighted_sum": weightedSum,
+			"total_weight": totalWeight,
+			"result_count": len(numericResults),
 		},
 	}
 
@@ -636,7 +636,7 @@ func (cr *ConflictResolver) resolveByExpertOverride(ctx context.Context, conflic
 		Reasoning:    fmt.Sprintf("Expert override with confidence %.2f", expertResult.Confidence),
 		Participants: []string{expertResult.AgentID},
 		Metadata: map[string]interface{}{
-			"expert_agent":    expertResult.AgentID,
+			"expert_agent":     expertResult.AgentID,
 			"expert_threshold": expertThreshold,
 		},
 	}
@@ -656,13 +656,13 @@ func (cr *ConflictResolver) applyResolution(conflict *Conflict, resolution *Conf
 // aggregateResults aggregates all results into a final result
 func (cr *ConflictResolver) aggregateResults(task *CollaborativeTask, results map[string]*SubtaskResult) interface{} {
 	aggregated := map[string]interface{}{
-		"task_id":        task.ID,
-		"task_name":      task.Name,
-		"subtask_count":  len(results),
+		"task_id":             task.ID,
+		"task_name":           task.Name,
+		"subtask_count":       len(results),
 		"successful_subtasks": cr.countSuccessfulResults(results),
-		"results":        results,
-		"timestamp":      time.Now(),
-		"aggregation_method": "conflict_resolved",
+		"results":             results,
+		"timestamp":           time.Now(),
+		"aggregation_method":  "conflict_resolved",
 	}
 
 	return aggregated
@@ -712,7 +712,7 @@ func (ce *ConsensusEngine) BuildConsensus(conflict *Conflict, results map[string
 		Reasoning:    "Consensus built around highest confidence result",
 		Participants: participants,
 		Metadata: map[string]interface{}{
-			"consensus_agent": consensusResult.AgentID,
+			"consensus_agent":   consensusResult.AgentID,
 			"participant_count": len(participants),
 		},
 	}
@@ -723,7 +723,7 @@ func (ce *ConsensusEngine) BuildConsensus(conflict *Conflict, results map[string
 // ConductVote conducts a vote among agents
 func (vs *VotingSystem) ConductVote(conflict *Conflict, results map[string]*SubtaskResult, parameters map[string]interface{}) (*ConflictResolution, error) {
 	votes := make(map[interface{}][]Vote)
-	
+
 	for _, result := range results {
 		if result.Success {
 			vote := Vote{
@@ -733,7 +733,7 @@ func (vs *VotingSystem) ConductVote(conflict *Conflict, results map[string]*Subt
 				Reasoning:  "Agent result",
 				Timestamp:  time.Now(),
 			}
-			
+
 			votes[result.Result] = append(votes[result.Result], vote)
 		}
 	}
@@ -768,8 +768,8 @@ func (vs *VotingSystem) ConductVote(conflict *Conflict, results map[string]*Subt
 		Participants: participants,
 		Votes:        map[string]interface{}{"all_votes": votes},
 		Metadata: map[string]interface{}{
-			"vote_count":     maxVotes,
-			"total_voters":   len(results),
+			"vote_count":   maxVotes,
+			"total_voters": len(results),
 		},
 	}
 

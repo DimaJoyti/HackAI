@@ -57,19 +57,19 @@ type EncryptionManager struct {
 
 // TradingAuditLogger logs all trading-related activities
 type TradingAuditLogger struct {
-	logger     *logger.Logger
-	auditChan  chan *TradingAuditEvent
-	batchSize  int
-	shutdown   chan struct{}
-	wg         sync.WaitGroup
+	logger    *logger.Logger
+	auditChan chan *TradingAuditEvent
+	batchSize int
+	shutdown  chan struct{}
+	wg        sync.WaitGroup
 }
 
 // TradingRiskMonitor monitors trading risks in real-time
 type TradingRiskMonitor struct {
-	riskMetrics    map[string]*RiskMetric
+	riskMetrics     map[string]*RiskMetric
 	alertThresholds map[string]float64
-	logger         *logger.Logger
-	mutex          sync.RWMutex
+	logger          *logger.Logger
+	mutex           sync.RWMutex
 }
 
 // ComplianceEngine ensures regulatory compliance
@@ -89,24 +89,23 @@ type TradingAccessController struct {
 	mutex          sync.RWMutex
 }
 
-
 // TradingAuditEvent represents a trading audit event
 type TradingAuditEvent struct {
-	ID            string                 `json:"id"`
-	Timestamp     time.Time              `json:"timestamp"`
-	UserID        string                 `json:"user_id"`
-	SessionID     string                 `json:"session_id"`
-	EventType     string                 `json:"event_type"`
-	Action        string                 `json:"action"`
-	Symbol        string                 `json:"symbol,omitempty"`
-	Quantity      float64                `json:"quantity,omitempty"`
-	Price         float64                `json:"price,omitempty"`
-	OrderID       string                 `json:"order_id,omitempty"`
-	IPAddress     string                 `json:"ip_address"`
-	UserAgent     string                 `json:"user_agent"`
-	RiskScore     float64                `json:"risk_score"`
-	ComplianceOK  bool                   `json:"compliance_ok"`
-	Metadata      map[string]interface{} `json:"metadata"`
+	ID           string                 `json:"id"`
+	Timestamp    time.Time              `json:"timestamp"`
+	UserID       string                 `json:"user_id"`
+	SessionID    string                 `json:"session_id"`
+	EventType    string                 `json:"event_type"`
+	Action       string                 `json:"action"`
+	Symbol       string                 `json:"symbol,omitempty"`
+	Quantity     float64                `json:"quantity,omitempty"`
+	Price        float64                `json:"price,omitempty"`
+	OrderID      string                 `json:"order_id,omitempty"`
+	IPAddress    string                 `json:"ip_address"`
+	UserAgent    string                 `json:"user_agent"`
+	RiskScore    float64                `json:"risk_score"`
+	ComplianceOK bool                   `json:"compliance_ok"`
+	Metadata     map[string]interface{} `json:"metadata"`
 }
 
 // RiskMetric represents a risk metric
@@ -140,20 +139,20 @@ type CompliancePolicy struct {
 
 // ComplianceRule represents a compliance rule
 type ComplianceRule struct {
-	ID          string                 `json:"id"`
-	Condition   string                 `json:"condition"`
-	Action      string                 `json:"action"`
-	Severity    string                 `json:"severity"`
-	Metadata    map[string]interface{} `json:"metadata"`
+	ID        string                 `json:"id"`
+	Condition string                 `json:"condition"`
+	Action    string                 `json:"action"`
+	Severity  string                 `json:"severity"`
+	Metadata  map[string]interface{} `json:"metadata"`
 }
 
 // PolicyRule represents a policy rule
 type PolicyRule struct {
-	ID          string                 `json:"id"`
-	Condition   string                 `json:"condition"`
-	Action      string                 `json:"action"`
-	Priority    int                    `json:"priority"`
-	Metadata    map[string]interface{} `json:"metadata"`
+	ID        string                 `json:"id"`
+	Condition string                 `json:"condition"`
+	Action    string                 `json:"action"`
+	Priority  int                    `json:"priority"`
+	Metadata  map[string]interface{} `json:"metadata"`
 }
 
 // ComplianceViolation represents a compliance violation
@@ -182,17 +181,16 @@ type TradingPermissions struct {
 
 // TradingSession represents an active trading session
 type TradingSession struct {
-	ID          string                 `json:"id"`
-	UserID      string                 `json:"user_id"`
-	IPAddress   string                 `json:"ip_address"`
-	UserAgent   string                 `json:"user_agent"`
-	StartTime   time.Time              `json:"start_time"`
-	LastActivity time.Time             `json:"last_activity"`
-	ExpiresAt   time.Time              `json:"expires_at"`
-	IsActive    bool                   `json:"is_active"`
-	Metadata    map[string]interface{} `json:"metadata"`
+	ID           string                 `json:"id"`
+	UserID       string                 `json:"user_id"`
+	IPAddress    string                 `json:"ip_address"`
+	UserAgent    string                 `json:"user_agent"`
+	StartTime    time.Time              `json:"start_time"`
+	LastActivity time.Time              `json:"last_activity"`
+	ExpiresAt    time.Time              `json:"expires_at"`
+	IsActive     bool                   `json:"is_active"`
+	Metadata     map[string]interface{} `json:"metadata"`
 }
-
 
 // NewTradingSecurityManager creates a new trading security manager
 func NewTradingSecurityManager(config *TradingSecurityConfig, logger *logger.Logger) (*TradingSecurityManager, error) {
@@ -390,18 +388,18 @@ type TradingRequest struct {
 }
 
 type ValidationResult struct {
-	RequestID string                    `json:"request_id"`
-	Valid     bool                      `json:"valid"`
-	Timestamp time.Time                 `json:"timestamp"`
-	Checks    map[string]*CheckResult   `json:"checks"`
+	RequestID string                  `json:"request_id"`
+	Valid     bool                    `json:"valid"`
+	Timestamp time.Time               `json:"timestamp"`
+	Checks    map[string]*CheckResult `json:"checks"`
 }
 
 type CheckResult struct {
-	Name        string                 `json:"name"`
-	Passed      bool                   `json:"passed"`
-	Score       float64                `json:"score"`
-	Message     string                 `json:"message"`
-	Metadata    map[string]interface{} `json:"metadata"`
+	Name     string                 `json:"name"`
+	Passed   bool                   `json:"passed"`
+	Score    float64                `json:"score"`
+	Message  string                 `json:"message"`
+	Metadata map[string]interface{} `json:"metadata"`
 }
 
 // NewTradingAuditLogger creates a new trading audit logger
@@ -412,10 +410,10 @@ func NewTradingAuditLogger(logger *logger.Logger) *TradingAuditLogger {
 		batchSize: 100,
 		shutdown:  make(chan struct{}),
 	}
-	
+
 	tal.wg.Add(1)
 	go tal.processAuditEvents()
-	
+
 	return tal
 }
 
@@ -431,11 +429,11 @@ func (tal *TradingAuditLogger) LogEvent(event *TradingAuditEvent) {
 // processAuditEvents processes audit events in batches
 func (tal *TradingAuditLogger) processAuditEvents() {
 	defer tal.wg.Done()
-	
+
 	batch := make([]*TradingAuditEvent, 0, tal.batchSize)
 	ticker := time.NewTicker(5 * time.Second)
 	defer ticker.Stop()
-	
+
 	for {
 		select {
 		case event := <-tal.auditChan:
@@ -479,19 +477,19 @@ func NewTradingRiskMonitor(logger *logger.Logger) *TradingRiskMonitor {
 func (trm *TradingRiskMonitor) AssessRisk(ctx context.Context, req *TradingRequest) *CheckResult {
 	// Simplified risk assessment
 	riskScore := 0.0
-	
+
 	// Position size risk
 	if req.Quantity > 1000 {
 		riskScore += 0.3
 	}
-	
+
 	// Price volatility risk (simplified)
 	if req.Price > 100000 {
 		riskScore += 0.2
 	}
-	
+
 	passed := riskScore < 0.7
-	
+
 	return &CheckResult{
 		Name:    "risk_assessment",
 		Passed:  passed,
@@ -519,18 +517,18 @@ func (ce *ComplianceEngine) CheckCompliance(ctx context.Context, req *TradingReq
 	// Simplified compliance check
 	passed := true
 	message := "Compliance check passed"
-	
+
 	// Check for basic compliance rules
 	if req.Quantity <= 0 {
 		passed = false
 		message = "Invalid quantity"
 	}
-	
+
 	if req.Price <= 0 {
 		passed = false
 		message = "Invalid price"
 	}
-	
+
 	return &CheckResult{
 		Name:    "compliance_check",
 		Passed:  passed,
@@ -557,13 +555,13 @@ func (tac *TradingAccessController) ValidateAccess(ctx context.Context, req *Tra
 	// Simplified access control
 	passed := true
 	message := "Access granted"
-	
+
 	// Check if user has trading permissions (simplified)
 	if req.UserID == "" {
 		passed = false
 		message = "Invalid user ID"
 	}
-	
+
 	return &CheckResult{
 		Name:    "access_control",
 		Passed:  passed,
@@ -574,4 +572,3 @@ func (tac *TradingAccessController) ValidateAccess(ctx context.Context, req *Tra
 		},
 	}
 }
-

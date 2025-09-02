@@ -344,4 +344,3 @@ func (b *BackupRecord) IsCompleted() bool {
 func (b *BackupRecord) IsRunning() bool {
 	return b.Status == BackupStatusRunning || b.Status == BackupStatusPending
 }
-

@@ -1,0 +1,463 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: chaos-engineering
+  labels:
+    name: chaos-engineering
+
+---
+apiVersion: litmuschaos.io/v1alpha1
+kind: ChaosEngine
+metadata:
+  name: multi-cloud-chaos-engine
+  namespace: chaos-engineering
+spec:
+  appinfo:
+    appns: hackai
+    applabel: "app.kubernetes.io/part-of=hackai"
+    appkind: "deployment"
+  chaosServiceAccount: chaos-service-account
+  experiments:
+    - name: pod-delete
+      spec:
+        components:
+          env:
+            - name: TOTAL_CHAOS_DURATION
+              value: "60"
+            - name: CHAOS_INTERVAL
+              value: "10"
+            - name: FORCE
+              value: "false"
+            - name: PODS_AFFECTED_PERC
+              value: "50"
+        probe:
+          - name: "check-app-status"
+            type: "httpProbe"
+            mode: "Continuous"
+            runProperties:
+              probeTimeout: 5
+              retry: 3
+              interval: 2
+            httpProbe/inputs:
+              url: "http://api-gateway.hackai.svc.cluster.local:8080/health"
+              insecureSkipTLS: true
+              method:
+                get:
+                  criteria: "=="
+                  responseCode: "200"
+    
+    - name: node-cpu-hog
+      spec:
+        components:
+          env:
+            - name: TOTAL_CHAOS_DURATION
+              value: "120"
+            - name: NODE_CPU_CORE
+              value: "2"
+            - name: CPU_LOAD
+              value: "100"
+        probe:
+          - name: "check-node-status"
+            type: "k8sProbe"
+            mode: "Edge"
+            k8sProbe/inputs:
+              group: ""
+              version: "v1"
+              resource: "nodes"
+              operation: "present"
+              
+    - name: network-latency
+      spec:
+        components:
+          env:
+            - name: TOTAL_CHAOS_DURATION
+              value: "180"
+            - name: NETWORK_LATENCY
+              value: "2000"
+            - name: JITTER
+              value: "0"
+            - name: CONTAINER_RUNTIME
+              value: "containerd"
+        probe:
+          - name: "check-service-latency"
+            type: "httpProbe"
+            mode: "Continuous"
+            runProperties:
+              probeTimeout: 10
+              retry: 5
+              interval: 5
+            httpProbe/inputs:
+              url: "http://api-gateway.hackai.svc.cluster.local:8080/api/v1/status"
+              insecureSkipTLS: true
+              method:
+                get:
+                  criteria: "<"
+                  responseTimeout: "5000"
+
+---
+apiVersion: litmuschaos.io/v1alpha1
+kind: ChaosEngine
+metadata:
+  name: aws-specific-chaos
+  namespace: chaos-engineering
+spec:
+  appinfo:
+    appns: hackai
+    applabel: "cloud-provider=aws"
+    appkind: "deployment"
+  chaosServiceAccount: chaos-service-account
+  experiments:
+    - name: ec2-terminate-by-tag
+      spec:
+        components:
+          env:
+            - name: TOTAL_CHAOS_DURATION
+              value: "300"
+            - name: CHAOS_INTERVAL
+              value: "30"
+            - name: EC2_INSTANCE_TAG
+              value: "Environment:staging"
+            - name: MANAGED_NODEGROUP
+              value: "hackai-staging-nodegroup"
+        probe:
+          - name: "check-cluster-health"
+            type: "k8sProbe"
+            mode: "Continuous"
+            k8sProbe/inputs:
+              group: ""
+              version: "v1"
+              resource: "nodes"
+              operation: "present"
+              
+    - name: ebs-loss-by-tag
+      spec:
+        components:
+          env:
+            - name: TOTAL_CHAOS_DURATION
+              value: "180"
+            - name: EBS_VOLUME_TAG
+              value: "Environment:staging"
+            - name: VOLUME_AFFECTED_PERC
+              value: "25"
+        probe:
+          - name: "check-pv-status"
+            type: "k8sProbe"
+            mode: "Edge"
+            k8sProbe/inputs:
+              group: ""
+              version: "v1"
+              resource: "persistentvolumes"
+              operation: "present"
+
+---
+apiVersion: litmuschaos.io/v1alpha1
+kind: ChaosEngine
+metadata:
+  name: gcp-specific-chaos
+  namespace: chaos-engineering
+spec:
+  appinfo:
+    appns: hackai
+    applabel: "cloud-provider=gcp"
+    appkind: "deployment"
+  chaosServiceAccount: chaos-service-account
+  experiments:
+    - name: gcp-vm-instance-stop
+      spec:
+        components:
+          env:
+            - name: TOTAL_CHAOS_DURATION
+              value: "300"
+            - name: CHAOS_INTERVAL
+              value: "60"
+            - name: GCP_PROJECT_ID
+              value: "hackai-production"
+            - name: INSTANCE_ZONE
+              value: "us-central1-a"
+            - name: INSTANCE_LABEL
+              value: "environment=staging"
+        probe:
+          - name: "check-gke-nodes"
+            type: "k8sProbe"
+            mode: "Continuous"
+            k8sProbe/inputs:
+              group: ""
+              version: "v1"
+              resource: "nodes"
+              operation: "present"
+
+---
+apiVersion: litmuschaos.io/v1alpha1
+kind: ChaosEngine
+metadata:
+  name: cross-cloud-chaos
+  namespace: chaos-engineering
+spec:
+  appinfo:
+    appns: hackai
+    applabel: "app.kubernetes.io/part-of=hackai"
+    appkind: "deployment"
+  chaosServiceAccount: chaos-service-account
+  experiments:
+    - name: dns-chaos
+      spec:
+        components:
+          env:
+            - name: TOTAL_CHAOS_DURATION
+              value: "120"
+            - name: TARGET_HOSTNAMES
+              value: "api-aws.hackai.com,api-gcp.hackai.com"
+            - name: MATCH_SCHEME
+              value: "exact"
+        probe:
+          - name: "check-cross-cloud-connectivity"
+            type: "httpProbe"
+            mode: "Continuous"
+            runProperties:
+              probeTimeout: 10
+              retry: 3
+              interval: 5
+            httpProbe/inputs:
+              url: "http://api-gateway.hackai.svc.cluster.local:8080/api/v1/cross-cloud-health"
+              insecureSkipTLS: true
+              method:
+                get:
+                  criteria: "=="
+                  responseCode: "200"
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: chaos-service-account
+  namespace: chaos-engineering
+  labels:
+    app.kubernetes.io/name: litmus
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: chaos-service-account
+  labels:
+    app.kubernetes.io/name: litmus
+rules:
+  - apiGroups: [""]
+    resources: ["pods", "events", "configmaps", "secrets", "pods/log", "pods/exec", "serviceaccounts"]
+    verbs: ["create", "list", "get", "patch", "update", "delete", "deletecollection"]
+  - apiGroups: [""]
+    resources: ["nodes"]
+    verbs: ["patch", "get", "list", "update"]
+  - apiGroups: ["apps"]
+    resources: ["deployments", "statefulsets", "replicasets", "daemonsets"]
+    verbs: ["list", "get", "patch", "create", "update", "delete"]
+  - apiGroups: ["batch"]
+    resources: ["jobs"]
+    verbs: ["create", "list", "get", "delete", "deletecollection"]
+  - apiGroups: ["litmuschaos.io"]
+    resources: ["chaosengines", "chaosexperiments", "chaosresults"]
+    verbs: ["create", "list", "get", "patch", "update", "delete"]
+  - apiGroups: ["networking.k8s.io"]
+    resources: ["networkpolicies"]
+    verbs: ["create", "delete", "list", "get"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: chaos-service-account
+  labels:
+    app.kubernetes.io/name: litmus
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: chaos-service-account
+subjects:
+  - kind: ServiceAccount
+    name: chaos-service-account
+    namespace: chaos-engineering
+
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: scheduled-chaos-experiments
+  namespace: chaos-engineering
+spec:
+  schedule: "0 2 * * 1"  # Weekly on Monday at 2 AM
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: chaos-scheduler
+        spec:
+          serviceAccountName: chaos-service-account
+          restartPolicy: OnFailure
+          containers:
+          - name: chaos-scheduler
+            image: litmuschaos/litmus-checker:latest
+            command:
+            - /bin/sh
+            - -c
+            - |
+              echo "Starting scheduled chaos experiments..."
+              
+              # Run multi-cloud resilience test
+              kubectl apply -f /chaos-experiments/multi-cloud-chaos-engine.yaml
+              
+              # Wait for experiment completion
+              sleep 600
+              
+              # Check experiment results
+              kubectl get chaosresults -n chaos-engineering
+              
+              # Generate resilience report
+              kubectl get chaosresults -n chaos-engineering -o json > /tmp/chaos-results.json
+              
+              # Send notifications
+              if [ -n "$SLACK_WEBHOOK_URL" ]; then
+                curl -X POST -H 'Content-type: application/json' \
+                  --data '{"text":"Chaos engineering experiments completed. Check results in chaos-engineering namespace."}' \
+                  $SLACK_WEBHOOK_URL
+              fi
+              
+              echo "Chaos experiments completed"
+            env:
+            - name: SLACK_WEBHOOK_URL
+              valueFrom:
+                secretKeyRef:
+                  name: notification-secrets
+                  key: slack-webhook
+            volumeMounts:
+            - name: chaos-experiments
+              mountPath: /chaos-experiments
+              readOnly: true
+            resources:
+              requests:
+                memory: 128Mi
+                cpu: 100m
+              limits:
+                memory: 256Mi
+                cpu: 200m
+          volumes:
+          - name: chaos-experiments
+            configMap:
+              name: chaos-experiment-configs
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: chaos-experiment-configs
+  namespace: chaos-engineering
+data:
+  experiment-schedule.yaml: |
+    chaos_experiments:
+      weekly_schedule:
+        - name: "pod-resilience-test"
+          day: "monday"
+          time: "02:00"
+          duration: "30m"
+          target: "all-clouds"
+          
+        - name: "network-partition-test"
+          day: "tuesday"
+          time: "02:00"
+          duration: "45m"
+          target: "cross-cloud"
+          
+        - name: "node-failure-test"
+          day: "wednesday"
+          time: "02:00"
+          duration: "60m"
+          target: "aws,gcp"
+          
+        - name: "storage-failure-test"
+          day: "thursday"
+          time: "02:00"
+          duration: "30m"
+          target: "all-clouds"
+          
+        - name: "comprehensive-resilience-test"
+          day: "friday"
+          time: "02:00"
+          duration: "120m"
+          target: "all-clouds"
+      
+      experiment_parameters:
+        pod_resilience:
+          chaos_duration: "300"
+          chaos_interval: "30"
+          pods_affected_percentage: "25"
+          
+        network_partition:
+          chaos_duration: "600"
+          network_latency: "2000ms"
+          packet_loss: "10%"
+          
+        node_failure:
+          chaos_duration: "900"
+          nodes_affected_percentage: "33"
+          
+        storage_failure:
+          chaos_duration: "300"
+          volumes_affected_percentage: "20"
+          
+      success_criteria:
+        max_downtime_seconds: 60
+        max_error_rate_percent: 5
+        recovery_time_seconds: 120
+        data_consistency_check: true
+
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: chaos-engineering-metrics
+  namespace: chaos-engineering
+spec:
+  selector:
+    matchLabels:
+      app: chaos-exporter
+  endpoints:
+  - port: metrics
+    interval: 30s
+    path: /metrics
+
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: chaos-engineering-alerts
+  namespace: chaos-engineering
+spec:
+  groups:
+  - name: chaos-engineering
+    rules:
+    - alert: ChaosExperimentFailed
+      expr: chaos_experiment_result{status="failed"} > 0
+      for: 1m
+      labels:
+        severity: warning
+      annotations:
+        summary: "Chaos experiment failed"
+        description: "Chaos experiment {{ $labels.experiment_name }} failed"
+        
+    - alert: SystemNotResilient
+      expr: chaos_experiment_recovery_time_seconds > 300
+      for: 1m
+      labels:
+        severity: critical
+      annotations:
+        summary: "System recovery time exceeded threshold"
+        description: "System took {{ $value }} seconds to recover from chaos experiment"
+        
+    - alert: HighErrorRateDuringChaos
+      expr: rate(http_requests_total{status=~"5.."}[5m]) > 0.1
+      for: 2m
+      labels:
+        severity: warning
+      annotations:
+        summary: "High error rate during chaos experiment"
+        description: "Error rate is {{ $value }} during chaos experiment"

@@ -62,10 +62,10 @@ type ContextAnalysis struct {
 
 // DecisionHistory manages decision history
 type DecisionHistory struct {
-	decisions   map[string]*DecisionRecord
-	maxHistory  int
-	logger      *logger.Logger
-	mutex       sync.RWMutex
+	decisions  map[string]*DecisionRecord
+	maxHistory int
+	logger     *logger.Logger
+	mutex      sync.RWMutex
 }
 
 // DecisionRecord represents a recorded decision
@@ -263,11 +263,11 @@ func NewRiskAssessment(logger *logger.Logger) *RiskAssessment {
 // AssessRisks assesses risks for a decision request
 func (ra *RiskAssessment) AssessRisks(ctx context.Context, request *DecisionRequest) (*RiskAssessmentResult, error) {
 	result := &RiskAssessmentResult{
-		ID:           uuid.New().String(),
-		OverallRisk:  0.0,
-		RiskFactors:  make([]*RiskFactor, 0),
-		Mitigations:  make([]*RiskMitigation, 0),
-		Timestamp:    time.Now(),
+		ID:          uuid.New().String(),
+		OverallRisk: 0.0,
+		RiskFactors: make([]*RiskFactor, 0),
+		Mitigations: make([]*RiskMitigation, 0),
+		Timestamp:   time.Now(),
 	}
 
 	// Assess individual option risks
@@ -329,26 +329,26 @@ func (ra *RiskAssessment) generateMitigation(riskFactor *RiskFactor) *RiskMitiga
 	switch riskFactor.Type {
 	case "option_risk":
 		return &RiskMitigation{
-			ID:          uuid.New().String(),
-			RiskID:      riskFactor.ID,
-			Type:        "monitoring",
-			Description: "Implement close monitoring and rollback procedures",
+			ID:            uuid.New().String(),
+			RiskID:        riskFactor.ID,
+			Type:          "monitoring",
+			Description:   "Implement close monitoring and rollback procedures",
 			Effectiveness: 0.7,
 		}
 	case "urgency_risk":
 		return &RiskMitigation{
-			ID:          uuid.New().String(),
-			RiskID:      riskFactor.ID,
-			Type:        "process",
-			Description: "Use rapid decision-making frameworks",
+			ID:            uuid.New().String(),
+			RiskID:        riskFactor.ID,
+			Type:          "process",
+			Description:   "Use rapid decision-making frameworks",
 			Effectiveness: 0.6,
 		}
 	case "complexity_risk":
 		return &RiskMitigation{
-			ID:          uuid.New().String(),
-			RiskID:      riskFactor.ID,
-			Type:        "decomposition",
-			Description: "Break down complex decisions into smaller parts",
+			ID:            uuid.New().String(),
+			RiskID:        riskFactor.ID,
+			Type:          "decomposition",
+			Description:   "Break down complex decisions into smaller parts",
 			Effectiveness: 0.8,
 		}
 	}

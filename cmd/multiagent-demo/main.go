@@ -26,10 +26,10 @@ type DemoAgent struct {
 // NewDemoAgent creates a new demo agent
 func NewDemoAgent(id, name, agentType string, logger *logger.Logger) *DemoAgent {
 	capabilities := map[string]interface{}{
-		"agent_type":        agentType,
-		"available_tools":   []string{"demo_tool", "analysis_tool"},
+		"agent_type":         agentType,
+		"available_tools":    []string{"demo_tool", "analysis_tool"},
 		"parallel_execution": true,
-		"self_reflection":   true,
+		"self_reflection":    true,
 	}
 
 	return &DemoAgent{
@@ -42,10 +42,10 @@ func NewDemoAgent(id, name, agentType string, logger *logger.Logger) *DemoAgent 
 	}
 }
 
-func (da *DemoAgent) ID() string                                    { return da.id }
-func (da *DemoAgent) Name() string                                  { return da.name }
-func (da *DemoAgent) GetCapabilities() map[string]interface{}       { return da.capabilities }
-func (da *DemoAgent) GetStatus() multiagent.AgentStatus             { return da.status }
+func (da *DemoAgent) ID() string                              { return da.id }
+func (da *DemoAgent) Name() string                            { return da.name }
+func (da *DemoAgent) GetCapabilities() map[string]interface{} { return da.capabilities }
+func (da *DemoAgent) GetStatus() multiagent.AgentStatus       { return da.status }
 
 func (da *DemoAgent) Execute(ctx context.Context, input multiagent.AgentInput) (*multiagent.AgentOutput, error) {
 	da.status = multiagent.AgentStatusBusy
@@ -66,27 +66,27 @@ func (da *DemoAgent) Execute(ctx context.Context, input multiagent.AgentInput) (
 	switch da.agentType {
 	case "security":
 		result = map[string]interface{}{
-			"scan_completed":      true,
-			"vulnerabilities":     []string{"CVE-2023-1234", "CVE-2023-5678"},
-			"risk_score":          7.5,
-			"recommendations":     []string{"Update software", "Enable firewall"},
-			"agent_id":           da.id,
+			"scan_completed":  true,
+			"vulnerabilities": []string{"CVE-2023-1234", "CVE-2023-5678"},
+			"risk_score":      7.5,
+			"recommendations": []string{"Update software", "Enable firewall"},
+			"agent_id":        da.id,
 		}
 	case "analysis":
 		result = map[string]interface{}{
-			"analysis_completed":  true,
-			"patterns_found":      3,
+			"analysis_completed": true,
+			"patterns_found":     3,
 			"anomalies":          []string{"unusual_traffic", "failed_logins"},
-			"confidence_score":    confidence,
+			"confidence_score":   confidence,
 			"agent_id":           da.id,
 		}
 	case "reporting":
 		result = map[string]interface{}{
-			"report_generated":   true,
-			"format":            "comprehensive",
-			"sections":          []string{"executive_summary", "findings", "recommendations"},
-			"page_count":        15,
-			"agent_id":          da.id,
+			"report_generated": true,
+			"format":           "comprehensive",
+			"sections":         []string{"executive_summary", "findings", "recommendations"},
+			"page_count":       15,
+			"agent_id":         da.id,
 		}
 	default:
 		result = map[string]interface{}{
@@ -103,7 +103,7 @@ func (da *DemoAgent) Execute(ctx context.Context, input multiagent.AgentInput) (
 		Duration:   2 * time.Second,
 		Messages:   make([]*messaging.AgentMessage, 0),
 		Metadata: map[string]interface{}{
-			"agent_type": da.agentType,
+			"agent_type":     da.agentType,
 			"execution_mode": "demo",
 		},
 	}, nil
@@ -141,9 +141,9 @@ func NewDemoTool() *DemoTool {
 
 func (dt *DemoTool) Execute(ctx context.Context, input map[string]interface{}) (interface{}, error) {
 	return map[string]interface{}{
-		"tool_executed": true,
+		"tool_executed":  true,
 		"input_received": input,
-		"timestamp": time.Now(),
+		"timestamp":      time.Now(),
 	}, nil
 }
 
@@ -183,15 +183,15 @@ func main() {
 	fmt.Println(strings.Repeat("=", 60))
 
 	securityTask := multiagent.CollaborativeTask{
-		ID:          "security-assessment-001",
-		Name:        "Comprehensive Security Assessment",
-		Description: "Perform a comprehensive security assessment of the target system",
-		Type:        multiagent.TaskTypeSecurityAssessment,
-		Objective:   "Identify vulnerabilities and assess security posture",
+		ID:             "security-assessment-001",
+		Name:           "Comprehensive Security Assessment",
+		Description:    "Perform a comprehensive security assessment of the target system",
+		Type:           multiagent.TaskTypeSecurityAssessment,
+		Objective:      "Identify vulnerabilities and assess security posture",
 		RequiredAgents: []string{"security-agent-1"},
 		OptionalAgents: []string{"analysis-agent-1", "reporting-agent-1"},
-		Priority:    multiagent.PriorityHigh,
-		Status:      multiagent.TaskStatusPending,
+		Priority:       multiagent.PriorityHigh,
+		Status:         multiagent.TaskStatusPending,
 		Metadata: map[string]interface{}{
 			"target": "example.com",
 			"scope":  "comprehensive",
@@ -213,17 +213,17 @@ func main() {
 	fmt.Println(strings.Repeat("=", 60))
 
 	dataTask := multiagent.CollaborativeTask{
-		ID:          "data-analysis-001",
-		Name:        "Multi-Source Data Analysis",
-		Description: "Analyze data from multiple sources and generate insights",
-		Type:        multiagent.TaskTypeDataAnalysis,
-		Objective:   "Extract patterns and insights from collected data",
+		ID:             "data-analysis-001",
+		Name:           "Multi-Source Data Analysis",
+		Description:    "Analyze data from multiple sources and generate insights",
+		Type:           multiagent.TaskTypeDataAnalysis,
+		Objective:      "Extract patterns and insights from collected data",
 		RequiredAgents: []string{"analysis-agent-1"},
 		OptionalAgents: []string{"reporting-agent-1"},
-		Priority:    multiagent.PriorityNormal,
-		Status:      multiagent.TaskStatusPending,
+		Priority:       multiagent.PriorityNormal,
+		Status:         multiagent.TaskStatusPending,
 		Metadata: map[string]interface{}{
-			"data_sources": []string{"logs", "metrics", "events"},
+			"data_sources":  []string{"logs", "metrics", "events"},
 			"analysis_type": "pattern_recognition",
 		},
 	}
@@ -243,18 +243,18 @@ func main() {
 	fmt.Println(strings.Repeat("=", 60))
 
 	investigationTask := multiagent.CollaborativeTask{
-		ID:          "investigation-001",
-		Name:        "Security Incident Investigation",
-		Description: "Investigate a security incident and gather evidence",
-		Type:        multiagent.TaskTypeInvestigation,
-		Objective:   "Determine the scope and impact of the security incident",
+		ID:             "investigation-001",
+		Name:           "Security Incident Investigation",
+		Description:    "Investigate a security incident and gather evidence",
+		Type:           multiagent.TaskTypeInvestigation,
+		Objective:      "Determine the scope and impact of the security incident",
 		RequiredAgents: []string{"security-agent-1", "analysis-agent-1"},
 		OptionalAgents: []string{"reporting-agent-1"},
-		Priority:    multiagent.PriorityCritical,
-		Status:      multiagent.TaskStatusPending,
+		Priority:       multiagent.PriorityCritical,
+		Status:         multiagent.TaskStatusPending,
 		Metadata: map[string]interface{}{
-			"incident_id": "INC-2024-001",
-			"severity": "high",
+			"incident_id":      "INC-2024-001",
+			"severity":         "high",
 			"affected_systems": []string{"web-server", "database"},
 		},
 	}
@@ -283,8 +283,8 @@ func main() {
 
 	fmt.Printf("\nAgent Capabilities:\n")
 	for agentID, agent := range map[string]multiagent.Agent{
-		"security-agent-1": securityAgent,
-		"analysis-agent-1": analysisAgent,
+		"security-agent-1":  securityAgent,
+		"analysis-agent-1":  analysisAgent,
 		"reporting-agent-1": reportingAgent,
 	} {
 		capabilities := agent.GetCapabilities()
@@ -301,7 +301,7 @@ func main() {
 	// Create a workflow from template
 	workflowEngine := system.WorkflowEngine
 	workflow, err := workflowEngine.CreateWorkflowFromTemplate("security_assessment_workflow", map[string]interface{}{
-		"target": "demo.example.com",
+		"target":     "demo.example.com",
 		"scan_depth": "comprehensive",
 	})
 
@@ -315,8 +315,8 @@ func main() {
 
 		// Execute the workflow
 		agents := map[string]multiagent.Agent{
-			"security-agent-1": securityAgent,
-			"analysis-agent-1": analysisAgent,
+			"security-agent-1":  securityAgent,
+			"analysis-agent-1":  analysisAgent,
 			"reporting-agent-1": reportingAgent,
 		}
 

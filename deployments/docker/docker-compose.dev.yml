@@ -1,0 +1,334 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: hackai-postgres-dev
+    environment:
+      POSTGRES_DB: hackai_dev
+      POSTGRES_USER: hackai
+      POSTGRES_PASSWORD: hackai123
+      POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256"
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-scripts:/docker-entrypoint-initdb.d
+    networks:
+      - hackai-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hackai -d hackai_dev"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: hackai-redis-dev
+    command: redis-server --appendonly yes --requirepass redis123
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - hackai-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+
+  # API Gateway
+  api-gateway:
+    build:
+      context: ../..
+      dockerfile: deployments/docker/Dockerfile.multi-stage
+      target: development
+      args:
+        SERVICE_NAME: api-gateway
+    container_name: hackai-api-gateway-dev
+    environment:
+      - PORT=8080
+      - METRICS_PORT=9090
+      - HEALTH_PORT=8081
+      - ENVIRONMENT=development
+      - LOG_LEVEL=debug
+      - LOG_FORMAT=json
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=hackai_dev
+      - DB_USER=hackai
+      - DB_PASSWORD=hackai123
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=redis123
+      - JWT_SECRET=dev-jwt-secret-key
+      - ENCRYPTION_KEY=dev-encryption-key-32-chars
+    ports:
+      - "8080:8080"
+      - "9090:9090"
+      - "8081:8081"
+      - "2345:2345"  # Debug port
+    volumes:
+      - ../../:/app
+      - /app/vendor
+    networks:
+      - hackai-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/health/ready"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+  # User Service
+  user-service:
+    build:
+      context: ../..
+      dockerfile: deployments/docker/Dockerfile.multi-stage
+      target: development
+      args:
+        SERVICE_NAME: user-service
+    container_name: hackai-user-service-dev
+    environment:
+      - PORT=8080
+      - METRICS_PORT=9090
+      - HEALTH_PORT=8081
+      - ENVIRONMENT=development
+      - LOG_LEVEL=debug
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=hackai_dev
+      - DB_USER=hackai
+      - DB_PASSWORD=hackai123
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=redis123
+    ports:
+      - "8082:8080"
+      - "9092:9090"
+      - "8083:8081"
+    volumes:
+      - ../../:/app
+      - /app/vendor
+    networks:
+      - hackai-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # Threat Service
+  threat-service:
+    build:
+      context: ../..
+      dockerfile: deployments/docker/Dockerfile.multi-stage
+      target: development
+      args:
+        SERVICE_NAME: threat-service
+    container_name: hackai-threat-service-dev
+    environment:
+      - PORT=8080
+      - METRICS_PORT=9090
+      - HEALTH_PORT=8081
+      - ENVIRONMENT=development
+      - LOG_LEVEL=debug
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=hackai_dev
+      - DB_USER=hackai
+      - DB_PASSWORD=hackai123
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=redis123
+      - THREAT_INTEL_API_KEY=dev-threat-intel-key
+      - VIRUSTOTAL_API_KEY=dev-virustotal-key
+    ports:
+      - "8084:8080"
+      - "9094:9090"
+      - "8085:8081"
+    volumes:
+      - ../../:/app
+      - /app/vendor
+      - threat_data:/app/data
+    networks:
+      - hackai-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # Scanner Service
+  scanner-service:
+    build:
+      context: ../..
+      dockerfile: deployments/docker/Dockerfile.multi-stage
+      target: development
+      args:
+        SERVICE_NAME: scanner-service
+    container_name: hackai-scanner-service-dev
+    environment:
+      - PORT=8080
+      - METRICS_PORT=9090
+      - HEALTH_PORT=8081
+      - ENVIRONMENT=development
+      - LOG_LEVEL=debug
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=hackai_dev
+      - DB_USER=hackai
+      - DB_PASSWORD=hackai123
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=redis123
+    ports:
+      - "8086:8080"
+      - "9096:9090"
+      - "8087:8081"
+    volumes:
+      - ../../:/app
+      - /app/vendor
+      - scanner_data:/app/data
+    networks:
+      - hackai-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # Prometheus (Development)
+  prometheus:
+    image: prom/prometheus:v2.47.0
+    container_name: hackai-prometheus-dev
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--web.enable-lifecycle'
+      - '--storage.tsdb.retention.time=7d'
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus/prometheus-dev.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    networks:
+      - hackai-network
+    restart: unless-stopped
+
+  # Grafana (Development)
+  grafana:
+    image: grafana/grafana:10.1.0
+    container_name: hackai-grafana-dev
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin123
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_ANALYTICS_REPORTING_ENABLED=false
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+    networks:
+      - hackai-network
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+
+  # Jaeger (Development)
+  jaeger:
+    image: jaegertracing/all-in-one:1.49
+    container_name: hackai-jaeger-dev
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+    ports:
+      - "16686:16686"  # Jaeger UI
+      - "14268:14268"  # Jaeger collector HTTP
+      - "14250:14250"  # Jaeger collector gRPC
+      - "4317:4317"    # OTLP gRPC receiver
+      - "4318:4318"    # OTLP HTTP receiver
+    networks:
+      - hackai-network
+    restart: unless-stopped
+
+  # Loki (Development)
+  loki:
+    image: grafana/loki:2.9.0
+    container_name: hackai-loki-dev
+    command: -config.file=/etc/loki/local-config.yaml
+    ports:
+      - "3100:3100"
+    volumes:
+      - loki_data:/loki
+    networks:
+      - hackai-network
+    restart: unless-stopped
+
+  # Nginx (Development Reverse Proxy)
+  nginx:
+    image: nginx:alpine
+    container_name: hackai-nginx-dev
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx-dev.conf:/etc/nginx/nginx.conf
+      - ./nginx/ssl:/etc/nginx/ssl
+    networks:
+      - hackai-network
+    depends_on:
+      - api-gateway
+      - grafana
+      - prometheus
+      - jaeger
+    restart: unless-stopped
+
+  # Development Tools Container
+  dev-tools:
+    image: alpine:latest
+    container_name: hackai-dev-tools
+    command: tail -f /dev/null
+    volumes:
+      - ../../:/workspace
+    networks:
+      - hackai-network
+    profiles:
+      - tools
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  threat_data:
+    driver: local
+  scanner_data:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+  loki_data:
+    driver: local
+
+networks:
+  hackai-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

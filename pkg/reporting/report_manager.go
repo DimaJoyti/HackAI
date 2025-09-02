@@ -13,14 +13,14 @@ import (
 
 // TemplateSection represents a section in a report template
 type TemplateSection struct {
-	ID          string                 `json:"id"`
-	Title       string                 `json:"title"`
-	Type        string                 `json:"type"`
-	Order       int                    `json:"order"`
-	Required    bool                   `json:"required"`
-	DataSource  string                 `json:"data_source"`
-	Query       string                 `json:"query"`
-	Config      map[string]interface{} `json:"config"`
+	ID         string                 `json:"id"`
+	Title      string                 `json:"title"`
+	Type       string                 `json:"type"`
+	Order      int                    `json:"order"`
+	Required   bool                   `json:"required"`
+	DataSource string                 `json:"data_source"`
+	Query      string                 `json:"query"`
+	Config     map[string]interface{} `json:"config"`
 }
 
 // TemplateParameter represents a parameter in a report template
@@ -35,46 +35,46 @@ type TemplateParameter struct {
 
 // ScheduleConfig represents scheduling configuration
 type ScheduleConfig struct {
-	ID          string                 `json:"id"`
-	Name        string                 `json:"name"`
-	TemplateID  string                 `json:"template_id"`
-	Enabled     bool                   `json:"enabled"`
-	CronExpr    string                 `json:"cron_expr"`
-	Timezone    string                 `json:"timezone"`
-	Parameters  map[string]interface{} `json:"parameters"`
-	Recipients  []string               `json:"recipients"`
-	Format      string                 `json:"format"`
-	CreatedAt   time.Time              `json:"created_at"`
-	UpdatedAt   time.Time              `json:"updated_at"`
-	LastRun     *time.Time             `json:"last_run,omitempty"`
-	NextRun     *time.Time             `json:"next_run,omitempty"`
-	RunCount    int                    `json:"run_count"`
-	Metadata    map[string]interface{} `json:"metadata"`
+	ID         string                 `json:"id"`
+	Name       string                 `json:"name"`
+	TemplateID string                 `json:"template_id"`
+	Enabled    bool                   `json:"enabled"`
+	CronExpr   string                 `json:"cron_expr"`
+	Timezone   string                 `json:"timezone"`
+	Parameters map[string]interface{} `json:"parameters"`
+	Recipients []string               `json:"recipients"`
+	Format     string                 `json:"format"`
+	CreatedAt  time.Time              `json:"created_at"`
+	UpdatedAt  time.Time              `json:"updated_at"`
+	LastRun    *time.Time             `json:"last_run,omitempty"`
+	NextRun    *time.Time             `json:"next_run,omitempty"`
+	RunCount   int                    `json:"run_count"`
+	Metadata   map[string]interface{} `json:"metadata"`
 }
 
 // ChartConfig represents chart configuration
 type ChartConfig struct {
-	Type        string                 `json:"type"`
-	Colors      []string               `json:"colors"`
-	Width       int                    `json:"width"`
-	Height      int                    `json:"height"`
-	ShowLegend  bool                   `json:"show_legend"`
-	ShowGrid    bool                   `json:"show_grid"`
-	Responsive  bool                   `json:"responsive"`
-	Animation   bool                   `json:"animation"`
-	Options     map[string]interface{} `json:"options"`
+	Type       string                 `json:"type"`
+	Colors     []string               `json:"colors"`
+	Width      int                    `json:"width"`
+	Height     int                    `json:"height"`
+	ShowLegend bool                   `json:"show_legend"`
+	ShowGrid   bool                   `json:"show_grid"`
+	Responsive bool                   `json:"responsive"`
+	Animation  bool                   `json:"animation"`
+	Options    map[string]interface{} `json:"options"`
 }
 
 // TableConfig represents table configuration
 type TableConfig struct {
-	Sortable    bool                   `json:"sortable"`
-	Filterable  bool                   `json:"filterable"`
-	Paginated   bool                   `json:"paginated"`
-	PageSize    int                    `json:"page_size"`
-	Striped     bool                   `json:"striped"`
-	Bordered    bool                   `json:"bordered"`
-	Responsive  bool                   `json:"responsive"`
-	Options     map[string]interface{} `json:"options"`
+	Sortable   bool                   `json:"sortable"`
+	Filterable bool                   `json:"filterable"`
+	Paginated  bool                   `json:"paginated"`
+	PageSize   int                    `json:"page_size"`
+	Striped    bool                   `json:"striped"`
+	Bordered   bool                   `json:"bordered"`
+	Responsive bool                   `json:"responsive"`
+	Options    map[string]interface{} `json:"options"`
 }
 
 // ReportScheduler manages scheduled report generation
@@ -123,10 +123,10 @@ func DefaultReportConfig() *ReportConfig {
 // Start starts the report manager
 func (rm *ReportManager) Start(ctx context.Context) error {
 	rm.logger.Info("Starting report manager")
-	
+
 	// Initialize default templates
 	rm.initializeDefaultTemplates()
-	
+
 	return nil
 }
 
@@ -261,8 +261,8 @@ func (rm *ReportManager) initializeDefaultTemplates() {
 				Description:  "Include predictive analytics in the report",
 			},
 		},
-		Format:    "json",
-		IsActive:  true,
+		Format:   "json",
+		IsActive: true,
 	}
 
 	// Performance Analytics Template
@@ -314,26 +314,26 @@ func (rm *ReportManager) GenerateReport(ctx context.Context, templateID string, 
 	rm.mu.RLock()
 	_, exists := rm.templates[templateID]
 	rm.mu.RUnlock()
-	
+
 	if !exists {
 		return nil, fmt.Errorf("template not found: %s", templateID)
 	}
-	
+
 	// Create a new report
 	report := &Report{
-		ID:         fmt.Sprintf("report_%d", time.Now().Unix()),
-		TemplateID: templateID,
-		Status:     "completed",
-		CreatedAt:  time.Now(),
+		ID:          fmt.Sprintf("report_%d", time.Now().Unix()),
+		TemplateID:  templateID,
+		Status:      "completed",
+		CreatedAt:   time.Now(),
 		CompletedAt: func() *time.Time { t := time.Now(); return &t }(),
 		Data: &ReportData{
 			Summary: &ReportSummary{
-				Title:           "Generated Report",
+				Title:            "Generated Report",
 				ExecutiveSummary: "This is a generated report",
-				KeyFindings:     []string{"Finding 1", "Finding 2"},
-				KeyMetrics:      map[string]interface{}{"total": 100, "success": 95},
-				Recommendations: []string{"Recommendation 1"},
-				NextSteps:       []string{"Step 1"},
+				KeyFindings:      []string{"Finding 1", "Finding 2"},
+				KeyMetrics:       map[string]interface{}{"total": 100, "success": 95},
+				Recommendations:  []string{"Recommendation 1"},
+				NextSteps:        []string{"Step 1"},
 			},
 		},
 		Metadata: &ReportMetadata{
@@ -343,12 +343,12 @@ func (rm *ReportManager) GenerateReport(ctx context.Context, templateID string, 
 			Parameters:     params,
 		},
 	}
-	
+
 	// Store the report
 	rm.mu.Lock()
 	rm.reports[report.ID] = report
 	rm.mu.Unlock()
-	
+
 	rm.logger.Info("Report generated", "report_id", report.ID, "template_id", templateID)
 	return report, nil
 }
@@ -480,7 +480,7 @@ func (rs *ReportScheduler) shouldRunSchedule(schedule *ScheduleConfig) bool {
 // runScheduledReport runs a scheduled report
 func (rs *ReportScheduler) runScheduledReport(ctx context.Context, schedule *ScheduleConfig) {
 	rs.logger.Info("Running scheduled report", "schedule_id", schedule.ID, "template_id", schedule.TemplateID)
-	
+
 	// Update schedule
 	rs.mu.Lock()
 	now := time.Now()

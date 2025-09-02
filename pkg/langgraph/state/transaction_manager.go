@@ -12,29 +12,29 @@ import (
 
 // TransactionManager manages state transactions with ACID properties
 type TransactionManager struct {
-	store            StateStore
-	transactions     map[string]*StateTransaction
-	timeout          time.Duration
-	logger           *logger.Logger
-	mutex            sync.RWMutex
-	cleanupTicker    *time.Ticker
-	cleanupDone      chan bool
+	store         StateStore
+	transactions  map[string]*StateTransaction
+	timeout       time.Duration
+	logger        *logger.Logger
+	mutex         sync.RWMutex
+	cleanupTicker *time.Ticker
+	cleanupDone   chan bool
 }
 
 // StateTransaction represents a state transaction
 type StateTransaction struct {
-	ID            string                    `json:"id"`
-	Status        TransactionStatus         `json:"status"`
-	IsolationLevel IsolationLevel           `json:"isolation_level"`
-	Operations    []*TransactionOperation   `json:"operations"`
-	Snapshots     map[string]*StateEntry    `json:"snapshots"`
-	CreatedAt     time.Time                 `json:"created_at"`
-	UpdatedAt     time.Time                 `json:"updated_at"`
-	ExpiresAt     time.Time                 `json:"expires_at"`
-	CreatedBy     string                    `json:"created_by"`
-	Context       map[string]interface{}    `json:"context"`
-	Locks         map[string]*TransactionLock `json:"locks"`
-	mutex         sync.RWMutex
+	ID             string                      `json:"id"`
+	Status         TransactionStatus           `json:"status"`
+	IsolationLevel IsolationLevel              `json:"isolation_level"`
+	Operations     []*TransactionOperation     `json:"operations"`
+	Snapshots      map[string]*StateEntry      `json:"snapshots"`
+	CreatedAt      time.Time                   `json:"created_at"`
+	UpdatedAt      time.Time                   `json:"updated_at"`
+	ExpiresAt      time.Time                   `json:"expires_at"`
+	CreatedBy      string                      `json:"created_by"`
+	Context        map[string]interface{}      `json:"context"`
+	Locks          map[string]*TransactionLock `json:"locks"`
+	mutex          sync.RWMutex
 }
 
 // TransactionStatus represents the status of a transaction
@@ -59,13 +59,13 @@ const (
 
 // TransactionOperation represents an operation within a transaction
 type TransactionOperation struct {
-	ID        string            `json:"id"`
-	Type      OperationType     `json:"type"`
-	Key       StateKey          `json:"key"`
-	Value     interface{}       `json:"value,omitempty"`
-	OldValue  interface{}       `json:"old_value,omitempty"`
-	Timestamp time.Time         `json:"timestamp"`
-	Applied   bool              `json:"applied"`
+	ID        string                 `json:"id"`
+	Type      OperationType          `json:"type"`
+	Key       StateKey               `json:"key"`
+	Value     interface{}            `json:"value,omitempty"`
+	OldValue  interface{}            `json:"old_value,omitempty"`
+	Timestamp time.Time              `json:"timestamp"`
+	Applied   bool                   `json:"applied"`
 	Metadata  map[string]interface{} `json:"metadata"`
 }
 
@@ -81,11 +81,11 @@ const (
 
 // TransactionLock represents a lock held by a transaction
 type TransactionLock struct {
-	Key         StateKey    `json:"key"`
-	Type        LockType    `json:"type"`
-	AcquiredAt  time.Time   `json:"acquired_at"`
-	ExpiresAt   time.Time   `json:"expires_at"`
-	Metadata    map[string]interface{} `json:"metadata"`
+	Key        StateKey               `json:"key"`
+	Type       LockType               `json:"type"`
+	AcquiredAt time.Time              `json:"acquired_at"`
+	ExpiresAt  time.Time              `json:"expires_at"`
+	Metadata   map[string]interface{} `json:"metadata"`
 }
 
 // LockType defines types of locks
@@ -549,13 +549,13 @@ func (tm *TransactionManager) cleanupExpiredTransactions() {
 		case <-tm.cleanupTicker.C:
 			tm.mutex.Lock()
 			now := time.Now()
-			
+
 			for txnID, txn := range tm.transactions {
 				if txn.Status == TransactionStatusActive && now.After(txn.ExpiresAt) {
 					txn.Status = TransactionStatusExpired
 					tm.releaseAllLocks(txn)
 					delete(tm.transactions, txnID)
-					
+
 					tm.logger.Warn("Transaction expired",
 						"transaction_id", txnID,
 						"created_at", txn.CreatedAt)

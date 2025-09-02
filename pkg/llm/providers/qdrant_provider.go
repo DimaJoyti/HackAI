@@ -42,12 +42,12 @@ type QdrantPoint struct {
 
 // QdrantSearchRequest represents a search request
 type QdrantSearchRequest struct {
-	Vector      []float64              `json:"vector"`
-	Limit       int                    `json:"limit"`
-	ScoreThreshold *float64            `json:"score_threshold,omitempty"`
-	Filter      map[string]interface{} `json:"filter,omitempty"`
-	WithPayload bool                   `json:"with_payload"`
-	WithVector  bool                   `json:"with_vector"`
+	Vector         []float64              `json:"vector"`
+	Limit          int                    `json:"limit"`
+	ScoreThreshold *float64               `json:"score_threshold,omitempty"`
+	Filter         map[string]interface{} `json:"filter,omitempty"`
+	WithPayload    bool                   `json:"with_payload"`
+	WithVector     bool                   `json:"with_vector"`
 }
 
 // QdrantSearchResponse represents the search response
