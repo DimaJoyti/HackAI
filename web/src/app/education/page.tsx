@@ -24,6 +24,7 @@ const mockUserData = {
   experience: 750,
   nextLevelExp: 1000,
   streak: 7,
+  currentStreak: 7,
   totalTimeSpent: '24h 30m',
   coursesCompleted: 3,
   coursesInProgress: 2,
@@ -149,7 +150,7 @@ export default function EducationDashboard() {
           <div>
             <h1 className="text-2xl font-bold">Welcome back, {mockUserData.name}! 🎓</h1>
             <p className="text-blue-100 mt-1">
-              You're on a {mockUserData.streak}-day learning streak. Keep it up!
+              You're on a {mockUserData.currentStreak}-day learning streak. Keep it up!
             </p>
           </div>
           <div className="text-right">
