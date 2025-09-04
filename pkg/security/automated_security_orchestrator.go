@@ -137,6 +137,13 @@ type SecurityEvent struct {
 	Action         string                 `json:"action"`
 	ProcessingTime time.Duration          `json:"processing_time"`
 	Metadata       map[string]interface{} `json:"metadata"`
+	
+	// Additional fields from advanced_auth_service.go
+	UserID    string `json:"user_id,omitempty"`
+	SessionID string `json:"session_id,omitempty"`
+	IPAddress string `json:"ip_address,omitempty"`
+	UserAgent string `json:"user_agent,omitempty"`
+	Resolved  bool   `json:"resolved,omitempty"`
 }
 
 // SecurityIndicator represents an indicator of compromise or attack

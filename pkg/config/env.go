@@ -37,17 +37,17 @@ func (e *EnvConfig) OptionalEnv(key, defaultValue string) *EnvConfig {
 // Validate checks that all required environment variables are set
 func (e *EnvConfig) Validate() error {
 	var missing []string
-	
+
 	for _, varName := range e.requiredVars {
 		if value := os.Getenv(varName); value == "" {
 			missing = append(missing, varName)
 		}
 	}
-	
+
 	if len(missing) > 0 {
 		return fmt.Errorf("missing required environment variables: %s", strings.Join(missing, ", "))
 	}
-	
+
 	return nil
 }
 
@@ -98,6 +98,23 @@ func GetDuration(key string, defaultValue time.Duration) time.Duration {
 	return defaultValue
 }
 
+// GetStringSlice gets a string slice environment variable with optional default
+// Expects comma-separated values
+func GetStringSlice(key string, defaultValue []string) []string {
+	if value := os.Getenv(key); value != "" {
+		// Split by comma and trim whitespace
+		parts := strings.Split(value, ",")
+		result := make([]string, 0, len(parts))
+		for _, part := range parts {
+			if trimmed := strings.TrimSpace(part); trimmed != "" {
+				result = append(result, trimmed)
+			}
+		}
+		return result
+	}
+	return defaultValue
+}
+
 // MaskSensitive masks sensitive values for logging
 func MaskSensitive(value string) string {
 	if len(value) <= 8 {
@@ -111,27 +128,27 @@ func ValidateSecretStrength(secret string, minLength int) error {
 	if len(secret) < minLength {
 		return fmt.Errorf("secret must be at least %d characters long", minLength)
 	}
-	
+
 	// Check for common weak patterns
 	weakPatterns := []string{
 		"password", "123456", "admin", "secret", "default",
 		"changeme", "test", "demo", "example",
 	}
-	
+
 	lowerSecret := strings.ToLower(secret)
 	for _, pattern := range weakPatterns {
 		if strings.Contains(lowerSecret, pattern) {
 			return fmt.Errorf("secret contains weak pattern: %s", pattern)
 		}
 	}
-	
+
 	return nil
 }
 
 // LoadSecureConfig loads configuration with security validations
 func LoadSecureConfig() error {
 	env := NewEnvConfig()
-	
+
 	// Define required environment variables for production
 	if os.Getenv("APP_ENV") == "production" {
 		env.RequireEnv(
@@ -140,25 +157,25 @@ func LoadSecureConfig() error {
 			"ENCRYPTION_KEY",
 		)
 	}
-	
+
 	// Validate required variables
 	if err := env.Validate(); err != nil {
 		return fmt.Errorf("environment validation failed: %w", err)
 	}
-	
+
 	// Validate secret strength for critical secrets
 	if jwtSecret := os.Getenv("JWT_SECRET"); jwtSecret != "" {
 		if err := ValidateSecretStrength(jwtSecret, 32); err != nil {
 			return fmt.Errorf("JWT_SECRET validation failed: %w", err)
 		}
 	}
-	
+
 	if encKey := os.Getenv("ENCRYPTION_KEY"); encKey != "" {
 		if err := ValidateSecretStrength(encKey, 32); err != nil {
 			return fmt.Errorf("ENCRYPTION_KEY validation failed: %w", err)
 		}
 	}
-	
+
 	return nil
 }
 
@@ -181,15 +198,28 @@ func GetDatabaseConfig() DatabaseConfig {
 // GetRedisConfig returns Redis configuration from environment variables
 func GetRedisConfig() RedisConfig {
 	return RedisConfig{
-		Host:        GetString("REDIS_HOST", "localhost"),
-		Port:        GetString("REDIS_PORT", "6379"),
-		Password:    os.Getenv("REDIS_PASSWORD"), // Can be empty for local dev
-		DB:          GetInt("REDIS_DB", 0),
-		PoolSize:    GetInt("REDIS_POOL_SIZE", 10),
-		MinIdleConns: GetInt("REDIS_MIN_IDLE_CONNS", 5),
-		DialTimeout: GetDuration("REDIS_DIAL_TIMEOUT", 5*time.Second),
-		ReadTimeout: GetDuration("REDIS_READ_TIMEOUT", 3*time.Second),
-		WriteTimeout: GetDuration("REDIS_WRITE_TIMEOUT", 3*time.Second),
+		Host:            GetString("REDIS_HOST", "localhost"),
+		Port:            GetInt("REDIS_PORT", 6379),
+		Password:        os.Getenv("REDIS_PASSWORD"), // Can be empty for local dev
+		Database:        GetInt("REDIS_DATABASE", 0),
+		PoolSize:        GetInt("REDIS_POOL_SIZE", 10),
+		MinIdleConns:    GetInt("REDIS_MIN_IDLE_CONNS", 5),
+		MaxIdleConns:    GetInt("REDIS_MAX_IDLE_CONNS", 10),
+		ConnMaxLifetime: GetInt("REDIS_CONN_MAX_LIFETIME", 3600), // seconds
+		ConnMaxIdleTime: GetInt("REDIS_CONN_MAX_IDLE_TIME", 300), // seconds
+		DialTimeout:     GetInt("REDIS_DIAL_TIMEOUT", 5),         // seconds
+		ReadTimeout:     GetInt("REDIS_READ_TIMEOUT", 3),         // seconds
+		WriteTimeout:    GetInt("REDIS_WRITE_TIMEOUT", 3),        // seconds
+		ClusterMode:     GetBool("REDIS_CLUSTER_MODE", false),
+		ClusterAddrs:    GetStringSlice("REDIS_CLUSTER_ADDRS", []string{}),
+		TLS: RedisTLSConfig{
+			Enabled:            GetBool("REDIS_TLS_ENABLED", false),
+			ServerName:         GetString("REDIS_TLS_SERVER_NAME", ""),
+			InsecureSkipVerify: GetBool("REDIS_TLS_INSECURE_SKIP_VERIFY", false),
+			CertFile:           GetString("REDIS_TLS_CERT_FILE", ""),
+			KeyFile:            GetString("REDIS_TLS_KEY_FILE", ""),
+			CAFile:             GetString("REDIS_TLS_CA_FILE", ""),
+		},
 	}
 }
 

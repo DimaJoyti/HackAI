@@ -28,14 +28,14 @@ type RedisClient struct {
 func NewRedisClient(cfg *config.RedisConfig, logger *logger.Logger) (*RedisClient, error) {
 	// Create Redis options
 	opts := &redis.Options{
-		Addr:         fmt.Sprintf("%s:%s", cfg.Host, cfg.Port),
+		Addr:         fmt.Sprintf("%s:%d", cfg.Host, cfg.Port),
 		Password:     cfg.Password,
-		DB:           cfg.DB,
+		DB:           cfg.Database,
 		PoolSize:     cfg.PoolSize,
 		MinIdleConns: cfg.MinIdleConns,
-		DialTimeout:  cfg.DialTimeout,
-		ReadTimeout:  cfg.ReadTimeout,
-		WriteTimeout: cfg.WriteTimeout,
+		DialTimeout:  time.Duration(cfg.DialTimeout) * time.Second,
+		ReadTimeout:  time.Duration(cfg.ReadTimeout) * time.Second,
+		WriteTimeout: time.Duration(cfg.WriteTimeout) * time.Second,
 	}
 
 	client := redis.NewClient(opts)
@@ -51,7 +51,7 @@ func NewRedisClient(cfg *config.RedisConfig, logger *logger.Logger) (*RedisClien
 	logger.Info("Redis connection established successfully",
 		"host", cfg.Host,
 		"port", cfg.Port,
-		"db", cfg.DB,
+		"db", cfg.Database,
 	)
 
 	return &RedisClient{

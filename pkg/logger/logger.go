@@ -31,16 +31,41 @@ const (
 
 // Config holds logger configuration
 type Config struct {
-	Level      LogLevel `json:"level"`
-	Format     string   `json:"format"` // json, text
-	Output     string   `json:"output"` // stdout, file
-	FilePath   string   `json:"file_path"`
-	AddSource  bool     `json:"add_source"`
-	TimeFormat string   `json:"time_format"`
+	Level          LogLevel `json:"level"`
+	Format         string   `json:"format"` // json, text
+	Output         string   `json:"output"` // stdout, file
+	FilePath       string   `json:"file_path"`
+	AddSource      bool     `json:"add_source"`
+	TimeFormat     string   `json:"time_format"`
+	ServiceName    string   `json:"service_name"`
+	ServiceVersion string   `json:"service_version"`
+	Environment    string   `json:"environment"`
+	MaxSize        int      `json:"max_size"` // megabytes
+	MaxBackups     int      `json:"max_backups"`
+	MaxAge         int      `json:"max_age"` // days
+	Compress       bool     `json:"compress"`
 }
 
 // Fields represents structured log fields
 type Fields map[string]interface{}
+
+// ContextKey represents context keys for logger
+type ContextKey string
+
+const (
+	// CorrelationIDKey is the context key for correlation ID
+	CorrelationIDKey ContextKey = "correlation_id"
+	// RequestIDKey is the context key for request ID
+	RequestIDKey ContextKey = "request_id"
+	// UserIDKey is the context key for user ID
+	UserIDKey ContextKey = "user_id"
+	// SessionIDKey is the context key for session ID
+	SessionIDKey ContextKey = "session_id"
+	// TraceIDKey is the context key for trace ID
+	TraceIDKey ContextKey = "trace_id"
+	// SpanIDKey is the context key for span ID
+	SpanIDKey ContextKey = "span_id"
+)
 
 // New creates a new logger instance
 func New(config Config) (*Logger, error) {
@@ -83,8 +108,20 @@ func New(config Config) (*Logger, error) {
 		handler = slog.NewTextHandler(writer, opts)
 	}
 
+	// Create base logger with service metadata
+	baseLogger := slog.New(handler)
+
+	// Add service metadata if provided
+	if config.ServiceName != "" || config.ServiceVersion != "" || config.Environment != "" {
+		baseLogger = baseLogger.With(
+			slog.String("service", config.ServiceName),
+			slog.String("version", config.ServiceVersion),
+			slog.String("environment", config.Environment),
+		)
+	}
+
 	logger := &Logger{
-		Logger: slog.New(handler),
+		Logger: baseLogger,
 		level:  level,
 	}
 
@@ -105,20 +142,55 @@ func NewDefault() *Logger {
 	return logger
 }
 
-// WithContext adds trace information from context
+// WithContext adds trace information and context values from context
 func (l *Logger) WithContext(ctx context.Context) *Logger {
+	var args []interface{}
+
+	// Add trace information
 	span := trace.SpanFromContext(ctx)
-	if !span.IsRecording() {
+	if span.IsRecording() {
+		spanContext := span.SpanContext()
+		args = append(args,
+			"trace_id", spanContext.TraceID().String(),
+			"span_id", spanContext.SpanID().String(),
+		)
+	}
+
+	// Add correlation ID if present
+	if correlationID := ctx.Value(CorrelationIDKey); correlationID != nil {
+		if id, ok := correlationID.(string); ok {
+			args = append(args, "correlation_id", id)
+		}
+	}
+
+	// Add request ID if present
+	if requestID := ctx.Value(RequestIDKey); requestID != nil {
+		if id, ok := requestID.(string); ok {
+			args = append(args, "request_id", id)
+		}
+	}
+
+	// Add user ID if present
+	if userID := ctx.Value(UserIDKey); userID != nil {
+		if id, ok := userID.(string); ok {
+			args = append(args, "user_id", id)
+		}
+	}
+
+	// Add session ID if present
+	if sessionID := ctx.Value(SessionIDKey); sessionID != nil {
+		if id, ok := sessionID.(string); ok {
+			args = append(args, "session_id", id)
+		}
+	}
+
+	if len(args) == 0 {
 		return l
 	}
 
-	spanContext := span.SpanContext()
 	return &Logger{
-		Logger: l.Logger.With(
-			"trace_id", spanContext.TraceID().String(),
-			"span_id", spanContext.SpanID().String(),
-		),
-		level: l.level,
+		Logger: l.Logger.With(args...),
+		level:  l.level,
 	}
 }
 
@@ -400,6 +472,68 @@ func WithContext(ctx context.Context) *Logger {
 
 func WithFields(fields Fields) *Logger {
 	return defaultLogger.WithFields(fields)
+}
+
+// Context helper functions
+
+// WithCorrelationID adds a correlation ID to the context
+func WithCorrelationID(ctx context.Context, correlationID string) context.Context {
+	return context.WithValue(ctx, CorrelationIDKey, correlationID)
+}
+
+// WithRequestID adds a request ID to the context
+func WithRequestID(ctx context.Context, requestID string) context.Context {
+	return context.WithValue(ctx, RequestIDKey, requestID)
+}
+
+// WithUserID adds a user ID to the context
+func WithUserID(ctx context.Context, userID string) context.Context {
+	return context.WithValue(ctx, UserIDKey, userID)
+}
+
+// WithSessionID adds a session ID to the context
+func WithSessionID(ctx context.Context, sessionID string) context.Context {
+	return context.WithValue(ctx, SessionIDKey, sessionID)
+}
+
+// GetCorrelationID extracts correlation ID from context
+func GetCorrelationID(ctx context.Context) string {
+	if id := ctx.Value(CorrelationIDKey); id != nil {
+		if correlationID, ok := id.(string); ok {
+			return correlationID
+		}
+	}
+	return ""
+}
+
+// GetRequestID extracts request ID from context
+func GetRequestID(ctx context.Context) string {
+	if id := ctx.Value(RequestIDKey); id != nil {
+		if requestID, ok := id.(string); ok {
+			return requestID
+		}
+	}
+	return ""
+}
+
+// GetUserID extracts user ID from context
+func GetUserID(ctx context.Context) string {
+	if id := ctx.Value(UserIDKey); id != nil {
+		if userID, ok := id.(string); ok {
+			return userID
+		}
+	}
+	return ""
+}
+
+// GetSessionID extracts session ID from context
+func GetSessionID(ctx context.Context) string {
+	if id := ctx.Value(SessionIDKey); id != nil {
+		if sessionID, ok := id.(string); ok {
+			return sessionID
+		}
+	}
+	return ""
 }
 
 func WithField(key string, value interface{}) *Logger {

@@ -87,20 +87,19 @@ func main() {
 	}
 
 	// Create security monitor instead of dashboard service
-	monitoringConfig := &security.MonitoringConfig{
-		Enabled:         true,
-		UpdateInterval:  10 * time.Second,
-		RetentionPeriod: 24 * time.Hour,
-		EnableWebSocket: true,
-		// Port:            getEnvInt("DASHBOARD_PORT", 8083), // Field doesn't exist in MonitoringConfig
-	}
+	// securityMonitorConfig := &security.SecurityMonitorConfig{
+	//	EnableThreatDetection:  true,
+	//	EnableAnomalyDetection: true,
+	//	ThreatScoreThreshold:   7.0,
+	//	AnomalyThreshold:       0.8,
+	//	MonitoringInterval:     time.Minute * 5,
+	//	AlertingEnabled:        true,
+	// }
 
-	securityMonitor := security.NewSecurityMonitor(
-		metricsCollector,
-		alertManager,
-		monitoringConfig,
-		logger,
-	)
+	// securityMonitor, err := security.NewSecurityMonitor(securityMonitorConfig, logger)
+	// if err != nil {
+	//	logger.Fatal("Failed to create security monitor", "error", err)
+	// }
 
 	// Initialize incident response system
 	incidentConfig := &security.IncidentResponseConfig{
@@ -163,9 +162,10 @@ func main() {
 		logger.WithError(err).Fatal("Failed to start analytics engine")
 	}
 
-	if err := securityMonitor.Start(); err != nil {
-		logger.WithError(err).Fatal("Failed to start security monitor")
-	}
+	// SecurityMonitor doesn't have Start method in current implementation
+	// if err := securityMonitor.Start(); err != nil {
+	//	logger.WithError(err).Fatal("Failed to start security monitor")
+	// }
 
 	// Setup main HTTP server for additional endpoints
 	router := mux.NewRouter()

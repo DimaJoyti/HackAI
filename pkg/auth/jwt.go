@@ -359,3 +359,17 @@ func (s *Service) IsTokenRevoked(token string) (bool, error) {
 	// TODO: Check token blacklist
 	return false, nil
 }
+
+// Authenticate authenticates a user (placeholder implementation)
+func (s *Service) Authenticate(ctx context.Context, req *AuthenticationRequest) (*AuthenticationResponse, error) {
+	// This is a placeholder implementation
+	// In a real implementation, this would validate credentials and return authentication response
+	return nil, fmt.Errorf("authenticate method not implemented in basic service")
+}
+
+// Logout logs out a user (placeholder implementation)
+func (s *Service) Logout(ctx context.Context, token string, ipAddress, userAgent string) error {
+	// This is a placeholder implementation
+	// In a real implementation, this would revoke the token and log the logout event
+	return s.RevokeToken(token)
+}

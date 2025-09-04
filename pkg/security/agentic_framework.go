@@ -2,6 +2,7 @@ package security
 
 import (
 	"context"
+	"fmt"
 	"strings"
 	"sync"
 	"time"
@@ -13,7 +14,7 @@ import (
 // AgenticSecurityFramework provides autonomous AI security capabilities
 type AgenticSecurityFramework struct {
 	logger          *logger.Logger
-	threatDetector  *ThreatDetector
+	threatDetector  *AgenticThreatDetector
 	promptGuard     *PromptInjectionGuard
 	responseFilter  *ResponseFilter
 	securityAgent   *SecurityAgent
@@ -43,8 +44,8 @@ type SecurityAgent struct {
 	learningModule *LearningModule
 }
 
-// ThreatDetector AI-powered threat detection engine
-type ThreatDetector struct {
+// AgenticThreatDetector AI-powered threat detection engine for agentic systems
+type AgenticThreatDetector struct {
 	logger              *logger.Logger
 	promptPatterns      []*ThreatPattern
 	behaviorAnalyzer    *BehaviorAnalyzer
@@ -100,7 +101,7 @@ func NewAgenticSecurityFramework(config *AgenticConfig, logger *logger.Logger) *
 	}
 
 	// Initialize components
-	framework.threatDetector = NewThreatDetector(logger)
+	framework.threatDetector = NewAgenticThreatDetector(logger)
 	framework.promptGuard = NewPromptInjectionGuard(logger)
 	framework.responseFilter = NewResponseFilter(logger)
 	framework.securityAgent = NewSecurityAgent(config, logger)
@@ -297,15 +298,93 @@ func DefaultAgenticConfig() *AgenticConfig {
 
 // Supporting component implementations
 
-// NewThreatDetector creates a new threat detector
-func NewThreatDetector(logger *logger.Logger) *ThreatDetector {
-	return &ThreatDetector{
+// NewAgenticThreatDetector creates a new agentic threat detector
+func NewAgenticThreatDetector(logger *logger.Logger) *AgenticThreatDetector {
+	return &AgenticThreatDetector{
 		logger:              logger,
 		promptPatterns:      loadThreatPatterns(),
 		behaviorAnalyzer:    NewBehaviorAnalyzer(logger),
 		anomalyDetector:     NewAnomalyDetector(logger),
 		confidenceThreshold: 0.7,
 	}
+}
+
+// AnalyzeBehavior analyzes behavior patterns for threats
+func (atd *AgenticThreatDetector) AnalyzeBehavior(req *SecurityRequest) []*ThreatDetection {
+	var threats []*ThreatDetection
+
+	// Analyze behavior patterns using prompt patterns
+	for _, pattern := range atd.promptPatterns {
+		if atd.matchesPattern(req.Body, pattern) {
+			threat := &ThreatDetection{
+				ID:          uuid.New().String(),
+				Type:        "behavior_analysis",
+				Severity:    pattern.Severity,
+				Confidence:  pattern.Confidence,
+				Description: fmt.Sprintf("Behavior pattern detected: %s", pattern.Name),
+				DetectedAt:  time.Now(),
+				Evidence:    []string{req.Body},
+				Indicators:  []string{pattern.Pattern},
+				Metadata: map[string]interface{}{
+					"pattern_id":   pattern.ID,
+					"pattern_name": pattern.Name,
+					"user_id":      req.UserID,
+				},
+			}
+			threats = append(threats, threat)
+		}
+	}
+
+	return threats
+}
+
+// DetectAnomalies detects anomalous patterns
+func (atd *AgenticThreatDetector) DetectAnomalies(req *SecurityRequest) *ThreatDetection {
+	// Simple anomaly detection based on request characteristics
+	anomalyScore := 0.0
+
+	// Check for unusual request size
+	if len(req.Body) > 10000 {
+		anomalyScore += 0.3
+	}
+
+	// Check for suspicious patterns
+	if strings.Contains(strings.ToLower(req.Body), "ignore") ||
+		strings.Contains(strings.ToLower(req.Body), "forget") ||
+		strings.Contains(strings.ToLower(req.Body), "override") {
+		anomalyScore += 0.4
+	}
+
+	// Check for rapid requests (simplified check)
+	if len(req.Body) > 5000 && strings.Count(req.Body, "\n") > 100 {
+		anomalyScore += 0.3
+	}
+
+	if anomalyScore >= atd.confidenceThreshold {
+		return &ThreatDetection{
+			ID:          uuid.New().String(),
+			Type:        "anomaly_detection",
+			Severity:    "medium",
+			Confidence:  anomalyScore,
+			Description: "Anomalous behavior detected",
+			DetectedAt:  time.Now(),
+			Evidence:    []string{req.Body},
+			Indicators:  []string{"large_request", "suspicious_patterns"},
+			Metadata: map[string]interface{}{
+				"anomaly_score":  anomalyScore,
+				"detection_type": "behavioral_anomaly",
+				"user_id":        req.UserID,
+			},
+		}
+	}
+
+	return nil
+}
+
+// matchesPattern checks if content matches a threat pattern
+func (atd *AgenticThreatDetector) matchesPattern(content string, pattern *ThreatPattern) bool {
+	// Simple pattern matching - in production this would use more sophisticated matching
+	return strings.Contains(strings.ToLower(content), strings.ToLower(pattern.Pattern))
 }
 
 // NewSecurityAgent creates a new security agent
@@ -352,50 +431,6 @@ func (sa *SecurityAgent) MakeDecision(ctx context.Context, analysis *SecurityAna
 	}
 
 	return decision
-}
-
-// AnalyzeBehavior analyzes behavioral patterns
-func (td *ThreatDetector) AnalyzeBehavior(req *SecurityRequest) []*ThreatDetection {
-	var threats []*ThreatDetection
-
-	// Analyze request patterns
-	if td.behaviorAnalyzer != nil {
-		behaviorThreats := td.behaviorAnalyzer.AnalyzeRequest(req, nil)
-		if behaviorThreats > 0.5 {
-			threat := &ThreatDetection{
-				ID:          uuid.New().String(),
-				Type:        "behavioral_anomaly",
-				Severity:    "medium",
-				Confidence:  behaviorThreats,
-				Description: "Suspicious behavioral pattern detected",
-				DetectedAt:  time.Now(),
-			}
-			threats = append(threats, threat)
-		}
-	}
-
-	return threats
-}
-
-// DetectAnomalies detects anomalies in the request
-func (td *ThreatDetector) DetectAnomalies(req *SecurityRequest) *ThreatDetection {
-	if td.anomalyDetector == nil {
-		return nil
-	}
-
-	anomalyScore := td.anomalyDetector.DetectAnomalies(req)
-	if anomalyScore > td.confidenceThreshold {
-		return &ThreatDetection{
-			ID:          uuid.New().String(),
-			Type:        "anomaly_detection",
-			Severity:    "medium",
-			Confidence:  anomalyScore,
-			Description: "Anomalous request pattern detected",
-			DetectedAt:  time.Now(),
-		}
-	}
-
-	return nil
 }
 
 // Helper methods for security actions

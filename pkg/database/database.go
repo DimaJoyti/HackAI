@@ -73,11 +73,19 @@ func New(cfg *config.DatabaseConfig, log *pkglogger.Logger) (*DB, error) {
 	}, nil
 }
 
-// Migrate runs database migrations
+// Migrate runs database migrations using the new migration system
 func (db *DB) Migrate() error {
 	db.logger.Info("Running database migrations...")
 
-	// Auto-migrate all domain models
+	// Create migration manager
+	migrationManager := NewMigrationManager(db.DB, db.logger)
+
+	// Run all pending migrations
+	if err := migrationManager.RunMigrations(); err != nil {
+		return fmt.Errorf("failed to run migrations: %w", err)
+	}
+
+	// Auto-migrate domain models for any new fields (GORM will only add, not remove)
 	err := db.AutoMigrate(
 		// User management
 		&domain.User{},
@@ -112,23 +120,28 @@ func (db *DB) Migrate() error {
 		&domain.PolicyRule{},
 		&domain.PolicyTemplate{},
 		&domain.PolicyExecution{},
+
+		// Migration tracking
+		&Migration{},
 	)
 	if err != nil {
-		return fmt.Errorf("failed to run migrations: %w", err)
-	}
-
-	// Create indexes
-	if err := db.createIndexes(); err != nil {
-		return fmt.Errorf("failed to create indexes: %w", err)
-	}
-
-	// Create constraints
-	if err := db.createConstraints(); err != nil {
-		return fmt.Errorf("failed to create constraints: %w", err)
+		return fmt.Errorf("failed to auto-migrate domain models: %w", err)
 	}
 
 	db.logger.Info("Database migrations completed successfully")
 	return nil
+}
+
+// MigrateToVersion migrates to a specific version
+func (db *DB) MigrateToVersion(version string) error {
+	migrationManager := NewMigrationManager(db.DB, db.logger)
+	return migrationManager.RollbackToVersion(version)
+}
+
+// GetMigrationStatus returns the current migration status
+func (db *DB) GetMigrationStatus() (map[string]interface{}, error) {
+	migrationManager := NewMigrationManager(db.DB, db.logger)
+	return migrationManager.GetMigrationStatus()
 }
 
 // createIndexes creates additional database indexes

@@ -9,13 +9,14 @@ import (
 
 // Config holds all configuration for the application
 type Config struct {
-	Server        ServerConfig        `json:"server"`
-	Database      DatabaseConfig      `json:"database"`
-	Redis         RedisConfig         `json:"redis"`
-	JWT           JWTConfig           `json:"jwt"`
-	Security      SecurityConfig      `json:"security"`
-	Observability ObservabilityConfig `json:"observability"`
-	AI            AIConfig            `json:"ai"`
+	Environment   string              `json:"environment" yaml:"environment"`
+	Server        ServerConfig        `json:"server" yaml:"server"`
+	Database      DatabaseConfig      `json:"database" yaml:"database"`
+	Redis         RedisConfig         `json:"redis" yaml:"redis"`
+	JWT           JWTConfig           `json:"jwt" yaml:"jwt"`
+	Security      SecurityConfig      `json:"security" yaml:"security"`
+	Observability ObservabilityConfig `json:"observability" yaml:"observability"`
+	AI            AIConfig            `json:"ai" yaml:"ai"`
 }
 
 // ServerConfig holds server configuration
@@ -46,15 +47,31 @@ type DatabaseConfig struct {
 
 // RedisConfig holds Redis configuration
 type RedisConfig struct {
-	Host         string        `json:"host"`
-	Port         string        `json:"port"`
-	Password     string        `json:"password"`
-	DB           int           `json:"db"`
-	PoolSize     int           `json:"pool_size"`
-	MinIdleConns int           `json:"min_idle_conns"`
-	DialTimeout  time.Duration `json:"dial_timeout"`
-	ReadTimeout  time.Duration `json:"read_timeout"`
-	WriteTimeout time.Duration `json:"write_timeout"`
+	Host            string         `json:"host" yaml:"host"`
+	Port            int            `json:"port" yaml:"port"`
+	Password        string         `json:"password" yaml:"password"`
+	Database        int            `json:"database" yaml:"database"`
+	PoolSize        int            `json:"pool_size" yaml:"pool_size"`
+	MinIdleConns    int            `json:"min_idle_conns" yaml:"min_idle_conns"`
+	MaxIdleConns    int            `json:"max_idle_conns" yaml:"max_idle_conns"`
+	ConnMaxLifetime int            `json:"conn_max_lifetime" yaml:"conn_max_lifetime"`   // seconds
+	ConnMaxIdleTime int            `json:"conn_max_idle_time" yaml:"conn_max_idle_time"` // seconds
+	DialTimeout     int            `json:"dial_timeout" yaml:"dial_timeout"`             // seconds
+	ReadTimeout     int            `json:"read_timeout" yaml:"read_timeout"`             // seconds
+	WriteTimeout    int            `json:"write_timeout" yaml:"write_timeout"`           // seconds
+	ClusterMode     bool           `json:"cluster_mode" yaml:"cluster_mode"`
+	ClusterAddrs    []string       `json:"cluster_addrs" yaml:"cluster_addrs"`
+	TLS             RedisTLSConfig `json:"tls" yaml:"tls"`
+}
+
+// RedisTLSConfig holds Redis TLS configuration
+type RedisTLSConfig struct {
+	Enabled            bool   `json:"enabled" yaml:"enabled"`
+	ServerName         string `json:"server_name" yaml:"server_name"`
+	InsecureSkipVerify bool   `json:"insecure_skip_verify" yaml:"insecure_skip_verify"`
+	CertFile           string `json:"cert_file" yaml:"cert_file"`
+	KeyFile            string `json:"key_file" yaml:"key_file"`
+	CAFile             string `json:"ca_file" yaml:"ca_file"`
 }
 
 // JWTConfig holds JWT configuration
@@ -103,14 +120,14 @@ type RateLimitConfig struct {
 
 // ObservabilityConfig holds observability configuration
 type ObservabilityConfig struct {
-	Enabled     bool                         `json:"enabled"`
-	Tracing     TracingConfig                `json:"tracing"`
-	Metrics     MetricsConfig                `json:"metrics"`
-	Logging     LoggingConfig                `json:"logging"`
-	HealthCheck HealthCheckConfig            `json:"health_check"`
-	Profiling   ProfilingConfig              `json:"profiling"`
-	Alerting    ObservabilityAlertingConfig  `json:"alerting"`
-	Dashboard   DashboardConfig              `json:"dashboard"`
+	Enabled     bool                        `json:"enabled"`
+	Tracing     TracingConfig               `json:"tracing"`
+	Metrics     MetricsConfig               `json:"metrics"`
+	Logging     LoggingConfig               `json:"logging"`
+	HealthCheck HealthCheckConfig           `json:"health_check"`
+	Profiling   ProfilingConfig             `json:"profiling"`
+	Alerting    ObservabilityAlertingConfig `json:"alerting"`
+	Dashboard   DashboardConfig             `json:"dashboard"`
 }
 
 // TracingConfig holds tracing configuration
@@ -175,6 +192,46 @@ type AIConfig struct {
 	NetworkAnalyzer      NetworkAnalyzerConfig `json:"network_analyzer"`
 	ThreatIntelligence   ThreatIntelConfig     `json:"threat_intelligence"`
 	LogAnalyzer          LogAnalyzerConfig     `json:"log_analyzer"`
+}
+
+// DefaultObservabilityConfig returns a default observability configuration
+func DefaultObservabilityConfig() *ObservabilityConfig {
+	return &ObservabilityConfig{
+		Enabled: true,
+		Tracing: TracingConfig{
+			Enabled:     true,
+			ServiceName: "hackai",
+			Endpoint:    "http://localhost:14268/api/traces",
+			SampleRate:  1.0,
+		},
+		Metrics: MetricsConfig{
+			Enabled: true,
+			Path:    "/metrics",
+			Port:    "9090",
+		},
+		Logging: LoggingConfig{
+			Enabled: true,
+			Level:   "info",
+			Format:  "json",
+			Output:  "stdout",
+		},
+		HealthCheck: HealthCheckConfig{
+			Enabled:  true,
+			Port:     8080,
+			Endpoint: "/health",
+		},
+		Profiling: ProfilingConfig{
+			Enabled: false,
+			Port:    6060,
+		},
+		Alerting: ObservabilityAlertingConfig{
+			Enabled: false,
+		},
+		Dashboard: DashboardConfig{
+			Enabled: true,
+			Port:    3000,
+		},
+	}
 }
 
 // VulnScannerConfig holds vulnerability scanner configuration
@@ -244,8 +301,8 @@ func Load() (*Config, error) {
 			},
 		},
 		Database: GetDatabaseConfig(),
-		Redis: GetRedisConfig(),
-		JWT: GetJWTConfig(),
+		Redis:    GetRedisConfig(),
+		JWT:      GetJWTConfig(),
 		Security: SecurityConfig{
 			PasswordMinLength:      getIntEnv("PASSWORD_MIN_LENGTH", 8),
 			PasswordRequireUpper:   getBoolEnv("PASSWORD_REQUIRE_UPPER", true),
@@ -396,4 +453,146 @@ func getMapEnv(key string) map[string]string {
 		// For now, return empty map
 	}
 	return result
+}
+
+// EnhancedConfigManager provides comprehensive configuration management
+type EnhancedConfigManager struct {
+	config          *Config
+	envManager      *EnvironmentManager
+	secretsManager  *SecretsManager
+	featuresManager *FeatureFlagsManager
+	configPath      string
+}
+
+// NewEnhancedConfigManager creates a new enhanced configuration manager
+func NewEnhancedConfigManager(configPath string) (*EnhancedConfigManager, error) {
+	if configPath == "" {
+		configPath = "configs"
+	}
+
+	// Determine current environment
+	env := os.Getenv("APP_ENV")
+	if env == "" {
+		env = "development"
+	}
+
+	// Initialize environment manager
+	envManager, err := NewEnvironmentManager(env, "hackai")
+	if err != nil {
+		return nil, fmt.Errorf("failed to create environment manager: %w", err)
+	}
+
+	// Initialize secrets manager
+	encryptionKey := os.Getenv("CONFIG_ENCRYPTION_KEY")
+	if encryptionKey == "" {
+		encryptionKey = "default-key-for-development-only"
+	}
+
+	secretsManager, err := NewSecretsManager(encryptionKey, "hackai")
+	if err != nil {
+		return nil, fmt.Errorf("failed to create secrets manager: %w", err)
+	}
+
+	// Initialize feature flags manager
+	featuresManager := NewFeatureFlagsManager()
+
+	return &EnhancedConfigManager{
+		envManager:      envManager,
+		secretsManager:  secretsManager,
+		featuresManager: featuresManager,
+		configPath:      configPath,
+	}, nil
+}
+
+// LoadEnhancedConfig loads configuration using the enhanced manager
+func LoadEnhancedConfig() (*Config, *EnhancedConfigManager, error) {
+	manager, err := NewEnhancedConfigManager("")
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to create config manager: %w", err)
+	}
+
+	config, err := manager.LoadConfig()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return config, manager, nil
+}
+
+// LoadConfig loads the complete configuration
+func (ecm *EnhancedConfigManager) LoadConfig() (*Config, error) {
+	// Load base configuration
+	config, err := Load() // Use existing Load function
+	if err != nil {
+		return nil, fmt.Errorf("failed to load base config: %w", err)
+	}
+
+	// Apply environment settings (use the environment from OS)
+	env := os.Getenv("APP_ENV")
+	if env == "" {
+		env = "development"
+	}
+	config.Environment = env
+
+	// Load secrets and apply them to configuration
+	if err := ecm.applySecrets(config); err != nil {
+		return nil, fmt.Errorf("failed to apply secrets: %w", err)
+	}
+
+	// Validate configuration
+	result := ValidateConfig(config)
+	if !result.Valid {
+		return nil, fmt.Errorf("configuration validation failed: %d errors", len(result.Errors))
+	}
+
+	// Log warnings if any
+	if len(result.Warnings) > 0 {
+		fmt.Printf("Configuration warnings: %d warnings found\n", len(result.Warnings))
+	}
+
+	ecm.config = config
+	return config, nil
+}
+
+// applySecrets applies secrets to configuration
+func (ecm *EnhancedConfigManager) applySecrets(config *Config) error {
+	// Apply database password
+	if dbPassword, exists := ecm.secretsManager.GetSecret("database.password"); exists {
+		config.Database.Password = dbPassword
+	}
+
+	// Apply Redis password
+	if redisPassword, exists := ecm.secretsManager.GetSecret("redis.password"); exists {
+		config.Redis.Password = redisPassword
+	}
+
+	// Apply JWT secret
+	if jwtSecret, exists := ecm.secretsManager.GetSecret("jwt.secret"); exists {
+		config.JWT.Secret = jwtSecret
+	}
+
+	// Apply other secrets as needed
+	// Note: Add more secret applications based on your specific configuration structure
+
+	return nil
+}
+
+// GetEnvironmentManager returns the environment manager
+func (ecm *EnhancedConfigManager) GetEnvironmentManager() *EnvironmentManager {
+	return ecm.envManager
+}
+
+// GetSecretsManager returns the secrets manager
+func (ecm *EnhancedConfigManager) GetSecretsManager() *SecretsManager {
+	return ecm.secretsManager
+}
+
+// GetFeatureFlagsManager returns the feature flags manager
+func (ecm *EnhancedConfigManager) GetFeatureFlagsManager() *FeatureFlagsManager {
+	return ecm.featuresManager
+}
+
+// IsFeatureEnabled checks if a feature flag is enabled
+func (ecm *EnhancedConfigManager) IsFeatureEnabled(flagName string) bool {
+	return ecm.featuresManager.IsEnabled(flagName)
 }

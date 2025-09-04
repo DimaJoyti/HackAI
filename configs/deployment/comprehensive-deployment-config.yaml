@@ -1,0 +1,520 @@
+# HackAI Comprehensive Deployment Configuration
+# Enterprise-grade deployment configuration for all environments
+
+# Global Deployment Settings
+global:
+  project_name: "hackai"
+  version: "1.0.0"
+  namespace: "hackai"
+  enable_monitoring: true
+  enable_security: true
+  enable_backup: true
+  enable_disaster_recovery: true
+  enable_multi_cloud: false
+  enable_gitops: true
+
+# Environment Configurations
+environments:
+  development:
+    name: "development"
+    type: "dev"
+    description: "Development environment for testing and development"
+    auto_deploy: true
+    auto_scale: false
+    replicas:
+      min: 1
+      max: 3
+      default: 1
+    resources:
+      cpu: "100m"
+      memory: "128Mi"
+      storage: "1Gi"
+    security:
+      enable_pod_security: false
+      enable_network_policies: false
+      enable_rbac: true
+    monitoring:
+      enable_metrics: true
+      enable_logging: true
+      enable_tracing: true
+      log_level: "debug"
+    
+  staging:
+    name: "staging"
+    type: "staging"
+    description: "Staging environment for pre-production testing"
+    auto_deploy: true
+    auto_scale: true
+    replicas:
+      min: 2
+      max: 5
+      default: 2
+    resources:
+      cpu: "200m"
+      memory: "256Mi"
+      storage: "5Gi"
+    security:
+      enable_pod_security: true
+      enable_network_policies: true
+      enable_rbac: true
+    monitoring:
+      enable_metrics: true
+      enable_logging: true
+      enable_tracing: true
+      log_level: "info"
+    
+  production:
+    name: "production"
+    type: "prod"
+    description: "Production environment for live workloads"
+    auto_deploy: false
+    auto_scale: true
+    replicas:
+      min: 3
+      max: 20
+      default: 5
+    resources:
+      cpu: "500m"
+      memory: "512Mi"
+      storage: "20Gi"
+    security:
+      enable_pod_security: true
+      enable_network_policies: true
+      enable_rbac: true
+      security_scanning: true
+    monitoring:
+      enable_metrics: true
+      enable_logging: true
+      enable_tracing: true
+      enable_alerting: true
+      log_level: "warn"
+
+# Deployment Strategies
+deployment_strategies:
+  rolling:
+    enabled: true
+    max_unavailable: "25%"
+    max_surge: "25%"
+    progress_deadline: "10m"
+    revision_history: 10
+    
+  blue_green:
+    enabled: true
+    auto_promote: false
+    promote_timeout: "5m"
+    test_timeout: "10m"
+    scale_down_delay: "2m"
+    
+  canary:
+    enabled: true
+    steps:
+      - weight: 10
+        pause: "2m"
+      - weight: 25
+        pause: "5m"
+      - weight: 50
+        pause: "10m"
+      - weight: 100
+    analysis:
+      success_rate: 99.0
+      latency_p95: "500ms"
+      error_rate: 1.0
+
+# Infrastructure Configuration
+infrastructure:
+  # Cloud Provider Settings
+  cloud_provider: "kubernetes"
+  region: "us-west-2"
+  availability_zones:
+    - "us-west-2a"
+    - "us-west-2b"
+    - "us-west-2c"
+  
+  # Cluster Configuration
+  cluster:
+    name: "hackai-cluster"
+    kubernetes_version: "1.28"
+    node_groups:
+      - name: "system-nodes"
+        instance_type: "t3.medium"
+        min_size: 2
+        max_size: 5
+        desired_size: 3
+        disk_size: 20
+        labels:
+          node-type: "system"
+        taints:
+          - key: "node-type"
+            value: "system"
+            effect: "NoSchedule"
+      - name: "worker-nodes"
+        instance_type: "t3.large"
+        min_size: 3
+        max_size: 20
+        desired_size: 5
+        disk_size: 50
+        labels:
+          node-type: "worker"
+  
+  # Network Configuration
+  network:
+    vpc_cidr: "10.0.0.0/16"
+    subnet_cidrs:
+      - "10.0.1.0/24"
+      - "10.0.2.0/24"
+      - "10.0.3.0/24"
+    enable_nat_gateway: true
+    enable_vpn_gateway: false
+    security_groups:
+      - name: "hackai-api"
+        description: "Security group for API services"
+        ingress_rules:
+          - protocol: "tcp"
+            from_port: 80
+            to_port: 80
+            cidr_blocks: ["0.0.0.0/0"]
+          - protocol: "tcp"
+            from_port: 443
+            to_port: 443
+            cidr_blocks: ["0.0.0.0/0"]
+        egress_rules:
+          - protocol: "-1"
+            from_port: 0
+            to_port: 0
+            cidr_blocks: ["0.0.0.0/0"]
+  
+  # Storage Configuration
+  storage:
+    storage_classes:
+      - name: "fast-ssd"
+        provisioner: "kubernetes.io/aws-ebs"
+        parameters:
+          type: "gp3"
+          iops: "3000"
+          throughput: "125"
+        reclaim_policy: "Delete"
+        volume_binding_mode: "WaitForFirstConsumer"
+        allow_volume_expansion: true
+      - name: "standard"
+        provisioner: "kubernetes.io/aws-ebs"
+        parameters:
+          type: "gp2"
+        reclaim_policy: "Delete"
+        volume_binding_mode: "Immediate"
+        allow_volume_expansion: true
+    backup_enabled: true
+    backup_schedule: "0 2 * * *"
+    retention_period: "30d"
+
+# Container Configuration
+containers:
+  registry: "ghcr.io"
+  image_prefix: "hackai"
+  image_tag: "latest"
+  pull_policy: "Always"
+  
+  # Service Definitions
+  services:
+    api-gateway:
+      image: "ghcr.io/hackai/api-gateway"
+      port: 8080
+      replicas: 3
+      resources:
+        requests:
+          cpu: "200m"
+          memory: "256Mi"
+        limits:
+          cpu: "500m"
+          memory: "512Mi"
+      health_check:
+        type: "http"
+        path: "/health"
+        port: 8080
+        initial_delay: "30s"
+        period: "10s"
+        timeout: "5s"
+        failure_threshold: 3
+      environment:
+        LOG_LEVEL: "info"
+        METRICS_ENABLED: "true"
+        TRACING_ENABLED: "true"
+    
+    user-service:
+      image: "ghcr.io/hackai/user-service"
+      port: 8081
+      replicas: 2
+      resources:
+        requests:
+          cpu: "100m"
+          memory: "128Mi"
+        limits:
+          cpu: "300m"
+          memory: "256Mi"
+      health_check:
+        type: "http"
+        path: "/health"
+        port: 8081
+        initial_delay: "30s"
+        period: "10s"
+        timeout: "5s"
+        failure_threshold: 3
+    
+    scanner-service:
+      image: "ghcr.io/hackai/scanner-service"
+      port: 8082
+      replicas: 2
+      resources:
+        requests:
+          cpu: "200m"
+          memory: "256Mi"
+        limits:
+          cpu: "1000m"
+          memory: "1Gi"
+      health_check:
+        type: "http"
+        path: "/health"
+        port: 8082
+        initial_delay: "60s"
+        period: "15s"
+        timeout: "10s"
+        failure_threshold: 3
+    
+    threat-service:
+      image: "ghcr.io/hackai/threat-service"
+      port: 8083
+      replicas: 2
+      resources:
+        requests:
+          cpu: "200m"
+          memory: "256Mi"
+        limits:
+          cpu: "800m"
+          memory: "512Mi"
+      health_check:
+        type: "http"
+        path: "/health"
+        port: 8083
+        initial_delay: "45s"
+        period: "10s"
+        timeout: "5s"
+        failure_threshold: 3
+
+# Security Configuration
+security:
+  enable_pod_security: true
+  enable_network_policies: true
+  enable_rbac: true
+  enable_security_scanning: true
+  
+  # Pod Security Standards
+  pod_security:
+    enforce: "restricted"
+    audit: "restricted"
+    warn: "restricted"
+  
+  # Network Policies
+  network_policies:
+    - name: "deny-all-ingress"
+      selector:
+        matchLabels:
+          app: "hackai"
+      ingress: []
+    - name: "allow-api-gateway"
+      selector:
+        matchLabels:
+          app: "api-gateway"
+      ingress:
+        - from:
+          - namespaceSelector:
+              matchLabels:
+                name: "ingress-nginx"
+          ports:
+          - protocol: "TCP"
+            port: 8080
+  
+  # RBAC Configuration
+  rbac:
+    service_accounts:
+      - name: "hackai-api"
+        namespace: "hackai"
+      - name: "hackai-worker"
+        namespace: "hackai"
+    roles:
+      - name: "hackai-api-role"
+        rules:
+          - apiGroups: [""]
+            resources: ["pods", "services"]
+            verbs: ["get", "list", "watch"]
+    role_bindings:
+      - name: "hackai-api-binding"
+        role_ref:
+          kind: "Role"
+          name: "hackai-api-role"
+        subjects:
+          - kind: "ServiceAccount"
+            name: "hackai-api"
+            namespace: "hackai"
+
+# Monitoring Configuration
+monitoring:
+  enable_metrics: true
+  enable_logging: true
+  enable_tracing: true
+  enable_alerting: true
+  
+  # Metrics Configuration
+  metrics:
+    prometheus:
+      enabled: true
+      retention: "15d"
+      storage_size: "50Gi"
+    grafana:
+      enabled: true
+      admin_password: "admin"
+      dashboards:
+        - "kubernetes-cluster"
+        - "application-metrics"
+        - "business-metrics"
+  
+  # Logging Configuration
+  logging:
+    fluentd:
+      enabled: true
+      log_level: "info"
+    elasticsearch:
+      enabled: true
+      replicas: 3
+      storage_size: "100Gi"
+    kibana:
+      enabled: true
+  
+  # Tracing Configuration
+  tracing:
+    jaeger:
+      enabled: true
+      strategy: "production"
+      storage_type: "elasticsearch"
+  
+  # Alerting Configuration
+  alerting:
+    alertmanager:
+      enabled: true
+      slack_webhook: "${SLACK_WEBHOOK_URL}"
+      pagerduty_key: "${PAGERDUTY_INTEGRATION_KEY}"
+    rules:
+      - name: "high-cpu-usage"
+        condition: "cpu_usage > 80"
+        duration: "5m"
+        severity: "warning"
+      - name: "high-memory-usage"
+        condition: "memory_usage > 85"
+        duration: "5m"
+        severity: "warning"
+      - name: "pod-crash-loop"
+        condition: "pod_restarts > 5"
+        duration: "2m"
+        severity: "critical"
+
+# Backup and Disaster Recovery
+backup:
+  enabled: true
+  schedule: "0 2 * * *"
+  retention_policy: "30d"
+  storage_location: "s3://hackai-backups"
+  encryption_enabled: true
+  
+  # Backup Targets
+  targets:
+    - type: "database"
+      name: "postgresql"
+      schedule: "0 */6 * * *"
+    - type: "persistent_volumes"
+      name: "application-data"
+      schedule: "0 2 * * *"
+    - type: "configuration"
+      name: "kubernetes-configs"
+      schedule: "0 1 * * *"
+
+# Cost Optimization
+cost_optimization:
+  enabled: true
+  budget: 1000.0
+  currency: "USD"
+  
+  # Auto-scaling Configuration
+  auto_scaling:
+    enabled: true
+    metrics:
+      - type: "cpu"
+        target: 70
+      - type: "memory"
+        target: 80
+    scale_up:
+      stabilization_window: "3m"
+      policies:
+        - type: "pods"
+          value: 2
+          period: "1m"
+    scale_down:
+      stabilization_window: "5m"
+      policies:
+        - type: "pods"
+          value: 1
+          period: "1m"
+  
+  # Spot Instances
+  spot_instances:
+    enabled: false
+    max_price: "0.10"
+    instance_types:
+      - "t3.medium"
+      - "t3.large"
+      - "m5.large"
+
+# CI/CD Integration
+cicd:
+  enabled: true
+  provider: "github_actions"
+  
+  # Pipeline Configuration
+  pipeline:
+    stages:
+      - name: "build"
+        image: "golang:1.21-alpine"
+        commands:
+          - "go mod download"
+          - "go build -o bin/app ./cmd/api"
+      - name: "test"
+        image: "golang:1.21-alpine"
+        commands:
+          - "go test -v ./..."
+          - "go test -race -coverprofile=coverage.out ./..."
+      - name: "security-scan"
+        image: "securecodewarrior/docker-gosec"
+        commands:
+          - "gosec -fmt json ./..."
+      - name: "build-image"
+        image: "docker:24-dind"
+        commands:
+          - "docker build -t $IMAGE_NAME:$VERSION ."
+          - "docker push $IMAGE_NAME:$VERSION"
+      - name: "deploy"
+        image: "bitnami/kubectl"
+        commands:
+          - "kubectl apply -f k8s/"
+          - "kubectl rollout status deployment/api-gateway"
+  
+  # Deployment Triggers
+  triggers:
+    - branch: "main"
+      environment: "production"
+      auto_deploy: false
+      require_approval: true
+    - branch: "develop"
+      environment: "staging"
+      auto_deploy: true
+      require_approval: false
+    - branch: "feature/*"
+      environment: "development"
+      auto_deploy: true
+      require_approval: false

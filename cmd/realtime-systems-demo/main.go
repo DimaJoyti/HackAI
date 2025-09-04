@@ -41,14 +41,14 @@ func main() {
 	var redisClient *infrastructure.RedisClient
 	redisConfig := &config.RedisConfig{
 		Host:         "localhost",
-		Port:         "6379",
+		Port:         6379,
 		Password:     "",
-		DB:           0,
+		Database:     0,
 		PoolSize:     10,
 		MinIdleConns: 5,
-		DialTimeout:  5 * time.Second,
-		ReadTimeout:  3 * time.Second,
-		WriteTimeout: 3 * time.Second,
+		DialTimeout:  5, // seconds
+		ReadTimeout:  3, // seconds
+		WriteTimeout: 3, // seconds
 	}
 
 	redisClient, err = infrastructure.NewRedisClient(redisConfig, logger)

@@ -87,17 +87,7 @@ type AuthenticationConfig struct {
 	OAuth               map[string]interface{} `yaml:"oauth"`
 }
 
-// AuthorizationConfig defines authorization settings
-type AuthorizationConfig struct {
-	RBACEnabled        bool                   `yaml:"rbac_enabled"`
-	ABACEnabled        bool                   `yaml:"abac_enabled"`
-	DefaultRole        string                 `yaml:"default_role"`
-	PermissionCaching  bool                   `yaml:"permission_caching"`
-	CacheExpiration    time.Duration          `yaml:"cache_expiration"`
-	PolicyEvaluation   map[string]interface{} `yaml:"policy_evaluation"`
-	ResourceHierarchy  map[string]interface{} `yaml:"resource_hierarchy"`
-	DynamicPermissions bool                   `yaml:"dynamic_permissions"`
-}
+// Note: AuthorizationConfig is defined in advanced_auth_service.go
 
 // EncryptionConfig defines encryption settings
 type EncryptionConfig struct {
@@ -161,12 +151,24 @@ type ComprehensiveSecurityIncident struct {
 
 // NewComprehensiveSecurityManager creates a new comprehensive security manager
 func NewComprehensiveSecurityManager(config *SecurityConfig, logger *logger.Logger) *ComprehensiveSecurityManager {
+	// Create default SecurityMonitorConfig
+	securityMonitorConfig := &SecurityMonitorConfig{
+		EnableThreatDetection:  true,
+		EnableAnomalyDetection: true,
+		ThreatScoreThreshold:   7.0,
+		AnomalyThreshold:       0.8,
+		MonitoringInterval:     time.Minute * 5,
+		AlertingEnabled:        true,
+	}
+	
+	threatDetector, _ := NewThreatDetector(securityMonitorConfig, logger)
+
 	return &ComprehensiveSecurityManager{
 		authenticationManager: nil, // Placeholder for AuthenticationManager
 		authorizationManager:  nil, // Placeholder for AuthorizationManager
 		encryptionManager:     func() interface{} { em, _ := NewEncryptionManager(logger); return em }(),
 		auditManager:          nil, // Placeholder for AuditManager
-		threatDetector:        NewThreatDetector(logger),
+		threatDetector:        threatDetector,
 		complianceEngine:      NewComplianceEngine(logger),
 		incidentManager:       NewIncidentManager(logger),
 		securityPolicies:      nil, // Placeholder for SecurityPolicyEngine

@@ -52,27 +52,6 @@ func NewEnhancedAuthService(
 	}
 }
 
-// AuthenticationRequest represents an authentication request
-type AuthenticationRequest struct {
-	EmailOrUsername string `json:"email_or_username"`
-	Password        string `json:"password"`
-	TOTPCode        string `json:"totp_code,omitempty"`
-	IPAddress       string `json:"ip_address"`
-	UserAgent       string `json:"user_agent"`
-	DeviceID        string `json:"device_id,omitempty"`
-	RememberMe      bool   `json:"remember_me"`
-}
-
-// AuthenticationResponse represents an authentication response
-type AuthenticationResponse struct {
-	User         *domain.User `json:"user"`
-	AccessToken  string       `json:"access_token"`
-	RefreshToken string       `json:"refresh_token,omitempty"`
-	ExpiresAt    time.Time    `json:"expires_at"`
-	SessionID    uuid.UUID    `json:"session_id"`
-	RequiresTOTP bool         `json:"requires_totp"`
-	CSRFToken    string       `json:"csrf_token,omitempty"`
-}
 
 // Authenticate performs comprehensive user authentication
 func (eas *EnhancedAuthService) Authenticate(ctx context.Context, req *AuthenticationRequest) (*AuthenticationResponse, error) {

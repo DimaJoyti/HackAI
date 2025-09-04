@@ -176,14 +176,23 @@ func mergeConfigs(base, env *Config) *Config {
 	if env.Redis.Host != "" {
 		merged.Redis.Host = env.Redis.Host
 	}
-	if env.Redis.Port != "" {
+	if env.Redis.Port != 0 {
 		merged.Redis.Port = env.Redis.Port
 	}
 	if env.Redis.Password != "" {
 		merged.Redis.Password = env.Redis.Password
 	}
-	if env.Redis.DB != 0 {
-		merged.Redis.DB = env.Redis.DB
+	if env.Redis.Database != 0 {
+		merged.Redis.Database = env.Redis.Database
+	}
+	if env.Redis.PoolSize != 0 {
+		merged.Redis.PoolSize = env.Redis.PoolSize
+	}
+	if env.Redis.MinIdleConns != 0 {
+		merged.Redis.MinIdleConns = env.Redis.MinIdleConns
+	}
+	if env.Redis.MaxIdleConns != 0 {
+		merged.Redis.MaxIdleConns = env.Redis.MaxIdleConns
 	}
 
 	// JWT configuration
@@ -228,7 +237,6 @@ func expandEnvironmentVariables(config *Config) error {
 
 	// Redis
 	config.Redis.Host = expandEnvVar(config.Redis.Host)
-	config.Redis.Port = expandEnvVar(config.Redis.Port)
 	config.Redis.Password = expandEnvVar(config.Redis.Password)
 
 	// JWT
@@ -323,6 +331,7 @@ func IsDevelopment() bool {
 // DefaultConfigForEnvironment returns default configuration for the specified environment
 func DefaultConfigForEnvironment(env Environment) *Config {
 	config := &Config{
+		Environment: string(env),
 		Server: ServerConfig{
 			Port:            "8080",
 			Host:            "0.0.0.0",
@@ -344,10 +353,28 @@ func DefaultConfigForEnvironment(env Environment) *Config {
 			ConnMaxIdleTime: 1 * time.Minute,
 		},
 		Redis: RedisConfig{
-			Host:     "localhost",
-			Port:     "6379",
-			Password: "",
-			DB:       0,
+			Host:            "localhost",
+			Port:            6379,
+			Password:        "",
+			Database:        0,
+			PoolSize:        10,
+			MinIdleConns:    5,
+			MaxIdleConns:    10,
+			ConnMaxLifetime: 3600,
+			ConnMaxIdleTime: 300,
+			DialTimeout:     5,
+			ReadTimeout:     3,
+			WriteTimeout:    3,
+			ClusterMode:     false,
+			ClusterAddrs:    []string{},
+			TLS: RedisTLSConfig{
+				Enabled:            false,
+				ServerName:         "",
+				InsecureSkipVerify: false,
+				CertFile:           "",
+				KeyFile:            "",
+				CAFile:             "",
+			},
 		},
 		JWT: JWTConfig{
 			Secret:               "default-secret-change-in-production",

@@ -154,6 +154,35 @@ func (am *SystemAlertManager) Stop() error {
 	return nil
 }
 
+// ProcessAlerts processes pending alerts and sends notifications
+func (am *SystemAlertManager) ProcessAlerts(ctx context.Context) error {
+	if !am.config.Enabled {
+		return nil
+	}
+
+	am.mu.RLock()
+	alerts := make([]*Alert, 0, len(am.alerts))
+	for _, alert := range am.alerts {
+		if alert.Status == AlertStatusFiring {
+			alerts = append(alerts, alert)
+		}
+	}
+	am.mu.RUnlock()
+
+	if len(alerts) == 0 {
+		return nil
+	}
+
+	am.logger.Debug("Processing alerts", "count", len(alerts))
+
+	// Send notifications for firing alerts
+	for _, alert := range alerts {
+		am.sendAlert(alert)
+	}
+
+	return nil
+}
+
 // initializeDefaultRules initializes default alerting rules
 func (am *SystemAlertManager) initializeDefaultRules() {
 	defaultRules := []*AlertRuleConfig{

@@ -9,48 +9,12 @@ import (
 	"net"
 	"regexp"
 	"strings"
+	"sync"
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
-
-	"github.com/dimajoyti/hackai/internal/domain"
 )
 
-// SecurityConfig holds security configuration
-type SecurityConfig struct {
-	// Password policy
-	MinPasswordLength    int
-	RequireUppercase     bool
-	RequireLowercase     bool
-	RequireNumbers       bool
-	RequireSpecialChars  bool
-	PasswordHistoryCount int
-
-	// Account lockout
-	MaxFailedAttempts int
-	LockoutDuration   time.Duration
-
-	// Session security
-	SessionTimeout        time.Duration
-	MaxConcurrentSessions int
-
-	// Rate limiting
-	LoginRateLimit  int
-	LoginRateWindow time.Duration
-
-	// Two-factor authentication
-	TOTPIssuer string
-	TOTPDigits int
-	TOTPPeriod int
-
-	// IP restrictions
-	AllowedIPRanges []string
-	BlockedIPRanges []string
-
-	// Security headers
-	EnableCSRF      bool
-	CSRFTokenLength int
-}
 
 // DefaultSecurityConfig returns default security configuration
 func DefaultSecurityConfig() *SecurityConfig {
@@ -199,22 +163,14 @@ func NewIPSecurityManager(config *SecurityConfig) *IPSecurityManager {
 }
 
 // IsIPAllowed checks if an IP address is allowed
-func (ism *IPSecurityManager) IsIPAllowed(ipStr string) bool {
-	ip := net.ParseIP(ipStr)
+func (ism *IPSecurityManager) IsIPAllowed(ipAddress string) bool {
+	if len(ism.config.AllowedIPRanges) == 0 {
+		return true // No restrictions
+	}
+
+	ip := net.ParseIP(ipAddress)
 	if ip == nil {
 		return false
-	}
-
-	// Check blocked ranges first
-	for _, rangeStr := range ism.config.BlockedIPRanges {
-		if ism.isIPInRange(ip, rangeStr) {
-			return false
-		}
-	}
-
-	// If no allowed ranges specified, allow all (except blocked)
-	if len(ism.config.AllowedIPRanges) == 0 {
-		return true
 	}
 
 	// Check allowed ranges
@@ -227,21 +183,44 @@ func (ism *IPSecurityManager) IsIPAllowed(ipStr string) bool {
 	return false
 }
 
+// IsIPBlocked checks if an IP address is blocked
+func (ism *IPSecurityManager) IsIPBlocked(ipAddress string) bool {
+	if len(ism.config.BlockedIPRanges) == 0 {
+		return false // No blocks
+	}
+
+	ip := net.ParseIP(ipAddress)
+	if ip == nil {
+		return true // Invalid IP is blocked
+	}
+
+	// Check blocked ranges
+	for _, rangeStr := range ism.config.BlockedIPRanges {
+		if ism.isIPInRange(ip, rangeStr) {
+			return true
+		}
+	}
+
+	return false
+}
+
 // isIPInRange checks if an IP is in a CIDR range
 func (ism *IPSecurityManager) isIPInRange(ip net.IP, rangeStr string) bool {
+	// Handle single IP
+	if !strings.Contains(rangeStr, "/") {
+		return ip.Equal(net.ParseIP(rangeStr))
+	}
+
+	// Handle CIDR range
 	_, ipNet, err := net.ParseCIDR(rangeStr)
 	if err != nil {
-		// Try parsing as single IP
-		rangeIP := net.ParseIP(rangeStr)
-		if rangeIP != nil {
-			return ip.Equal(rangeIP)
-		}
 		return false
 	}
+
 	return ipNet.Contains(ip)
 }
 
-// TOTPManager handles Time-based One-Time Password operations
+// TOTPManager handles TOTP operations
 type TOTPManager struct {
 	config *SecurityConfig
 }
@@ -251,7 +230,7 @@ func NewTOTPManager(config *SecurityConfig) *TOTPManager {
 	return &TOTPManager{config: config}
 }
 
-// GenerateSecret generates a new TOTP secret
+// GenerateSecret generates a TOTP secret
 func (tm *TOTPManager) GenerateSecret() (string, error) {
 	secret := make([]byte, 20) // 160 bits
 	if _, err := rand.Read(secret); err != nil {
@@ -261,9 +240,9 @@ func (tm *TOTPManager) GenerateSecret() (string, error) {
 }
 
 // GenerateQRCodeURL generates a QR code URL for TOTP setup
-func (tm *TOTPManager) GenerateQRCodeURL(secret, accountName string) string {
+func (tm *TOTPManager) GenerateQRCodeURL(secret, email string) string {
 	return fmt.Sprintf("otpauth://totp/%s:%s?secret=%s&issuer=%s&digits=%d&period=%d",
-		tm.config.TOTPIssuer, accountName, secret, tm.config.TOTPIssuer,
+		tm.config.TOTPIssuer, email, secret, tm.config.TOTPIssuer,
 		tm.config.TOTPDigits, tm.config.TOTPPeriod)
 }
 
@@ -271,178 +250,57 @@ func (tm *TOTPManager) GenerateQRCodeURL(secret, accountName string) string {
 func (tm *TOTPManager) VerifyTOTP(secret, code string) bool {
 	// This is a simplified implementation
 	// In production, use a proper TOTP library like github.com/pquerna/otp
-	return len(code) == tm.config.TOTPDigits && code != ""
+	return len(code) == tm.config.TOTPDigits
 }
 
-// SessionManager handles session security
-type SessionManager struct {
-	config *SecurityConfig
-}
-
-// NewSessionManager creates a new session manager
-func NewSessionManager(config *SecurityConfig) *SessionManager {
-	return &SessionManager{config: config}
-}
-
-// GenerateSessionID generates a secure session ID
-func (sm *SessionManager) GenerateSessionID() (string, error) {
-	return GenerateSecureToken(32)
-}
-
-// IsSessionValid checks if a session is valid
-func (sm *SessionManager) IsSessionValid(session *domain.UserSession) bool {
-	if session == nil {
-		return false
-	}
-
-	// Check if session is expired
-	if session.IsExpired() {
-		return false
-	}
-
-	// Check session timeout
-	if time.Since(session.CreatedAt) > sm.config.SessionTimeout {
-		return false
-	}
-
-	return true
-}
-
-// SecurityEventType represents types of security events
-type SecurityEventType string
-
-const (
-	SecurityEventLogin            SecurityEventType = "login"
-	SecurityEventLoginFailed      SecurityEventType = "login_failed"
-	SecurityEventLogout           SecurityEventType = "logout"
-	SecurityEventPasswordChange   SecurityEventType = "password_change"
-	SecurityEventAccountLocked    SecurityEventType = "account_locked"
-	SecurityEventSuspiciousIP     SecurityEventType = "suspicious_ip"
-	SecurityEventTOTPEnabled      SecurityEventType = "totp_enabled"
-	SecurityEventTOTPDisabled     SecurityEventType = "totp_disabled"
-	SecurityEventPermissionGrant  SecurityEventType = "permission_grant"
-	SecurityEventPermissionRevoke SecurityEventType = "permission_revoke"
-)
-
-// SecurityEvent represents a security-related event
-type SecurityEvent struct {
-	Type      SecurityEventType      `json:"type"`
-	UserID    string                 `json:"user_id,omitempty"`
-	IPAddress string                 `json:"ip_address"`
-	UserAgent string                 `json:"user_agent"`
-	Details   map[string]interface{} `json:"details"`
-	Timestamp time.Time              `json:"timestamp"`
-	Severity  string                 `json:"severity"`
-	Success   bool                   `json:"success"`
-}
-
-// SecurityAuditor handles security event logging and analysis
-type SecurityAuditor struct {
-	config *SecurityConfig
-}
-
-// NewSecurityAuditor creates a new security auditor
-func NewSecurityAuditor(config *SecurityConfig) *SecurityAuditor {
-	return &SecurityAuditor{config: config}
-}
-
-// LogSecurityEvent logs a security event
-func (sa *SecurityAuditor) LogSecurityEvent(event *SecurityEvent) {
-	// In a real implementation, this would log to a security event store
-	// For now, we'll just ensure the event is properly formatted
-	if event.Timestamp.IsZero() {
-		event.Timestamp = time.Now()
-	}
-
-	if event.Severity == "" {
-		event.Severity = sa.determineSeverity(event.Type, event.Success)
-	}
-}
-
-// determineSeverity determines the severity of a security event
-func (sa *SecurityAuditor) determineSeverity(eventType SecurityEventType, success bool) string {
-	switch eventType {
-	case SecurityEventLoginFailed, SecurityEventAccountLocked, SecurityEventSuspiciousIP:
-		return "high"
-	case SecurityEventLogin, SecurityEventLogout:
-		if success {
-			return "low"
-		}
-		return "medium"
-	case SecurityEventPasswordChange, SecurityEventTOTPEnabled, SecurityEventTOTPDisabled:
-		return "medium"
-	case SecurityEventPermissionGrant, SecurityEventPermissionRevoke:
-		return "high"
-	default:
-		return "low"
-	}
-}
-
-// RateLimiter handles rate limiting for authentication attempts
-type RateLimiter struct {
-	config *SecurityConfig
-	// In production, this would use Redis or similar for distributed rate limiting
-	attempts map[string][]time.Time
-}
-
-// NewRateLimiter creates a new rate limiter
-func NewRateLimiter(config *SecurityConfig) *RateLimiter {
-	return &RateLimiter{
-		config:   config,
-		attempts: make(map[string][]time.Time),
-	}
-}
-
-// IsAllowed checks if a request is allowed based on rate limiting
-func (rl *RateLimiter) IsAllowed(identifier string) bool {
-	now := time.Now()
-	windowStart := now.Add(-rl.config.LoginRateWindow)
-
-	// Clean old attempts
-	attempts := rl.attempts[identifier]
-	validAttempts := make([]time.Time, 0)
-	for _, attempt := range attempts {
-		if attempt.After(windowStart) {
-			validAttempts = append(validAttempts, attempt)
-		}
-	}
-
-	// Check if under limit
-	if len(validAttempts) >= rl.config.LoginRateLimit {
-		return false
-	}
-
-	// Record this attempt
-	validAttempts = append(validAttempts, now)
-	rl.attempts[identifier] = validAttempts
-
-	return true
-}
-
-// AccountLockoutManager handles account lockout functionality
+// AccountLockoutManager handles account lockout
 type AccountLockoutManager struct {
-	config *SecurityConfig
-	// In production, this would use Redis or database for persistence
-	failedAttempts map[string]int
-	lockoutTimes   map[string]time.Time
+	config         *SecurityConfig
+	failedAttempts map[string]*FailedAttemptInfo
+	mutex          sync.RWMutex
+}
+
+// FailedAttemptInfo tracks failed login attempts
+type FailedAttemptInfo struct {
+	Count        int
+	FirstAttempt time.Time
+	LastAttempt  time.Time
+	LockedUntil  *time.Time
 }
 
 // NewAccountLockoutManager creates a new account lockout manager
 func NewAccountLockoutManager(config *SecurityConfig) *AccountLockoutManager {
 	return &AccountLockoutManager{
 		config:         config,
-		failedAttempts: make(map[string]int),
-		lockoutTimes:   make(map[string]time.Time),
+		failedAttempts: make(map[string]*FailedAttemptInfo),
 	}
 }
 
 // RecordFailedAttempt records a failed login attempt
 func (alm *AccountLockoutManager) RecordFailedAttempt(identifier string) bool {
-	alm.failedAttempts[identifier]++
+	alm.mutex.Lock()
+	defer alm.mutex.Unlock()
 
-	if alm.failedAttempts[identifier] >= alm.config.MaxFailedAttempts {
-		alm.lockoutTimes[identifier] = time.Now()
-		return true // Account is now locked
+	now := time.Now()
+	info, exists := alm.failedAttempts[identifier]
+
+	if !exists {
+		info = &FailedAttemptInfo{
+			Count:        1,
+			FirstAttempt: now,
+			LastAttempt:  now,
+		}
+		alm.failedAttempts[identifier] = info
+	} else {
+		info.Count++
+		info.LastAttempt = now
+	}
+
+	// Check if account should be locked
+	if info.Count >= alm.config.MaxFailedAttempts {
+		lockUntil := now.Add(alm.config.LockoutDuration)
+		info.LockedUntil = &lockUntil
+		return true
 	}
 
 	return false
@@ -450,23 +308,158 @@ func (alm *AccountLockoutManager) RecordFailedAttempt(identifier string) bool {
 
 // IsAccountLocked checks if an account is locked
 func (alm *AccountLockoutManager) IsAccountLocked(identifier string) bool {
-	lockoutTime, exists := alm.lockoutTimes[identifier]
+	alm.mutex.RLock()
+	defer alm.mutex.RUnlock()
+
+	info, exists := alm.failedAttempts[identifier]
 	if !exists {
 		return false
 	}
 
-	if time.Since(lockoutTime) > alm.config.LockoutDuration {
-		// Lockout has expired
-		delete(alm.lockoutTimes, identifier)
-		delete(alm.failedAttempts, identifier)
+	if info.LockedUntil == nil {
 		return false
 	}
 
-	return true
+	return time.Now().Before(*info.LockedUntil)
 }
 
 // ClearFailedAttempts clears failed attempts for an identifier
 func (alm *AccountLockoutManager) ClearFailedAttempts(identifier string) {
+	alm.mutex.Lock()
+	defer alm.mutex.Unlock()
+
 	delete(alm.failedAttempts, identifier)
-	delete(alm.lockoutTimes, identifier)
+}
+
+// RateLimiter handles rate limiting
+type RateLimiter struct {
+	config   *SecurityConfig
+	attempts map[string]*RateLimitInfo
+	mutex    sync.RWMutex
+}
+
+// RateLimitInfo tracks rate limit information
+type RateLimitInfo struct {
+	Count       int
+	WindowStart time.Time
+}
+
+// NewRateLimiter creates a new rate limiter
+func NewRateLimiter(config *SecurityConfig) *RateLimiter {
+	return &RateLimiter{
+		config:   config,
+		attempts: make(map[string]*RateLimitInfo),
+	}
+}
+
+// IsAllowed checks if a request is allowed based on rate limits
+func (rl *RateLimiter) IsAllowed(identifier string) bool {
+	rl.mutex.Lock()
+	defer rl.mutex.Unlock()
+
+	now := time.Now()
+	info, exists := rl.attempts[identifier]
+
+	if !exists {
+		rl.attempts[identifier] = &RateLimitInfo{
+			Count:       1,
+			WindowStart: now,
+		}
+		return true
+	}
+
+	// Check if window has expired
+	if now.Sub(info.WindowStart) > rl.config.LoginRateWindow {
+		info.Count = 1
+		info.WindowStart = now
+		return true
+	}
+
+	// Check if limit exceeded
+	if info.Count >= rl.config.LoginRateLimit {
+		return false
+	}
+
+	info.Count++
+	return true
+}
+
+// SecurityEvent represents a security event
+type SecurityEvent struct {
+	Type      SecurityEventType      `json:"type"`
+	UserID    string                 `json:"user_id"`
+	IPAddress string                 `json:"ip_address"`
+	UserAgent string                 `json:"user_agent"`
+	Details   map[string]interface{} `json:"details"`
+	Success   bool                   `json:"success"`
+	Timestamp time.Time              `json:"timestamp"`
+	Severity  string                 `json:"severity"`
+}
+
+// SecurityEventType represents types of security events
+type SecurityEventType string
+
+const (
+	SecurityEventLogin            SecurityEventType = "login"
+	SecurityEventLogout           SecurityEventType = "logout"
+	SecurityEventLoginFailed      SecurityEventType = "login_failed"
+	SecurityEventPasswordChange   SecurityEventType = "password_change"
+	SecurityEventTOTPEnabled      SecurityEventType = "totp_enabled"
+	SecurityEventTOTPDisabled     SecurityEventType = "totp_disabled"
+	SecurityEventAccountLocked    SecurityEventType = "account_locked"
+	SecurityEventSuspiciousIP     SecurityEventType = "suspicious_ip"
+	SecurityEventPermissionGrant  SecurityEventType = "permission_grant"
+	SecurityEventPermissionRevoke SecurityEventType = "permission_revoke"
+)
+
+// SecurityAuditor handles security event logging
+type SecurityAuditor struct {
+	config *SecurityConfig
+	events []SecurityEvent
+	mutex  sync.RWMutex
+}
+
+// NewSecurityAuditor creates a new security auditor
+func NewSecurityAuditor(config *SecurityConfig) *SecurityAuditor {
+	return &SecurityAuditor{
+		config: config,
+		events: make([]SecurityEvent, 0),
+	}
+}
+
+// LogSecurityEvent logs a security event
+func (sa *SecurityAuditor) LogSecurityEvent(event *SecurityEvent) {
+	sa.mutex.Lock()
+	defer sa.mutex.Unlock()
+
+	event.Timestamp = time.Now()
+	event.Severity = sa.determineSeverity(event.Type, event.Success)
+
+	sa.events = append(sa.events, *event)
+
+	// In production, you would send this to a logging service
+	// or store in a database
+}
+
+// determineSeverity determines the severity of a security event
+func (sa *SecurityAuditor) determineSeverity(eventType SecurityEventType, success bool) string {
+	if !success {
+		switch eventType {
+		case SecurityEventLoginFailed, SecurityEventAccountLocked, SecurityEventSuspiciousIP:
+			return "high"
+		case SecurityEventPasswordChange:
+			return "medium"
+		default:
+			return "low"
+		}
+	}
+
+	switch eventType {
+	case SecurityEventPermissionGrant, SecurityEventPermissionRevoke:
+		return "medium"
+	case SecurityEventTOTPEnabled, SecurityEventTOTPDisabled:
+		return "medium"
+	default:
+		return "low"
+	}
 }
