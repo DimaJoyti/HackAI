@@ -152,6 +152,10 @@ func setupRoutes(cfg *config.Config, log *logger.Logger, authService auth.AuthSe
 	mux.HandleFunc("GET /docs", gatewayHandler.APIDocs)
 	mux.HandleFunc("GET /docs/", gatewayHandler.APIDocs)
 
+	// Dashboard v2 frontend (serve as static content for now)
+	mux.HandleFunc("GET /dashboard", serveDashboardPage)
+	mux.HandleFunc("GET /dashboard/", serveDashboardPage)
+
 	// Authentication endpoints (no auth required)
 	mux.HandleFunc("POST /api/v1/auth/register", gatewayHandler.Register)
 	mux.HandleFunc("POST /api/v1/auth/login", gatewayHandler.Login)
@@ -194,6 +198,7 @@ func setupRoutes(cfg *config.Config, log *logger.Logger, authService auth.AuthSe
 	// WebSocket endpoints
 	protectedMux.HandleFunc("GET /api/v1/ws/scans", gatewayHandler.WebSocketHandler)
 
+
 	// Apply middleware chain
 	var handler http.Handler = mux
 
@@ -214,4 +219,143 @@ func setupRoutes(cfg *config.Config, log *logger.Logger, authService auth.AuthSe
 	handler = middleware.RequestID(handler)
 
 	return handler
+}
+
+// serveDashboardPage serves the dashboard v2 frontend page
+func serveDashboardPage(w http.ResponseWriter, r *http.Request) {
+	html := `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HackAI Dashboard v2.0</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+            color: #00ff41;
+            font-family: 'Courier New', monospace;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .dashboard-container {
+            text-align: center;
+            padding: 2rem;
+            border: 1px solid #00ff41;
+            border-radius: 10px;
+            background: rgba(0, 255, 65, 0.1);
+            max-width: 800px;
+            box-shadow: 0 0 20px rgba(0, 255, 65, 0.3);
+        }
+        .logo {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            text-shadow: 0 0 10px #00ff41;
+        }
+        .version {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            opacity: 0.8;
+        }
+        .feature-list {
+            text-align: left;
+            margin: 2rem 0;
+        }
+        .feature-item {
+            margin: 0.5rem 0;
+            padding: 0.5rem;
+            border-left: 2px solid #00ff41;
+            padding-left: 1rem;
+        }
+        .api-link {
+            color: #00ff41;
+            text-decoration: none;
+            border: 1px solid #00ff41;
+            padding: 0.5rem 1rem;
+            margin: 0.5rem;
+            display: inline-block;
+            border-radius: 5px;
+            transition: all 0.3s;
+        }
+        .api-link:hover {
+            background: rgba(0, 255, 65, 0.2);
+            text-shadow: 0 0 5px #00ff41;
+        }
+        .status {
+            margin-top: 2rem;
+            padding: 1rem;
+            border: 1px solid #00ff41;
+            border-radius: 5px;
+            background: rgba(0, 255, 65, 0.05);
+        }
+        .upgrade-info {
+            margin-top: 1rem;
+            padding: 1rem;
+            border: 1px solid #ff6b35;
+            border-radius: 5px;
+            background: rgba(255, 107, 53, 0.1);
+            color: #ff6b35;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <div class="logo">🚀 HackAI</div>
+        <div class="version">Dashboard v2.0 - Advanced AI Security Platform</div>
+        
+        <div class="feature-list">
+            <div class="feature-item">🤖 AI Autopilot - Autonomous system management</div>
+            <div class="feature-item">🧠 Neural Analytics - Predictive insights engine</div>
+            <div class="feature-item">⚡ Edge Computing - Distributed processing</div>
+            <div class="feature-item">🔒 Quantum Security - Next-gen encryption</div>
+            <div class="feature-item">🎨 Adaptive UI - Personalized interfaces</div>
+            <div class="feature-item">🛡️ Zero Trust Architecture - Comprehensive security</div>
+        </div>
+
+        <div>
+            <a href="/api/v1/admin/stats" class="api-link">System Stats</a>
+            <a href="/docs" class="api-link">API Documentation</a>
+            <a href="/health" class="api-link">Health Check</a>
+            <a href="/metrics" class="api-link">Metrics</a>
+        </div>
+
+        <div class="upgrade-info">
+            <strong>🔧 Upgrade Available!</strong><br>
+            Run the dashboard upgrade utility:<br>
+            <code>go run cmd/dashboard-upgrade/main.go</code>
+        </div>
+
+        <div class="status">
+            <strong>Status:</strong> ✅ Dashboard v2.0 Available<br>
+            <strong>API Gateway:</strong> ✅ Running<br>
+            <strong>Upgrade Process:</strong> ✅ Ready to Execute
+        </div>
+    </div>
+
+    <script>
+        // Simple status check
+        function updateStatus() {
+            fetch('/health')
+                .then(response => response.json())
+                .then(data => {
+                    console.log('System Status:', data);
+                })
+                .catch(error => {
+                    console.log('Status check failed:', error);
+                });
+        }
+        
+        // Update status every 30 seconds
+        setInterval(updateStatus, 30000);
+        updateStatus();
+    </script>
+</body>
+</html>`;
+
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(html))
 }

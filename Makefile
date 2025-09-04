@@ -463,3 +463,45 @@ health: ## Check service health
 	curl -f http://localhost:8083/health || echo "Network Service: DOWN"
 	curl -f http://localhost:8084/health || echo "Threat Service: DOWN"
 	curl -f http://localhost:8085/health || echo "Log Service: DOWN"
+
+# Agentic Drop Zones targets
+.PHONY: run-dropzones build-dropzones test-dropzones dropzones-demo dropzones-health
+
+run-dropzones: ## Run Agentic Drop Zones demo
+	@echo "Starting Agentic Drop Zones demo..."
+	go run examples/dropzones/agentic_dropzones_demo.go
+
+build-dropzones: ## Build Agentic Drop Zones
+	@echo "Building Agentic Drop Zones..."
+	@mkdir -p bin
+	go build -o bin/agentic-dropzones examples/dropzones/agentic_dropzones_demo.go
+	@echo "Agentic Drop Zones built successfully"
+
+test-dropzones: ## Test Drop Zones packages
+	@echo "Testing Drop Zones..."
+	go test -v ./pkg/dropzones/...
+	go test -v ./pkg/dropzones/agents/...
+	go test -v ./pkg/dropzones/api/...
+
+dropzones-demo: build-dropzones ## Run built Agentic Drop Zones demo
+	@echo "Running Agentic Drop Zones demo..."
+	./bin/agentic-dropzones
+
+dropzones-health: ## Check Agentic Drop Zones health
+	@echo "Checking Agentic Drop Zones health..."
+	curl -f http://localhost:8080/api/v1/health || echo "Drop Zones API: DOWN"
+	curl -f http://localhost:8080/demo/status || echo "Drop Zones Demo: DOWN"
+
+dropzones-submit-sample: ## Submit sample data to drop zones
+	@echo "Submitting sample data to drop zones..."
+	curl -X POST http://localhost:8080/demo/submit-sample-data
+
+dropzones-docs: ## Open drop zones documentation
+	@echo "Opening Agentic Drop Zones documentation..."
+	@if command -v xdg-open >/dev/null 2>&1; then \
+		xdg-open docs/AGENTIC_DROP_ZONES.md; \
+	elif command -v open >/dev/null 2>&1; then \
+		open docs/AGENTIC_DROP_ZONES.md; \
+	else \
+		echo "Please open docs/AGENTIC_DROP_ZONES.md manually"; \
+	fi
