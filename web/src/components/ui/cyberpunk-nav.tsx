@@ -26,7 +26,7 @@ interface CyberpunkNavProps {
 }
 
 export const CyberpunkNav: React.FC<CyberpunkNavProps> = ({
-  items,
+  items = [],
   className,
   variant = 'horizontal',
   theme = 'blue',

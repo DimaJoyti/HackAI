@@ -5,6 +5,7 @@ import { ThemeProvider } from 'next-themes'
 import { useState } from 'react'
 import { AuthProvider } from '@/hooks/use-auth'
 import { AdvancedFirebaseAuthProvider } from '@/contexts/AdvancedFirebaseAuthContext'
+import { FirebaseAuthProvider } from '@/contexts/FirebaseAuthContext'
 import { CyberpunkThemeProvider } from '@/components/ui/cyberpunk-theme-provider'
 import { OptimizationProvider, PerformanceMonitorDisplay } from '@/providers/optimization-provider'
 
@@ -46,12 +47,14 @@ export function Providers({ children }: { readonly children: React.ReactNode }) 
           disableTransitionOnChange
         >
           <CyberpunkThemeProvider>
-            <AdvancedFirebaseAuthProvider>
-              <AuthProvider>
-                {children}
-                <PerformanceMonitorDisplay />
-              </AuthProvider>
-            </AdvancedFirebaseAuthProvider>
+            <FirebaseAuthProvider>
+              <AdvancedFirebaseAuthProvider>
+                <AuthProvider>
+                  {children}
+                  <PerformanceMonitorDisplay />
+                </AuthProvider>
+              </AdvancedFirebaseAuthProvider>
+            </FirebaseAuthProvider>
           </CyberpunkThemeProvider>
         </ThemeProvider>
       </QueryClientProvider>

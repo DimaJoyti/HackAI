@@ -299,6 +299,8 @@ export const DataStream: React.FC<DataStreamProps> = ({
   color = 'green'
 }) => {
   const containerRef = useRef<HTMLDivElement>(null)
+  const [isClient, setIsClient] = useState(false)
+  const [dataStrings, setDataStrings] = useState<string[]>([])
 
   const colorMap = {
     blue: 'text-cyber-blue-neon',
@@ -326,9 +328,21 @@ export const DataStream: React.FC<DataStreamProps> = ({
     return Array.from({ length }, () => chars[Math.floor(Math.random() * chars.length)]).join('')
   }
 
+  // Generate data strings only on client to avoid hydration mismatch
+  useEffect(() => {
+    setIsClient(true)
+    const strings = Array.from({ length: streamCount }, () => generateDataString())
+    setDataStrings(strings)
+  }, [streamCount, direction])
+
+  // Don't render anything on server to avoid hydration issues
+  if (!isClient) {
+    return <div className={cn('absolute inset-0 overflow-hidden pointer-events-none', className)} />
+  }
+
   return (
     <div ref={containerRef} className={cn('absolute inset-0 overflow-hidden pointer-events-none', className)}>
-      {Array.from({ length: streamCount }).map((_, i) => (
+      {dataStrings.map((dataString, i) => (
         <div
           key={i}
           className={cn(
@@ -342,7 +356,7 @@ export const DataStream: React.FC<DataStreamProps> = ({
             animationDelay: `${i * 0.5}s`
           }}
         >
-          {generateDataString()}
+          {dataString}
         </div>
       ))}
     </div>

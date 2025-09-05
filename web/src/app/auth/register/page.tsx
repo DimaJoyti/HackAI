@@ -15,20 +15,27 @@ import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext'
 import { getAuthErrorMessage } from '@/lib/firebase'
 import { toast } from 'react-hot-toast'
 
-const loginSchema = z.object({
-  email: z.string().email('Please enter a valid email address'),
-  password: z.string().min(1, 'Password is required'),
-  rememberMe: z.boolean().optional(),
+const signupSchema = z.object({
+  firstName: z.string().min(1, 'First name is required'),
+  lastName: z.string().min(1, 'Last name is required'),
+  email: z.string().email('Invalid email address'),
+  password: z.string().min(6, 'Password must be at least 6 characters'),
+  confirmPassword: z.string().min(6, 'Password confirmation is required'),
+  agreeToTerms: z.boolean().refine(val => val === true, 'You must agree to the terms'),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords don't match",
+  path: ["confirmPassword"],
 })
 
-type LoginForm = z.infer<typeof loginSchema>
+type SignupForm = z.infer<typeof signupSchema>
 
-export default function LoginPage() {
+export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
   const searchParams = useSearchParams()
-  const { signIn, signInWithGoogle, loading } = useFirebaseAuth()
+  const { signUp, signInWithGoogle, sendEmailVerification, loading } = useFirebaseAuth()
   
   // Get redirect URL from search params, default to dashboard
   const redirectUrl = searchParams.get('redirect') || '/dashboard'
@@ -37,40 +44,44 @@ export default function LoginPage() {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<LoginForm>({
-    resolver: zodResolver(loginSchema),
+  } = useForm<SignupForm>({
+    resolver: zodResolver(signupSchema),
   })
 
-  const onSubmit = async (data: LoginForm) => {
+  const onSubmit = async (data: SignupForm) => {
     setIsLoading(true)
     try {
-      const result = await signIn(data.email, data.password)
+      const displayName = `${data.firstName} ${data.lastName}`
+      const result = await signUp(data.email, data.password, displayName)
+      
       if (result.error) {
         toast.error(getAuthErrorMessage(result.error))
       } else if (result.user) {
-        toast.success('🔓 Access Granted - Welcome to HackAI!')
+        // Send email verification
+        await sendEmailVerification()
+        toast.success('🎉 Account created! Please check your email for verification.')
         // Use the redirect URL from search params or default to dashboard
         router.push(redirectUrl)
       }
     } catch (error: any) {
-      toast.error(error.message || 'Authentication failed. Please try again.')
+      toast.error(error.message || 'Registration failed. Please try again.')
     } finally {
       setIsLoading(false)
     }
   }
 
-  const handleGoogleSignIn = async () => {
+  const handleGoogleSignUp = async () => {
     try {
       const result = await signInWithGoogle()
       if (result.error) {
         toast.error(getAuthErrorMessage(result.error))
       } else if (result.user) {
-        toast.success('🚀 Google Authentication Successful!')
+        toast.success('🚀 Google Registration Successful!')
         // Use the redirect URL from search params or default to dashboard
         router.push(redirectUrl)
       }
     } catch (error: any) {
-      toast.error(error.message || 'Google sign-in failed. Please try again.')
+      toast.error(error.message || 'Google sign-up failed. Please try again.')
     }
   }
 
@@ -78,7 +89,7 @@ export default function LoginPage() {
     <div className="min-h-screen relative overflow-hidden bg-matrix-black">
       {/* Cyberpunk Background */}
       <CyberpunkBackground />
-
+      
       {/* Data Streams */}
       <div className="absolute inset-0 pointer-events-none">
         <DataStream direction="vertical" className="left-10 top-0" />
@@ -99,38 +110,38 @@ export default function LoginPage() {
               </HolographicDisplay>
             </Link>
             <h2 className="mt-6 text-2xl font-bold text-cyber-blue-neon">
-              <GlitchText text="SYSTEM ACCESS" />
+              <GlitchText text="USER REGISTRATION" />
             </h2>
             <p className="mt-2 text-sm text-cyber-blue-glow">
-              Initialize authentication protocol or{' '}
+              Create new user account or{' '}
               <Link
-                href="/auth/register"
+                href="/auth/login"
                 className="font-medium text-cyber-pink-neon hover:text-cyber-pink-glow transition-colors duration-300"
               >
-                register new user
+                access existing profile
               </Link>
             </p>
           </div>
 
-          {/* Login Form */}
+          {/* Registration Form */}
           <HolographicDisplay className="backdrop-blur-sm">
             <div className="bg-matrix-surface/80 border border-cyber-blue-neon/30 rounded-lg p-6 shadow-neon-blue">
               <div className="text-center mb-6">
                 <h3 className="text-xl font-bold text-cyber-blue-neon mb-2">
-                  <GlitchText text="AUTHENTICATION REQUIRED" />
+                  <GlitchText text="NEW USER PROTOCOL" />
                 </h3>
                 <p className="text-sm text-cyber-blue-glow">
-                  Enter credentials to access secure systems
+                  Initialize secure user credentials
                 </p>
               </div>
 
-              {/* Google Sign-In Button */}
+              {/* Google Sign-Up Button */}
               <div className="space-y-4">
                 <CyberpunkButton
                   variant="neon-pink"
                   size="lg"
                   className="w-full"
-                  onClick={handleGoogleSignIn}
+                  onClick={handleGoogleSignUp}
                   disabled={isLoading || loading}
                 >
                   <svg className="w-5 h-5 mr-3" viewBox="0 0 24 24">
@@ -151,7 +162,7 @@ export default function LoginPage() {
                       d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
                     />
                   </svg>
-                  <GlitchText text="GOOGLE OAUTH" className="ml-2" />
+                  <GlitchText text="GOOGLE REGISTRATION" className="ml-2" />
                 </CyberpunkButton>
 
                 <div className="relative my-6">
@@ -160,34 +171,51 @@ export default function LoginPage() {
                   </div>
                   <div className="relative flex justify-center text-xs uppercase">
                     <span className="bg-matrix-surface px-4 text-cyber-blue-glow">
-                      <GlitchText text="OR MANUAL AUTH" />
+                      <GlitchText text="OR MANUAL SETUP" />
                     </span>
                   </div>
                 </div>
               </div>
 
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-                <div>
+                <div className="grid grid-cols-2 gap-4">
                   <CyberpunkInput
-                    label="EMAIL ADDRESS"
-                    type="email"
-                    placeholder="user@hackai.dev"
+                    label="FIRST NAME"
+                    type="text"
+                    placeholder="John"
                     color="blue"
-                    {...register('email')}
-                    error={errors.email?.message}
-                    icon={
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
-                      </svg>
-                    }
+                    {...register('firstName')}
+                    error={errors.firstName?.message}
+                  />
+                  <CyberpunkInput
+                    label="LAST NAME"
+                    type="text"
+                    placeholder="Doe"
+                    color="blue"
+                    {...register('lastName')}
+                    error={errors.lastName?.message}
                   />
                 </div>
 
-                <div>
+                <CyberpunkInput
+                  label="EMAIL ADDRESS"
+                  type="email"
+                  placeholder="user@hackai.dev"
+                  color="green"
+                  {...register('email')}
+                  error={errors.email?.message}
+                  icon={
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
+                    </svg>
+                  }
+                />
+
+                <div className="relative">
                   <CyberpunkInput
                     label="PASSWORD"
                     type={showPassword ? 'text' : 'password'}
-                    placeholder="Enter secure password"
+                    placeholder="Create secure password"
                     color="pink"
                     {...register('password')}
                     error={errors.password?.message}
@@ -210,67 +238,78 @@ export default function LoginPage() {
                   </button>
                 </div>
 
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <input
-                      id="remember-me"
-                      type="checkbox"
-                      {...register('rememberMe')}
-                      className="h-4 w-4 text-cyber-blue-neon focus:ring-cyber-blue-neon border-cyber-blue-neon/30 rounded bg-matrix-surface"
-                    />
-                    <label htmlFor="remember-me" className="ml-2 text-sm text-cyber-blue-glow">
-                      Maintain session
-                    </label>
-                  </div>
-
-                  <div className="text-sm">
-                    <Link
-                      href="/forgot-password"
-                      className="font-medium text-cyber-pink-neon hover:text-cyber-pink-glow transition-colors duration-300"
-                    >
-                      <GlitchText text="RESET PASSWORD" />
-                    </Link>
-                  </div>
+                <div className="relative">
+                  <CyberpunkInput
+                    label="CONFIRM PASSWORD"
+                    type={showConfirmPassword ? 'text' : 'password'}
+                    placeholder="Confirm your password"
+                    color="purple"
+                    {...register('confirmPassword')}
+                    error={errors.confirmPassword?.message}
+                    icon={
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    }
+                  />
+                  <button
+                    type="button"
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-cyber-purple-neon hover:text-cyber-purple-glow transition-colors"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  >
+                    {showConfirmPassword ? (
+                      <EyeSlashIcon className="h-4 w-4" />
+                    ) : (
+                      <EyeIcon className="h-4 w-4" />
+                    )}
+                  </button>
                 </div>
+
+                <div className="flex items-center">
+                  <input
+                    id="agree-terms"
+                    type="checkbox"
+                    {...register('agreeToTerms')}
+                    className="h-4 w-4 text-cyber-blue-neon focus:ring-cyber-blue-neon border-cyber-blue-neon/30 rounded bg-matrix-surface"
+                  />
+                  <label htmlFor="agree-terms" className="ml-2 text-sm text-cyber-blue-glow">
+                    I agree to the{' '}
+                    <Link href="/terms" className="text-cyber-pink-neon hover:text-cyber-pink-glow transition-colors">
+                      Security Protocols
+                    </Link>{' '}
+                    and{' '}
+                    <Link href="/privacy" className="text-cyber-pink-neon hover:text-cyber-pink-glow transition-colors">
+                      Data Protection Policy
+                    </Link>
+                  </label>
+                </div>
+                {errors.agreeToTerms && (
+                  <p className="text-sm text-security-critical">{errors.agreeToTerms.message}</p>
+                )}
 
                 <CyberpunkButton
                   type="submit"
-                  variant="filled-blue"
+                  variant="filled-green"
                   size="lg"
                   className="w-full"
                   disabled={isLoading || loading}
                 >
                   {isLoading ? (
-                    <GlitchText text="AUTHENTICATING..." />
+                    <GlitchText text="CREATING PROFILE..." />
                   ) : (
-                    <GlitchText text="INITIATE ACCESS" />
+                    <GlitchText text="REGISTER USER" />
                   )}
                 </CyberpunkButton>
               </form>
-
-              {/* Demo Credentials */}
-              <div className="mt-6 p-4 bg-matrix-surface/50 border border-cyber-green-neon/30 rounded-lg">
-                <h4 className="text-sm font-medium text-cyber-green-neon mb-2">
-                  <GlitchText text="DEMO CREDENTIALS" />
-                </h4>
-                <div className="text-xs text-cyber-green-glow space-y-1 font-mono">
-                  <p><span className="text-cyber-blue-neon">ADMIN:</span> admin@hackai.dev / admin123</p>
-                  <p><span className="text-cyber-pink-neon">USER:</span> demo@hackai.dev / demo123</p>
-                </div>
-              </div>
             </div>
           </HolographicDisplay>
 
           {/* Footer */}
           <div className="text-center text-sm text-cyber-blue-glow">
             <p>
-              By accessing the system, you agree to our{' '}
-              <Link href="/terms" className="text-cyber-pink-neon hover:text-cyber-pink-glow transition-colors duration-300">
-                Security Protocols
-              </Link>{' '}
-              and{' '}
-              <Link href="/privacy" className="text-cyber-pink-neon hover:text-cyber-pink-glow transition-colors duration-300">
-                Data Protection Policy
+              Already have an account?{' '}
+              <Link href="/auth/login" className="text-cyber-pink-neon hover:text-cyber-pink-glow transition-colors duration-300">
+                <GlitchText text="ACCESS SYSTEM" />
               </Link>
             </p>
           </div>

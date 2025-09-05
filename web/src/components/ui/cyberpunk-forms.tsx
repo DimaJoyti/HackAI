@@ -1,48 +1,34 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { cn } from '@/lib/utils'
-import { CyberpunkCard, CyberpunkCardContent, CyberpunkCardHeader, CyberpunkCardTitle } from './cyberpunk-card'
-import { CyberpunkButton } from './cyberpunk-button'
-import { HolographicDisplay, DataStream } from './cyberpunk-effects'
-import { 
+import {
   EyeIcon,
   EyeSlashIcon,
   CheckCircleIcon,
-  ExclamationCircleIcon,
-  InformationCircleIcon
+  ExclamationCircleIcon
 } from '@heroicons/react/24/outline'
 
 // Cyberpunk Input Field
-interface CyberpunkInputProps {
-  className?: string
+interface CyberpunkInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string
-  type?: 'text' | 'email' | 'password' | 'number'
-  placeholder?: string
-  value?: string
-  onChange?: (value: string) => void
   error?: string
   success?: boolean
   color?: 'blue' | 'green' | 'pink' | 'purple' | 'orange'
   icon?: React.ReactNode
-  required?: boolean
-  disabled?: boolean
 }
 
-export const CyberpunkInput: React.FC<CyberpunkInputProps> = ({
+export const CyberpunkInput = React.forwardRef<HTMLInputElement, CyberpunkInputProps>(({
   className,
   label,
   type = 'text',
-  placeholder,
-  value,
-  onChange,
   error,
   success,
   color = 'blue',
   icon,
   required,
-  disabled
-}) => {
+  ...props
+}, ref) => {
   const [focused, setFocused] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
 
@@ -95,13 +81,10 @@ export const CyberpunkInput: React.FC<CyberpunkInputProps> = ({
         )}
         
         <input
+          ref={ref}
           type={inputType}
-          value={value}
-          onChange={(e) => onChange?.(e.target.value)}
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
-          placeholder={placeholder}
-          disabled={disabled}
           className={cn(
             'w-full px-4 py-3 bg-matrix-dark/50 border rounded-lg',
             'text-matrix-white placeholder-matrix-muted font-matrix',
@@ -112,9 +95,11 @@ export const CyberpunkInput: React.FC<CyberpunkInputProps> = ({
             success && 'border-cyber-green-neon shadow-neon-green',
             !error && !success && colors.border,
             !error && !success && colors.glow,
-            disabled && 'opacity-50 cursor-not-allowed',
-            focused && 'animate-neon-pulse'
+            props.disabled && 'opacity-50 cursor-not-allowed',
+            focused && 'animate-neon-pulse',
+            className
           )}
+          {...props}
         />
         
         {type === 'password' && (
@@ -146,7 +131,9 @@ export const CyberpunkInput: React.FC<CyberpunkInputProps> = ({
       )}
     </div>
   )
-}
+})
+
+CyberpunkInput.displayName = 'CyberpunkInput'
 
 // Cyberpunk Select Field
 interface CyberpunkSelectProps {

@@ -1,109 +1,18 @@
-rules_version = '2';
+rules_version='2'
 
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    // Helper functions
-    function isAuthenticated() {
-      return request.auth != null;
-    }
-
-    function isOwner(userId) {
-      return request.auth.uid == userId;
-    }
-
-    function isAdmin() {
-      return request.auth != null &&
-             request.auth.token.admin == true;
-    }
-
-    function isValidUser(userData) {
-      return userData.keys().hasAll(['name', 'email']) &&
-             userData.name is string &&
-             userData.email is string &&
-             userData.name.size() > 0 &&
-             userData.email.size() > 0;
-    }
-
-    function isValidOrder(orderData) {
-      return orderData.keys().hasAll(['customerInfo', 'items', 'total', 'status']) &&
-             orderData.customerInfo is map &&
-             orderData.items is list &&
-             orderData.total is number &&
-             orderData.status in ['pending', 'confirmed', 'preparing', 'ready', 'out_for_delivery', 'delivered', 'cancelled'];
-    }
-
-    // Users collection - users can only access their own data
-    match /users/{userId} {
-      allow read, write: if isAuthenticated() && isOwner(userId);
-      allow create: if isAuthenticated() &&
-                       isOwner(userId) &&
-                       isValidUser(resource.data);
-      allow update: if isAuthenticated() &&
-                       isOwner(userId) &&
-                       isValidUser(request.resource.data);
-    }
-
-    // Menu items - public read, admin write
-    match /menuItems/{itemId} {
-      allow read: if true; // Public read access for menu browsing
-      allow write: if isAdmin(); // Only admins can modify menu
-    }
-
-    // Orders - users can only access their own orders, admins can access all
-    match /orders/{orderId} {
-      allow read: if isAuthenticated() &&
-                     (isOwner(resource.data.customerId) || isAdmin());
-      allow create: if isAuthenticated() &&
-                       isOwner(request.resource.data.customerId) &&
-                       isValidOrder(request.resource.data);
-      allow update: if isAuthenticated() &&
-                       (isOwner(resource.data.customerId) || isAdmin()) &&
-                       isValidOrder(request.resource.data);
-      allow delete: if isAdmin(); // Only admins can delete orders
-    }
-
-    // Delivery tracking - users can read their own tracking, admins can write
-    match /deliveryTracking/{trackingId} {
-      allow read: if isAuthenticated() &&
-                     (isOwner(resource.data.customerId) || isAdmin());
-      allow write: if isAdmin(); // Only admins/delivery system can update tracking
-    }
-
-    // Categories - public read, admin write
-    match /categories/{categoryId} {
-      allow read: if true; // Public read access
-      allow write: if isAdmin(); // Only admins can modify categories
-    }
-
-    // Reviews - users can create/update their own reviews, public read
-    match /reviews/{reviewId} {
-      allow read: if true; // Public read access
-      allow create: if isAuthenticated() &&
-                       isOwner(request.resource.data.userId);
-      allow update: if isAuthenticated() &&
-                       isOwner(resource.data.userId);
-      allow delete: if isAuthenticated() &&
-                       (isOwner(resource.data.userId) || isAdmin());
-    }
-
-    // Notifications - users can only access their own notifications
-    match /notifications/{notificationId} {
-      allow read, write: if isAuthenticated() &&
-                            isOwner(resource.data.userId);
-      allow create: if isAuthenticated() &&
-                       isOwner(request.resource.data.userId);
-    }
-
-    // Restaurants - public read, admin write
-    match /restaurants/{restaurantId} {
-      allow read: if true; // Public read access
-      allow write: if isAdmin(); // Only admins can modify restaurant info
-    }
-
-    // Default deny all other documents
     match /{document=**} {
-      allow read, write: if false;
+      // This rule allows anyone with your database reference to view, edit,
+      // and delete all data in your database. It is useful for getting
+      // started, but it is configured to expire after 30 days because it
+      // leaves your app open to attackers. At that time, all client
+      // requests to your database will be denied.
+      //
+      // Make sure to write security rules for your app before that time, or
+      // else all client requests to your database will be denied until you
+      // update your rules.
+      allow read, write: if request.time < timestamp.date(2025, 10, 5);
     }
   }
 }

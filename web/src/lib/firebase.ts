@@ -60,12 +60,12 @@ const getFirebaseConfig = (): FirebaseConfig => {
       }
     default: // development
       return {
-        apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY_DEV || 'AIzaSyDWROT1zivWD8RMxKGqo3ZAaHznkUvUoUI',
-        authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN_DEV || 'hackai-auth-system.firebaseapp.com',
-        projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID_DEV || 'hackai-auth-system',
-        storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET_DEV || 'hackai-auth-system.firebasestorage.app',
-        messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID_DEV || '436006647060',
-        appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID_DEV || '1:436006647060:web:2de55c9b536fed4dc6be01',
+        apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY_DEV!,
+        authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN_DEV!,
+        projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID_DEV!,
+        storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET_DEV!,
+        messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID_DEV!,
+        appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID_DEV!,
         measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID_DEV
       }
   }
@@ -91,8 +91,8 @@ const initializeFirebase = () => {
   // Connect to emulators in development
   if (process.env.NODE_ENV === 'development' && process.env.NEXT_PUBLIC_USE_FIREBASE_EMULATOR === 'true') {
     try {
-      connectAuthEmulator(firebaseAuth, 'http://localhost:9099')
-      connectFirestoreEmulator(firebaseDb, 'localhost', 8080)
+      connectAuthEmulator(firebaseAuth, 'http://localhost:9098', { disableWarnings: true })
+      connectFirestoreEmulator(firebaseDb, 'localhost', 8081)
     } catch (error) {
       console.warn('Firebase emulators already connected or not available:', error)
     }
@@ -419,6 +419,8 @@ export interface AuthUser {
   uid: string
   email: string | null
   displayName: string | null
+  firstName: string | null
+  lastName: string | null
   photoURL: string | null
   emailVerified: boolean
   phoneNumber: string | null
@@ -439,10 +441,17 @@ export interface AuthResult {
 export const mapFirebaseUser = (user: User | null): AuthUser | null => {
   if (!user) return null
   
+  // Extract firstName and lastName from displayName
+  const nameParts = user.displayName?.split(' ') || []
+  const firstName = nameParts[0] || null
+  const lastName = nameParts.length > 1 ? nameParts.slice(1).join(' ') : null
+  
   return {
     uid: user.uid,
     email: user.email,
     displayName: user.displayName,
+    firstName,
+    lastName,
     photoURL: user.photoURL,
     emailVerified: user.emailVerified,
     phoneNumber: user.phoneNumber

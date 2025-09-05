@@ -24,8 +24,10 @@ const protectedRoutes = {
 // Public routes that don't require authentication
 const publicRoutes = [
   '/',
-  '/login',
-  '/signup',
+  '/auth/login',
+  '/auth/register',
+  '/login', // legacy route
+  '/signup', // legacy route
   '/forgot-password',
   '/about',
   '/contact',
@@ -39,9 +41,12 @@ const publicRoutes = [
 
 // Routes that should redirect authenticated users away
 const authRoutes = [
-  '/login',
-  '/signup',
+  '/auth/login',
+  '/auth/register',
+  '/login', // legacy route
+  '/signup', // legacy route
   '/forgot-password',
+  '/firebase-auth-demo',
 ]
 
 export async function middleware(request: NextRequest) {
@@ -98,7 +103,7 @@ export async function middleware(request: NextRequest) {
   if (protectedRoute) {
     // Check authentication
     if (protectedRoute.requireAuth && !isAuthenticated) {
-      const loginUrl = new URL('/login', request.url)
+      const loginUrl = new URL('/auth/login', request.url)
       loginUrl.searchParams.set('redirect', pathname)
       return NextResponse.redirect(loginUrl)
     }
@@ -203,7 +208,7 @@ export function isPublicRoute(pathname: string): boolean {
 
 // Helper function to get redirect URL for unauthenticated users
 export function getLoginRedirectUrl(request: NextRequest): string {
-  const loginUrl = new URL('/login', request.url)
+  const loginUrl = new URL('/auth/login', request.url)
   loginUrl.searchParams.set('redirect', request.nextUrl.pathname)
   return loginUrl.toString()
 }
