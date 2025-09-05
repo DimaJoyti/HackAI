@@ -8,7 +8,7 @@ import { AdvancedFirebaseAuthProvider } from '@/contexts/AdvancedFirebaseAuthCon
 import { CyberpunkThemeProvider } from '@/components/ui/cyberpunk-theme-provider'
 import { OptimizationProvider, PerformanceMonitorDisplay } from '@/providers/optimization-provider'
 
-export function Providers({ children }: { children: React.ReactNode }) {
+export function Providers({ children }: { readonly children: React.ReactNode }) {
   const [queryClient] = useState(
     () =>
       new QueryClient({

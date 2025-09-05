@@ -48,6 +48,17 @@ HackAI is a dual-purpose AI security platform that provides both comprehensive s
 - **🛡️ Policy Engine**: Flexible rule-based security policies with custom actions
 - **⚡ Rate Limiting**: Advanced rate limiting with token tracking and cost management
 - **📝 Audit Logging**: Complete audit trail for compliance and forensic analysis
+
+#### ⚛️ Quantum Security System Features
+
+- **🔬 Quantum Attack Simulation**: Shor's and Grover's algorithm implementations for cryptographic analysis
+- **🛡️ Post-Quantum Cryptography**: Analysis of NIST-standardized quantum-safe algorithms
+- **🔍 Quantum Vulnerability Assessment**: Comprehensive scanning for quantum-vulnerable systems
+- **📊 Threat Intelligence**: Real-time quantum computing threat monitoring and analysis
+- **🗺️ Migration Planning**: Automated quantum-safe migration roadmaps and cost analysis
+- **🎨 Cyberpunk Dashboard**: Real-time visualization of quantum security posture
+- **🔗 LangGraph Integration**: AI workflow nodes for quantum security analysis
+- **📈 Quantum Readiness Assessment**: Organizational quantum preparedness evaluation
 - **🌐 Multi-Provider**: Support for OpenAI, Anthropic, Azure OpenAI, **OLAMA**, and custom providers
 - **🤖 Local AI Models**: Privacy-preserving security testing with OLAMA integration
 - **📈 Analytics**: Real-time usage analytics, cost tracking, and security metrics
@@ -336,6 +347,76 @@ make test
 - **TypeScript**: Use ESLint and Prettier
 - **Testing**: Maintain >90% code coverage
 - **Documentation**: Update docs for all changes
+
+## ⚛️ Quantum Security System
+
+The HackAI platform includes a comprehensive quantum security system designed to prepare organizations for the quantum computing threat to cryptography.
+
+### 🔬 Quantum Attack Simulation
+
+Simulate quantum attacks on classical cryptographic systems:
+
+```bash
+# Start the quantum security system
+./quantum-security --dashboard-port 8080 --max-qubits 20
+
+# Access the cyberpunk dashboard
+open http://localhost:8080
+```
+
+### 🛡️ Post-Quantum Cryptography Analysis
+
+Analyze and recommend post-quantum cryptographic algorithms:
+
+- **Lattice-based**: CRYSTALS-Kyber, CRYSTALS-Dilithium, FALCON, NTRU
+- **Hash-based**: SPHINCS+, XMSS, LMS
+- **Code-based**: Classic McEliece, BIKE, HQC
+- **Multivariate**: Rainbow, GeMSS, LUOV
+
+### 📊 Quantum Threat Intelligence
+
+Real-time monitoring of quantum computing advances and their impact on cryptographic security:
+
+- Academic research publications
+- Industry announcements
+- Government initiatives
+- Quantum hardware progress
+
+### 🗺️ Migration Planning
+
+Automated planning for quantum-safe migration:
+
+- Cryptographic inventory assessment
+- Risk analysis and prioritization
+- Cost estimation and timeline planning
+- Compliance framework alignment
+
+### 🎨 Cyberpunk Dashboard
+
+Real-time visualization of quantum security posture with:
+
+- Threat level indicators
+- Vulnerability heat maps
+- Migration progress tracking
+- System health monitoring
+
+### 🔗 LangGraph Integration
+
+AI workflow nodes for quantum security analysis:
+
+```go
+// Example: Quantum attack simulation node
+input := &integration.NodeInput{
+    Type: "quantum_attack_simulation",
+    Data: map[string]interface{}{
+        "algorithm": "RSA",
+        "target": cryptographicTarget,
+        "analysis_type": "shor",
+    },
+}
+
+output, err := nodes.QuantumAttackSimulationNode(ctx, input)
+```
 
 ## 📄 License
 
