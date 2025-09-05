@@ -1,0 +1,87 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function hasRole(role) {
+      return isAuthenticated() &&
+             request.auth.token.role == role;
+    }
+
+    function hasAnyRole(roles) {
+      return isAuthenticated() &&
+             request.auth.token.role in roles;
+    }
+
+    // Users collection - users can read/write their own data
+    match /users/{userId} {
+      allow read, write: if isOwner(userId);
+      allow read: if hasAnyRole(['admin', 'moderator']);
+      allow write: if hasRole('admin');
+    }
+
+    // User profiles - extended user information
+    match /profiles/{userId} {
+      allow read, write: if isOwner(userId);
+      allow read: if hasAnyRole(['admin', 'moderator']);
+    }
+
+    // User sessions - for session management
+    match /sessions/{sessionId} {
+      allow read, write: if isAuthenticated() &&
+                           resource.data.userId == request.auth.uid;
+      allow read: if hasRole('admin');
+    }
+
+    // Audit logs - read-only for users, write for system
+    match /audit_logs/{logId} {
+      allow read: if isOwner(resource.data.userId) ||
+                     hasAnyRole(['admin', 'moderator']);
+      allow write: if false; // Only backend can write audit logs
+    }
+
+    // Security events - admin only
+    match /security_events/{eventId} {
+      allow read, write: if hasRole('admin');
+    }
+
+    // User preferences and settings
+    match /user_settings/{userId} {
+      allow read, write: if isOwner(userId);
+    }
+
+    // Public data - readable by all authenticated users
+    match /public/{document=**} {
+      allow read: if isAuthenticated();
+      allow write: if hasAnyRole(['admin', 'moderator']);
+    }
+
+    // System configuration - admin only
+    match /system_config/{document=**} {
+      allow read, write: if hasRole('admin');
+    }
+
+    // Admin-only access to admin collections
+    match /admin/{document=**} {
+      allow read, write: if hasRole('admin');
+    }
+
+    // User notifications
+    match /notifications/{userId}/messages/{messageId} {
+      allow read, write: if isOwner(userId);
+      allow write: if hasAnyRole(['admin', 'moderator']);
+    }
+
+    // Default deny all other access
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

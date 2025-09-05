@@ -1,0 +1,325 @@
+# Firebase Configuration for HackAI - Production Environment
+# This file contains production-specific Firebase settings
+
+firebase:
+  project_id: "hackai-auth-system"
+  
+  # Service Account Configuration (use environment variables in production)
+  service_account:
+    type: "service_account"
+    project_id: "hackai-auth-system"
+    # private_key_id: "${FIREBASE_PRIVATE_KEY_ID}"
+    # private_key: "${FIREBASE_PRIVATE_KEY}"
+    # client_email: "${FIREBASE_CLIENT_EMAIL}"
+    # client_id: "${FIREBASE_CLIENT_ID}"
+    auth_uri: "https://accounts.google.com/o/oauth2/auth"
+    token_uri: "https://oauth2.googleapis.com/token"
+    auth_provider_x509_cert_url: "https://www.googleapis.com/oauth2/v1/certs"
+    # client_x509_cert_url: "${FIREBASE_CLIENT_CERT_URL}"
+
+  # Authentication Configuration
+  auth:
+    # Email/Password Settings
+    email_password:
+      enabled: true
+      require_email_verification: true
+      password_policy:
+        min_length: 8
+        require_uppercase: true
+        require_lowercase: true
+        require_numbers: true
+        require_symbols: true
+    
+    # OAuth Providers
+    oauth_providers:
+      google:
+        enabled: true
+        client_id: "${GOOGLE_OAUTH_CLIENT_ID}"
+        client_secret: "${GOOGLE_OAUTH_CLIENT_SECRET}"
+        scopes:
+          - "email"
+          - "profile"
+      
+      github:
+        enabled: true
+        client_id: "${GITHUB_OAUTH_CLIENT_ID}"
+        client_secret: "${GITHUB_OAUTH_CLIENT_SECRET}"
+        scopes:
+          - "user:email"
+          - "read:user"
+    
+    # Multi-Factor Authentication
+    mfa:
+      enabled: true
+      enforcement: "optional"  # optional, required, or disabled
+      allowed_providers:
+        - "phone"
+        - "totp"
+    
+    # Session Management
+    session:
+      duration: "24h"
+      idle_timeout: "2h"
+      max_concurrent_sessions: 5
+    
+    # Custom Claims
+    custom_claims:
+      max_payload_size: 1000
+      allowed_claims:
+        - "role"
+        - "permissions"
+        - "organization"
+        - "subscription"
+        - "features"
+
+  # Firestore Configuration
+  firestore:
+    database_id: "(default)"
+    location: "us-central1"
+    
+    # Security Rules
+    security_rules:
+      strict_mode: true
+      allow_admin_access: true
+      default_deny: true
+    
+    # Performance
+    performance:
+      cache_size: "100MB"
+      offline_persistence: true
+
+  # Storage Configuration
+  storage:
+    bucket: "hackai-auth-system.firebasestorage.app"
+    
+    # Security Rules
+    security_rules:
+      max_file_size: "10MB"
+      allowed_file_types:
+        - "image/jpeg"
+        - "image/png"
+        - "image/gif"
+        - "image/webp"
+        - "application/pdf"
+      virus_scanning: true
+    
+    # CORS Configuration
+    cors:
+      allowed_origins:
+        - "https://hackai.com"
+        - "https://www.hackai.com"
+        - "https://app.hackai.com"
+      allowed_methods:
+        - "GET"
+        - "POST"
+        - "PUT"
+        - "DELETE"
+      allowed_headers:
+        - "Content-Type"
+        - "Authorization"
+        - "X-Requested-With"
+
+  # Functions Configuration
+  functions:
+    region: "us-central1"
+    runtime: "nodejs18"
+    memory: "256MB"
+    timeout: "60s"
+    
+    # Environment Variables
+    environment:
+      NODE_ENV: "production"
+      LOG_LEVEL: "info"
+
+  # Hosting Configuration
+  hosting:
+    public: "out"  # Next.js static export directory
+    ignore:
+      - "firebase.json"
+      - "**/.*"
+      - "**/node_modules/**"
+    
+    # Redirects and Rewrites
+    redirects:
+      - source: "/old-login"
+        destination: "/login"
+        type: 301
+    
+    rewrites:
+      - source: "/api/**"
+        destination: "https://auth.hackai.com/api/**"
+    
+    # Headers
+    headers:
+      - source: "**"
+        headers:
+          - key: "X-Content-Type-Options"
+            value: "nosniff"
+          - key: "X-Frame-Options"
+            value: "DENY"
+          - key: "X-XSS-Protection"
+            value: "1; mode=block"
+          - key: "Referrer-Policy"
+            value: "strict-origin-when-cross-origin"
+          - key: "Permissions-Policy"
+            value: "camera=(), microphone=(), geolocation=()"
+
+# Application-specific Configuration
+app:
+  # Logging Configuration
+  logging:
+    level: "info"
+    format: "json"
+    enable_audit_logs: true
+    retention_days: 90
+    
+    # Log destinations
+    destinations:
+      - type: "console"
+      - type: "file"
+        path: "/var/log/hackai/auth.log"
+      - type: "cloud_logging"
+        project_id: "hackai-auth-system"
+
+  # Security Configuration
+  security:
+    # Rate Limiting
+    rate_limiting:
+      enabled: true
+      requests_per_minute: 100
+      burst_limit: 200
+      block_duration: "15m"
+    
+    # CORS
+    cors:
+      allowed_origins:
+        - "https://hackai.com"
+        - "https://www.hackai.com"
+        - "https://app.hackai.com"
+      allowed_methods:
+        - "GET"
+        - "POST"
+        - "PUT"
+        - "DELETE"
+        - "OPTIONS"
+      allowed_headers:
+        - "Content-Type"
+        - "Authorization"
+        - "X-Requested-With"
+        - "X-User-Agent"
+      expose_headers:
+        - "X-Request-ID"
+        - "X-Rate-Limit-Remaining"
+      max_age: 86400
+    
+    # Content Security Policy
+    csp:
+      default_src: "'self'"
+      script_src: "'self' 'unsafe-inline' https://apis.google.com"
+      style_src: "'self' 'unsafe-inline' https://fonts.googleapis.com"
+      font_src: "'self' https://fonts.gstatic.com"
+      img_src: "'self' data: https:"
+      connect_src: "'self' https://api.hackai.com wss://api.hackai.com"
+    
+    # Security Headers
+    security_headers:
+      hsts:
+        enabled: true
+        max_age: 31536000
+        include_subdomains: true
+        preload: true
+      
+      referrer_policy: "strict-origin-when-cross-origin"
+      content_type_options: "nosniff"
+      frame_options: "DENY"
+      xss_protection: "1; mode=block"
+
+  # Monitoring Configuration
+  monitoring:
+    # Health Checks
+    health_checks:
+      enabled: true
+      interval: "30s"
+      timeout: "10s"
+      endpoints:
+        - "/health"
+        - "/ready"
+    
+    # Metrics
+    metrics:
+      enabled: true
+      endpoint: "/metrics"
+      include_system_metrics: true
+      include_custom_metrics: true
+    
+    # Alerting
+    alerting:
+      enabled: true
+      channels:
+        - type: "email"
+          recipients:
+            - "alerts@hackai.com"
+        - type: "slack"
+          webhook_url: "${SLACK_WEBHOOK_URL}"
+      
+      rules:
+        - name: "high_error_rate"
+          condition: "error_rate > 0.05"
+          duration: "5m"
+          severity: "critical"
+        
+        - name: "high_latency"
+          condition: "response_time_p95 > 2s"
+          duration: "5m"
+          severity: "warning"
+        
+        - name: "low_availability"
+          condition: "availability < 0.99"
+          duration: "1m"
+          severity: "critical"
+
+  # Performance Configuration
+  performance:
+    # Caching
+    caching:
+      enabled: true
+      ttl: "1h"
+      max_size: "100MB"
+      
+      # Cache strategies
+      strategies:
+        user_profiles: "1h"
+        auth_tokens: "15m"
+        static_content: "24h"
+    
+    # Connection Pooling
+    connection_pooling:
+      max_connections: 100
+      idle_timeout: "30s"
+      max_lifetime: "1h"
+    
+    # Timeouts
+    timeouts:
+      read: "30s"
+      write: "30s"
+      idle: "60s"
+
+# Environment-specific Overrides
+environments:
+  production:
+    firebase:
+      auth:
+        session:
+          duration: "12h"  # Shorter session in production
+      
+    app:
+      logging:
+        level: "warn"  # Less verbose logging in production
+      
+      security:
+        rate_limiting:
+          requests_per_minute: 60  # Stricter rate limiting
+      
+      monitoring:
+        health_checks:
+          interval: "15s"  # More frequent health checks

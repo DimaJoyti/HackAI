@@ -2,18 +2,30 @@
 
 This directory contains Firebase service account JSON files for different environments.
 
+## Current Project Configuration
+
+**Active Project**: `hackai-auth-system`
+- **Project ID**: hackai-auth-system
+- **Project Number**: 436006647060
+- **Web App ID**: 1:436006647060:web:2de55c9b536fed4dc6be01
+- **Auth Domain**: hackai-auth-system.firebaseapp.com
+- **Storage Bucket**: hackai-auth-system.firebasestorage.app
+
 ## Setup Instructions
 
-1. **Create Firebase Projects**
+1. **Generate Service Account Key for Current Project**
    - Go to [Firebase Console](https://console.firebase.google.com/)
-   - Create three projects: `hackai-dev`, `hackai-staging`, `hackai-prod`
-
-2. **Generate Service Account Keys**
-   For each project:
+   - Select the `hackai-auth-system` project
    - Go to Project Settings > Service Accounts
    - Click "Generate new private key"
    - Download the JSON file
-   - Rename and place in this directory:
+   - Rename to: `hackai-auth-system-service-account.json`
+   - Place in this directory
+
+2. **For Additional Environments (Optional)**
+   Create additional projects if needed:
+   - `hackai-dev`, `hackai-staging`, `hackai-prod`
+   - Generate service account keys for each:
      - `hackai-dev-service-account.json`
      - `hackai-staging-service-account.json`
      - `hackai-prod-service-account.json`

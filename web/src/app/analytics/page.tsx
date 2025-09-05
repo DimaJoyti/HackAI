@@ -9,8 +9,8 @@ import {
   CpuChipIcon,
   EyeIcon,
   BoltIcon,
-  TrendingUpIcon,
-  TrendingDownIcon
+  ArrowTrendingUpIcon,
+  ArrowTrendingDownIcon
 } from '@heroicons/react/24/outline'
 import { CyberpunkBackground, MatrixRain, GlitchText, NeonBorder } from '@/components/ui/cyberpunk-background'
 import { CyberpunkButton, SecurityButton } from '@/components/ui/cyberpunk-button'
@@ -188,9 +188,9 @@ export default function AnalyticsPage() {
                 </div>
                 <div className="flex items-center justify-center gap-2">
                   {metric.trend === 'up' ? (
-                    <TrendingUpIcon className="w-4 h-4 text-cyber-green-neon" />
+                    <ArrowTrendingUpIcon className="w-4 h-4 text-cyber-green-neon" />
                   ) : (
-                    <TrendingDownIcon className="w-4 h-4 text-cyber-blue-neon" />
+                    <ArrowTrendingDownIcon className="w-4 h-4 text-cyber-blue-neon" />
                   )}
                   <span className={`text-sm font-cyber ${
                     metric.trend === 'up' ? 'text-cyber-green-neon' : 'text-cyber-blue-neon'

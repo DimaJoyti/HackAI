@@ -313,7 +313,7 @@ export function AdvancedDashboardV2() {
               <CyberpunkButton
                 key={mode}
                 variant={dashboardMode === mode ? 'neon-blue' : 'ghost-blue'}
-                size="xs"
+                size="sm"
                 onClick={() => setDashboardMode(mode)}
               >
                 {mode.charAt(0).toUpperCase() + mode.slice(1)}
@@ -351,7 +351,7 @@ export function AdvancedDashboardV2() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.1 }}
           >
-            <CyberpunkCard variant={metric.color} size="sm">
+            <CyberpunkCard variant={metric.color as any} size="sm">
               <div className="flex items-center justify-between mb-2">
                 <metric.icon className="w-5 h-5" />
                 <Badge variant="outline" className="text-xs">
@@ -471,7 +471,7 @@ export function AdvancedDashboardV2() {
             </CyberpunkCard>
 
             {/* AI Agent Status */}
-            <CyberpunkCard variant="glass-green" size="lg">
+            <CyberpunkCard variant="neon-green" size="lg">
               <div className="mb-4">
                 <h4 className="text-lg font-semibold text-cyber-green-neon">
                   AI Agent Operations

@@ -4,7 +4,9 @@ import { QueryClient, QueryClientProvider } from 'react-query'
 import { ThemeProvider } from 'next-themes'
 import { useState } from 'react'
 import { AuthProvider } from '@/hooks/use-auth'
+import { AdvancedFirebaseAuthProvider } from '@/contexts/AdvancedFirebaseAuthContext'
 import { CyberpunkThemeProvider } from '@/components/ui/cyberpunk-theme-provider'
+import { OptimizationProvider, PerformanceMonitorDisplay } from '@/providers/optimization-provider'
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
@@ -31,19 +33,28 @@ export function Providers({ children }: { children: React.ReactNode }) {
   )
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider
-        attribute="class"
-        defaultTheme="dark"
-        enableSystem={false}
-        disableTransitionOnChange
-      >
-        <CyberpunkThemeProvider>
-          <AuthProvider>
-            {children}
-          </AuthProvider>
-        </CyberpunkThemeProvider>
-      </ThemeProvider>
-    </QueryClientProvider>
+    <OptimizationProvider
+      enablePerformanceMonitoring={true}
+      enableErrorTracking={true}
+      enableCaching={true}
+    >
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="dark"
+          enableSystem={false}
+          disableTransitionOnChange
+        >
+          <CyberpunkThemeProvider>
+            <AdvancedFirebaseAuthProvider>
+              <AuthProvider>
+                {children}
+                <PerformanceMonitorDisplay />
+              </AuthProvider>
+            </AdvancedFirebaseAuthProvider>
+          </CyberpunkThemeProvider>
+        </ThemeProvider>
+      </QueryClientProvider>
+    </OptimizationProvider>
   )
 }

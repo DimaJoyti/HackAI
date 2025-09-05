@@ -9,14 +9,13 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/dimajoyti/hackai/internal/domain"
+	"github.com/dimajoyti/hackai/pkg/auth"
 	"github.com/dimajoyti/hackai/pkg/logger"
-	"github.com/dimajoyti/hackai/pkg/middleware"
 )
 
 // UserHandler handles user management HTTP requests
 type UserHandler struct {
 	userUseCase domain.UserUseCase
-	authContext middleware.AuthContext
 	logger      *logger.Logger
 }
 
@@ -24,7 +23,6 @@ type UserHandler struct {
 func NewUserHandler(userUseCase domain.UserUseCase, log *logger.Logger) *UserHandler {
 	return &UserHandler{
 		userUseCase: userUseCase,
-		authContext: middleware.AuthContext{},
 		logger:      log,
 	}
 }
@@ -60,7 +58,7 @@ type UserListResponse struct {
 
 // UpdateProfile handles PUT /api/v1/auth/profile
 func (h *UserHandler) UpdateProfile(w http.ResponseWriter, r *http.Request) {
-	userID, ok := h.authContext.GetUserID(r.Context())
+	userID, ok := auth.GetUserIDFromContext(r.Context())
 	if !ok {
 		h.writeErrorResponse(w, http.StatusUnauthorized, "Authentication required", nil)
 		return

@@ -63,17 +63,25 @@ func main() {
 		loggerInstance.WithError(err).Fatal("Invalid Firebase configuration")
 	}
 
-	// Initialize Firebase service
-	firebaseService, err := firebase.NewService(firebaseConfig, loggerInstance, userRepo)
+	// Initialize enhanced Firebase service
+	enhancedFirebaseService, err := firebase.NewEnhancedService(firebaseConfig, loggerInstance, userRepo)
 	if err != nil {
-		loggerInstance.WithError(err).Fatal("Failed to initialize Firebase service")
+		loggerInstance.WithError(err).Fatal("Failed to initialize enhanced Firebase service")
 	}
 
-	// Initialize Firebase handlers
-	firebaseHandler := firebase.NewHandler(firebaseService, loggerInstance)
+	// Initialize enhanced Firebase handlers
+	enhancedFirebaseHandler := firebase.NewEnhancedHandler(enhancedFirebaseService, loggerInstance)
 
-	// Initialize Firebase middleware
-	firebaseMiddleware := firebase.NewMiddleware(firebaseService, loggerInstance)
+	// Initialize enhanced Firebase middleware
+	middlewareConfig := &firebase.MiddlewareConfig{
+		RequireEmailVerification: true,
+		TokenCacheTTL:            5 * time.Minute,
+		RateLimitRequests:        100,
+		RateLimitWindow:          time.Hour,
+		EnableSecurityHeaders:    true,
+		EnableAuditLogging:       true,
+	}
+	enhancedFirebaseMiddleware := firebase.NewEnhancedMiddleware(enhancedFirebaseService, loggerInstance, middlewareConfig)
 
 	// Setup router
 	router := mux.NewRouter()
@@ -85,13 +93,13 @@ func main() {
 		w.Write([]byte(`{"status":"healthy","service":"firebase-auth-service"}`))
 	}).Methods("GET")
 
-	// Register Firebase routes
-	firebaseHandler.RegisterRoutes(router)
+	// Register enhanced Firebase routes
+	enhancedFirebaseHandler.RegisterRoutes(router)
 
 	// Protected routes example
 	protected := router.PathPrefix("/api/protected").Subrouter()
-	protected.Use(firebaseMiddleware.AuthRequired)
-	
+	protected.Use(enhancedFirebaseMiddleware.AuthRequiredWithSecurity)
+
 	protected.HandleFunc("/profile", func(w http.ResponseWriter, r *http.Request) {
 		user := firebase.GetUserFromContext(r.Context())
 		if user == nil {
@@ -101,15 +109,14 @@ func main() {
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		fmt.Fprintf(w, `{"message":"Hello %s","user":{"uid":"%s","email":"%s"}}`, 
+		fmt.Fprintf(w, `{"message":"Hello %s","user":{"uid":"%s","email":"%s"}}`,
 			user.DisplayName, user.UID, user.Email)
 	}).Methods("GET")
 
 	// Admin routes example
 	admin := router.PathPrefix("/api/admin").Subrouter()
-	admin.Use(firebaseMiddleware.AuthRequired)
-	admin.Use(firebaseMiddleware.RequireRole("admin"))
-	
+	admin.Use(enhancedFirebaseMiddleware.AuthRequiredWithSecurity)
+
 	admin.HandleFunc("/users", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
@@ -166,8 +173,8 @@ func main() {
 	// Start server in a goroutine
 	go func() {
 		loggerInstance.Info("Firebase Auth Service starting", map[string]interface{}{
-			"port":        port,
-			"environment": environment,
+			"port":             port,
+			"environment":      environment,
 			"firebase_project": firebaseConfig.Firebase.ProjectID,
 		})
 

@@ -11,13 +11,11 @@ import (
 	"github.com/dimajoyti/hackai/internal/domain"
 	"github.com/dimajoyti/hackai/pkg/auth"
 	"github.com/dimajoyti/hackai/pkg/logger"
-	"github.com/dimajoyti/hackai/pkg/middleware"
 )
 
 // AuthHandler handles authentication HTTP requests
 type AuthHandler struct {
 	authService *auth.EnhancedAuthService
-	authContext middleware.AuthContext
 	logger      *logger.Logger
 }
 
@@ -25,7 +23,6 @@ type AuthHandler struct {
 func NewAuthHandler(authService *auth.EnhancedAuthService, log *logger.Logger) *AuthHandler {
 	return &AuthHandler{
 		authService: authService,
-		authContext: middleware.AuthContext{},
 		logger:      log,
 	}
 }
@@ -210,15 +207,8 @@ func (h *AuthHandler) RefreshToken(w http.ResponseWriter, r *http.Request) {
 
 // GetProfile handles GET /api/v1/auth/profile
 func (h *AuthHandler) GetProfile(w http.ResponseWriter, r *http.Request) {
-	_, ok := h.authContext.GetUserID(r.Context())
-	if !ok {
-		h.writeErrorResponse(w, http.StatusUnauthorized, "Authentication required", nil)
-		return
-	}
-
-	// Get user from database (this would typically use a user service)
-	// For now, we'll extract from JWT claims
-	claims, ok := h.authContext.GetClaims(r.Context())
+	// Get user from JWT claims in context
+	claims, ok := auth.GetUserFromContext(r.Context())
 	if !ok {
 		h.writeErrorResponse(w, http.StatusUnauthorized, "Invalid authentication", nil)
 		return
@@ -236,7 +226,7 @@ func (h *AuthHandler) GetProfile(w http.ResponseWriter, r *http.Request) {
 
 // ChangePassword handles POST /api/v1/auth/change-password
 func (h *AuthHandler) ChangePassword(w http.ResponseWriter, r *http.Request) {
-	userID, ok := h.authContext.GetUserID(r.Context())
+	userID, ok := auth.GetUserIDFromContext(r.Context())
 	if !ok {
 		h.writeErrorResponse(w, http.StatusUnauthorized, "Authentication required", nil)
 		return
@@ -267,7 +257,7 @@ func (h *AuthHandler) ChangePassword(w http.ResponseWriter, r *http.Request) {
 
 // EnableTOTP handles POST /api/v1/auth/enable-totp
 func (h *AuthHandler) EnableTOTP(w http.ResponseWriter, r *http.Request) {
-	userID, ok := h.authContext.GetUserID(r.Context())
+	userID, ok := auth.GetUserIDFromContext(r.Context())
 	if !ok {
 		h.writeErrorResponse(w, http.StatusUnauthorized, "Authentication required", nil)
 		return
@@ -291,7 +281,7 @@ func (h *AuthHandler) EnableTOTP(w http.ResponseWriter, r *http.Request) {
 
 // GetPermissions handles GET /api/v1/auth/permissions
 func (h *AuthHandler) GetPermissions(w http.ResponseWriter, r *http.Request) {
-	userID, ok := h.authContext.GetUserID(r.Context())
+	userID, ok := auth.GetUserIDFromContext(r.Context())
 	if !ok {
 		h.writeErrorResponse(w, http.StatusUnauthorized, "Authentication required", nil)
 		return

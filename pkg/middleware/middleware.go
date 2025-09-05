@@ -340,12 +340,6 @@ func SecurityHeaders() func(http.Handler) http.Handler {
 	}
 }
 
-// GetUserFromContext extracts user claims from context
-func GetUserFromContext(ctx context.Context) (*auth.Claims, bool) {
-	claims, ok := ctx.Value(ClaimsContextKey).(*auth.Claims)
-	return claims, ok
-}
-
 // GetRequestIDFromContext extracts request ID from context
 func GetRequestIDFromContext(ctx context.Context) string {
 	if requestID, ok := ctx.Value(RequestIDKey).(string); ok {

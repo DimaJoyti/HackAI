@@ -1,7 +1,6 @@
 import { initializeApp, getApps, FirebaseApp } from 'firebase/app'
-import { 
-  getAuth, 
-  Auth,
+import {
+  getAuth,
   connectAuthEmulator,
   GoogleAuthProvider,
   GithubAuthProvider,
@@ -14,11 +13,12 @@ import {
   updateProfile,
   User,
   onAuthStateChanged,
-  NextOrObserver
+  NextOrObserver,
+  linkWithPopup,
+  unlink
 } from 'firebase/auth'
 import { 
   getFirestore, 
-  Firestore,
   connectFirestoreEmulator 
 } from 'firebase/firestore'
 
@@ -35,7 +35,7 @@ interface FirebaseConfig {
 
 // Environment-specific configurations
 const getFirebaseConfig = (): FirebaseConfig => {
-  const env = process.env.NODE_ENV || 'development'
+  const env = process.env.NEXT_PUBLIC_FIREBASE_ENV || process.env.NODE_ENV || 'development'
   
   switch (env) {
     case 'production':
@@ -60,60 +60,71 @@ const getFirebaseConfig = (): FirebaseConfig => {
       }
     default: // development
       return {
-        apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY_DEV!,
-        authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN_DEV!,
-        projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID_DEV!,
-        storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET_DEV!,
-        messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID_DEV!,
-        appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID_DEV!,
+        apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY_DEV || 'AIzaSyDWROT1zivWD8RMxKGqo3ZAaHznkUvUoUI',
+        authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN_DEV || 'hackai-auth-system.firebaseapp.com',
+        projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID_DEV || 'hackai-auth-system',
+        storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET_DEV || 'hackai-auth-system.firebasestorage.app',
+        messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID_DEV || '436006647060',
+        appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID_DEV || '1:436006647060:web:2de55c9b536fed4dc6be01',
         measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID_DEV
       }
   }
 }
 
 // Initialize Firebase
-let app: FirebaseApp
-let auth: Auth
-let db: Firestore
-
 const initializeFirebase = () => {
+  let firebaseApp: FirebaseApp
+  
   if (getApps().length === 0) {
     const config = getFirebaseConfig()
-    app = initializeApp(config)
-    
-    // Initialize Auth
-    auth = getAuth(app)
-    
-    // Initialize Firestore
-    db = getFirestore(app)
-    
-    // Connect to emulators in development
-    if (process.env.NODE_ENV === 'development' && process.env.NEXT_PUBLIC_USE_FIREBASE_EMULATOR === 'true') {
-      try {
-        connectAuthEmulator(auth, 'http://localhost:9099')
-        connectFirestoreEmulator(db, 'localhost', 8080)
-      } catch (error) {
-        console.warn('Firebase emulators already connected or not available:', error)
-      }
-    }
+    firebaseApp = initializeApp(config)
   } else {
-    app = getApps()[0]
-    auth = getAuth(app)
-    db = getFirestore(app)
+    firebaseApp = getApps()[0]
   }
+  
+  // Initialize Auth
+  const firebaseAuth = getAuth(firebaseApp)
+  
+  // Initialize Firestore
+  const firebaseDb = getFirestore(firebaseApp)
+  
+  // Connect to emulators in development
+  if (process.env.NODE_ENV === 'development' && process.env.NEXT_PUBLIC_USE_FIREBASE_EMULATOR === 'true') {
+    try {
+      connectAuthEmulator(firebaseAuth, 'http://localhost:9099')
+      connectFirestoreEmulator(firebaseDb, 'localhost', 8080)
+    } catch (error) {
+      console.warn('Firebase emulators already connected or not available:', error)
+    }
+  }
+  
+  return { app: firebaseApp, auth: firebaseAuth, db: firebaseDb }
 }
 
 // Initialize Firebase
-initializeFirebase()
+const { app, auth, db } = initializeFirebase()
 
 // Auth providers
 export const googleProvider = new GoogleAuthProvider()
 export const githubProvider = new GithubAuthProvider()
 
-// Configure providers
+// Configure providers with advanced scopes
 googleProvider.addScope('email')
 googleProvider.addScope('profile')
+googleProvider.addScope('openid')
+googleProvider.addScope('https://www.googleapis.com/auth/userinfo.email')
+googleProvider.addScope('https://www.googleapis.com/auth/userinfo.profile')
+googleProvider.addScope('https://www.googleapis.com/auth/user.birthday.read')
+googleProvider.addScope('https://www.googleapis.com/auth/user.phonenumbers.read')
+
+// Configure for offline access
+googleProvider.setCustomParameters({
+  'access_type': 'offline',
+  'prompt': 'consent'
+})
+
 githubProvider.addScope('user:email')
+githubProvider.addScope('read:user')
 
 // Auth functions
 export const authService = {
@@ -148,6 +159,44 @@ export const authService = {
     try {
       const result = await signInWithPopup(auth, googleProvider)
       return { user: result.user, error: null }
+    } catch (error: any) {
+      return { user: null, error: error.message }
+    }
+  },
+
+  // Sign in with Google with custom scopes
+  signInWithGoogleAdvanced: async (customScopes?: string[]) => {
+    try {
+      const provider = new GoogleAuthProvider()
+
+      // Add default scopes
+      provider.addScope('email')
+      provider.addScope('profile')
+      provider.addScope('openid')
+
+      // Add custom scopes if provided
+      if (customScopes) {
+        customScopes.forEach(scope => provider.addScope(scope))
+      }
+
+      // Configure for offline access
+      provider.setCustomParameters({
+        'access_type': 'offline',
+        'prompt': 'consent'
+      })
+
+      const result = await signInWithPopup(auth, provider)
+
+      // Get additional token information
+      const credential = GoogleAuthProvider.credentialFromResult(result)
+      const accessToken = credential?.accessToken
+
+      return {
+        user: result.user,
+        error: null,
+        accessToken,
+        scopes: customScopes
+      }
     } catch (error: any) {
       return { user: null, error: error.message }
     }
@@ -215,12 +264,148 @@ export const authService = {
   getIdToken: async (forceRefresh = false) => {
     const user = auth.currentUser
     if (!user) return null
-    
+
     try {
       return await user.getIdToken(forceRefresh)
     } catch (error) {
       console.error('Error getting ID token:', error)
       return null
+    }
+  },
+
+  // Get Google access token
+  getGoogleAccessToken: async () => {
+    const user = auth.currentUser
+    if (!user) return null
+
+    try {
+      // Get the Google credential from the user
+      const providerData = user.providerData.find(
+        provider => provider.providerId === 'google.com'
+      )
+
+      if (!providerData) {
+        throw new Error('User is not signed in with Google')
+      }
+
+      // This would typically require server-side token exchange
+      // For now, we'll return the ID token
+      return await user.getIdToken()
+    } catch (error) {
+      console.error('Error getting Google access token:', error)
+      return null
+    }
+  },
+
+  // Refresh Google tokens
+  refreshGoogleTokens: async () => {
+    try {
+      const user = auth.currentUser
+      if (!user) throw new Error('No user signed in')
+
+      // Force refresh the ID token
+      const idToken = await user.getIdToken(true)
+
+      // In a real implementation, this would call your backend
+      // to refresh the Google access token using the refresh token
+      const response = await fetch('/api/firebase/auth/refresh', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${idToken}`
+        }
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to refresh tokens')
+      }
+
+      const tokens = await response.json()
+      return { tokens, error: null }
+    } catch (error: any) {
+      return { tokens: null, error: error.message }
+    }
+  },
+
+  // Get user profile from Google
+  getGoogleUserProfile: async () => {
+    try {
+      const idToken = await authService.getIdToken()
+      if (!idToken) throw new Error('No ID token available')
+
+      const response = await fetch('/api/firebase/auth/profile', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${idToken}`
+        }
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to get user profile')
+      }
+
+      const profile = await response.json()
+      return { profile, error: null }
+    } catch (error: any) {
+      return { profile: null, error: error.message }
+    }
+  },
+
+  // Revoke Google tokens
+  revokeGoogleTokens: async () => {
+    try {
+      const idToken = await authService.getIdToken()
+      if (!idToken) throw new Error('No ID token available')
+
+      const response = await fetch('/api/firebase/auth/revoke', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${idToken}`
+        }
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to revoke tokens')
+      }
+
+      return { error: null }
+    } catch (error: any) {
+      return { error: error.message }
+    }
+  },
+
+  // Link Google account
+  linkGoogleAccount: async () => {
+    try {
+      const user = auth.currentUser
+      if (!user) throw new Error('No user signed in')
+
+      const provider = new GoogleAuthProvider()
+      provider.addScope('email')
+      provider.addScope('profile')
+      provider.setCustomParameters({
+        'access_type': 'offline',
+        'prompt': 'consent'
+      })
+
+      const result = await linkWithPopup(user, provider)
+      return { user: result.user, error: null }
+    } catch (error: any) {
+      return { user: null, error: error.message }
+    }
+  },
+
+  // Unlink Google account
+  unlinkGoogleAccount: async () => {
+    try {
+      const user = auth.currentUser
+      if (!user) throw new Error('No user signed in')
+
+      const result = await unlink(user, 'google.com')
+      return { user: result, error: null }
+    } catch (error: any) {
+      return { user: null, error: error.message }
     }
   }
 }
@@ -237,6 +422,7 @@ export interface AuthUser {
   photoURL: string | null
   emailVerified: boolean
   phoneNumber: string | null
+  customClaims?: { [key: string]: any }
 }
 
 export interface AuthError {

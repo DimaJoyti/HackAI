@@ -1,0 +1,280 @@
+# Firebase Security Policies for HackAI
+# This file defines security policies and configurations for Firebase Authentication
+
+# Authentication Security Policies
+authentication:
+  # Password Policy
+  password_policy:
+    min_length: 8
+    require_uppercase: true
+    require_lowercase: true
+    require_numbers: true
+    require_special_chars: true
+    max_length: 128
+    prevent_common_passwords: true
+    prevent_personal_info: true
+    
+  # Account Security
+  account_security:
+    max_failed_attempts: 5
+    lockout_duration: "30m"
+    require_email_verification: true
+    enable_email_enumeration_protection: true
+    session_timeout: "24h"
+    refresh_token_ttl: "30d"
+    revoke_tokens_on_password_change: true
+    
+  # Multi-Factor Authentication
+  mfa:
+    enforcement: "optional" # optional, required, disabled
+    allowed_providers:
+      - "phone"
+      - "totp"
+    grace_period: "7d"
+    backup_codes_count: 10
+    
+  # Rate Limiting
+  rate_limiting:
+    sign_in_attempts:
+      max_attempts: 5
+      window: "15m"
+      block_duration: "1h"
+    sign_up_attempts:
+      max_attempts: 3
+      window: "1h"
+      block_duration: "24h"
+    password_reset_attempts:
+      max_attempts: 3
+      window: "1h"
+      block_duration: "1h"
+    email_verification_attempts:
+      max_attempts: 5
+      window: "1h"
+      block_duration: "1h"
+
+# OAuth Provider Security
+oauth_providers:
+  google:
+    enabled: true
+    scopes:
+      - "email"
+      - "profile"
+      - "openid"
+    additional_scopes: []
+    require_verified_email: true
+    auto_link_accounts: false
+    
+  github:
+    enabled: true
+    scopes:
+      - "user:email"
+      - "read:user"
+    require_verified_email: true
+    auto_link_accounts: false
+    
+  # Additional providers can be added here
+  microsoft:
+    enabled: false
+  apple:
+    enabled: false
+  twitter:
+    enabled: false
+
+# Security Headers and CORS
+security_headers:
+  enable_security_headers: true
+  cors:
+    allowed_origins:
+      - "http://localhost:3000"
+      - "http://localhost:5000"
+      - "https://hackai.dev"
+      - "https://staging.hackai.dev"
+      - "https://app.hackai.dev"
+    allowed_methods:
+      - "GET"
+      - "POST"
+      - "PUT"
+      - "DELETE"
+      - "OPTIONS"
+    allowed_headers:
+      - "Accept"
+      - "Authorization"
+      - "Content-Type"
+      - "X-CSRF-Token"
+      - "X-Requested-With"
+      - "X-Request-ID"
+    expose_headers:
+      - "X-Request-ID"
+    allow_credentials: true
+    max_age: 86400
+    
+  content_security_policy:
+    default_src: "'self'"
+    script_src: "'self' 'unsafe-inline' https://apis.google.com"
+    style_src: "'self' 'unsafe-inline' https://fonts.googleapis.com"
+    font_src: "'self' https://fonts.gstatic.com"
+    img_src: "'self' data: https:"
+    connect_src: "'self' https://api.hackai.dev wss://api.hackai.dev"
+
+# Audit and Monitoring
+audit_logging:
+  enabled: true
+  events:
+    - "user_created"
+    - "user_updated"
+    - "user_deleted"
+    - "user_signed_in"
+    - "user_signed_out"
+    - "password_changed"
+    - "email_verified"
+    - "mfa_enabled"
+    - "mfa_disabled"
+    - "account_locked"
+    - "account_unlocked"
+    - "suspicious_activity"
+    - "failed_login_attempt"
+    - "token_refresh"
+    - "token_revoked"
+    
+  retention_period: "90d"
+  export_to_bigquery: false
+  export_to_cloud_logging: true
+  
+  # Alert thresholds
+  alerts:
+    failed_login_threshold: 10
+    failed_login_window: "5m"
+    new_user_threshold: 100
+    new_user_window: "1h"
+    suspicious_ip_threshold: 5
+    suspicious_ip_window: "10m"
+
+# Token Security
+token_security:
+  # JWT Configuration
+  jwt:
+    algorithm: "RS256"
+    issuer: "https://securetoken.google.com/hackai-auth-system"
+    audience: "hackai-auth-system"
+    expiration: "1h"
+    refresh_expiration: "30d"
+    
+  # Custom Claims
+  custom_claims:
+    max_size: 1000 # bytes
+    allowed_claims:
+      - "role"
+      - "permissions"
+      - "organization"
+      - "subscription"
+      - "features"
+    reserved_claims:
+      - "iss"
+      - "aud"
+      - "exp"
+      - "iat"
+      - "sub"
+      - "uid"
+      - "email"
+      - "email_verified"
+      - "phone_number"
+      - "name"
+      - "picture"
+      
+  # Token Validation
+  validation:
+    verify_signature: true
+    verify_expiration: true
+    verify_issuer: true
+    verify_audience: true
+    clock_skew_tolerance: "5m"
+    require_auth_time: false
+    max_token_age: "24h"
+
+# User Management Policies
+user_management:
+  # Registration
+  registration:
+    allow_self_registration: true
+    require_admin_approval: false
+    default_role: "user"
+    default_status: "active"
+    auto_verify_email: false
+    
+  # Profile Management
+  profile:
+    allow_username_change: true
+    allow_email_change: true
+    require_password_for_email_change: true
+    allow_profile_deletion: true
+    require_admin_for_deletion: false
+    
+  # Data Retention
+  data_retention:
+    inactive_user_threshold: "365d"
+    deleted_user_retention: "30d"
+    audit_log_retention: "90d"
+    session_data_retention: "30d"
+
+# Environment-Specific Overrides
+environments:
+  development:
+    authentication:
+      password_policy:
+        min_length: 6
+        require_special_chars: false
+      account_security:
+        require_email_verification: false
+        max_failed_attempts: 10
+    audit_logging:
+      enabled: false
+      
+  staging:
+    authentication:
+      password_policy:
+        min_length: 8
+      account_security:
+        require_email_verification: true
+        max_failed_attempts: 7
+    audit_logging:
+      enabled: true
+      retention_period: "30d"
+      
+  production:
+    authentication:
+      password_policy:
+        min_length: 12
+        require_special_chars: true
+      account_security:
+        require_email_verification: true
+        max_failed_attempts: 3
+      mfa:
+        enforcement: "required"
+    audit_logging:
+      enabled: true
+      retention_period: "365d"
+      export_to_bigquery: true
+
+# Compliance and Privacy
+compliance:
+  gdpr:
+    enabled: true
+    data_processing_basis: "consent"
+    retention_period: "24m"
+    allow_data_export: true
+    allow_data_deletion: true
+    
+  ccpa:
+    enabled: true
+    allow_data_export: true
+    allow_data_deletion: true
+    
+  hipaa:
+    enabled: false
+    
+  # Privacy Settings
+  privacy:
+    anonymize_logs: true
+    encrypt_pii: true
+    mask_sensitive_data: true
+    data_minimization: true

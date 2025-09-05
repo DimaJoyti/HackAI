@@ -9,6 +9,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/dimajoyti/hackai/internal/domain"
 	"github.com/dimajoyti/hackai/internal/handler"
 	"github.com/dimajoyti/hackai/internal/repository"
 	"github.com/dimajoyti/hackai/pkg/auth"
@@ -88,8 +89,11 @@ func main() {
 	// Initialize handlers
 	authHandler := handler.NewAuthHandler(authService, log)
 
+	// Initialize RBAC manager
+	rbacManager := auth.NewRBACManager(log)
+	
 	// Initialize middleware
-	authMiddleware := middleware.NewAuthMiddleware(authService, log)
+	authMiddleware := auth.NewAuthMiddleware(authService, rbacManager, log, securityConfig)
 
 	// Setup HTTP server
 	server := &http.Server{
@@ -133,7 +137,7 @@ func setupRoutes(
 	log *logger.Logger,
 	authService *auth.EnhancedAuthService,
 	authHandler *handler.AuthHandler,
-	authMiddleware *middleware.AuthMiddleware,
+	authMiddleware *auth.AuthMiddleware,
 ) http.Handler {
 	mux := http.NewServeMux()
 
@@ -172,11 +176,11 @@ func setupRoutes(
 	protectedMux.HandleFunc("GET /api/v1/auth/permissions", authHandler.GetPermissions)
 
 	// Apply authentication middleware to protected routes
-	mux.Handle("/api/v1/auth/logout", authMiddleware.Authentication(protectedMux))
-	mux.Handle("/api/v1/auth/profile", authMiddleware.Authentication(protectedMux))
-	mux.Handle("/api/v1/auth/change-password", authMiddleware.Authentication(protectedMux))
-	mux.Handle("/api/v1/auth/enable-totp", authMiddleware.Authentication(protectedMux))
-	mux.Handle("/api/v1/auth/permissions", authMiddleware.Authentication(protectedMux))
+	mux.Handle("/api/v1/auth/logout", authMiddleware.RequireAuth(protectedMux))
+	mux.Handle("/api/v1/auth/profile", authMiddleware.RequireAuth(protectedMux))
+	mux.Handle("/api/v1/auth/change-password", authMiddleware.RequireAuth(protectedMux))
+	mux.Handle("/api/v1/auth/enable-totp", authMiddleware.RequireAuth(protectedMux))
+	mux.Handle("/api/v1/auth/permissions", authMiddleware.RequireAuth(protectedMux))
 
 	// Mount public routes
 	mux.Handle("/api/v1/auth/login", publicMux)
@@ -198,7 +202,7 @@ func setupRoutes(
 	})
 
 	// Apply admin middleware
-	mux.Handle("/api/v1/admin/", authMiddleware.Authentication(authMiddleware.RequireAdmin(adminMux)))
+	mux.Handle("/api/v1/admin/", authMiddleware.RequireAuth(authMiddleware.RequireRole(domain.UserRoleAdmin)(adminMux)))
 
 	// Moderator endpoints (require moderator or admin role)
 	moderatorMux := http.NewServeMux()
@@ -209,7 +213,7 @@ func setupRoutes(
 	})
 
 	// Apply moderator middleware
-	mux.Handle("/api/v1/moderator/", authMiddleware.Authentication(authMiddleware.RequireModerator(moderatorMux)))
+	mux.Handle("/api/v1/moderator/", authMiddleware.RequireAuth(authMiddleware.RequireRole(domain.UserRoleModerator)(moderatorMux)))
 
 	// Apply global middleware (in reverse order of execution)
 	var handler http.Handler = mux
@@ -217,7 +221,7 @@ func setupRoutes(
 	handler = middleware.SecurityHeaders()(handler)
 	handler = middleware.RateLimit(cfg.Server.RateLimit)(handler)
 	handler = middleware.CORS(cfg.Server.CORS)(handler)
-	handler = authMiddleware.AuditLog(handler) // Add audit logging
+	handler = authMiddleware.LoggingMiddleware(handler) // Add authentication logging
 	handler = middleware.Logging(log)(handler)
 	handler = middleware.RequestID(handler)
 

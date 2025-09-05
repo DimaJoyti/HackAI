@@ -17,7 +17,6 @@ import (
 	"github.com/dimajoyti/hackai/pkg/auth"
 	"github.com/dimajoyti/hackai/pkg/database"
 	"github.com/dimajoyti/hackai/pkg/logger"
-	"github.com/dimajoyti/hackai/pkg/middleware"
 )
 
 // AuthIntegrationTestSuite contains integration tests for authentication
@@ -388,13 +387,14 @@ func (suite *AuthIntegrationTestSuite) TestAuthenticationMiddleware() {
 	authResp, err := suite.authService.Authenticate(context.Background(), authReq)
 	suite.Require().NoError(err)
 
-	// Create middleware
-	authMiddleware := middleware.NewAuthMiddleware(suite.authService, suite.logger)
+	// Create RBAC manager and middleware
+	rbacManager := auth.NewRBACManager(suite.logger)
+	authMiddleware := auth.NewAuthMiddleware(suite.authService, rbacManager, suite.logger, suite.securityConfig)
 
 	// Create test handler
 	testHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Check if user context is set
-		userID, ok := middleware.AuthContext{}.GetUserID(r.Context())
+		userID, ok := auth.GetUserIDFromContext(r.Context())
 		if !ok {
 			w.WriteHeader(http.StatusUnauthorized)
 			return
@@ -409,7 +409,7 @@ func (suite *AuthIntegrationTestSuite) TestAuthenticationMiddleware() {
 	})
 
 	// Wrap handler with authentication middleware
-	protectedHandler := authMiddleware.Authentication(testHandler)
+	protectedHandler := authMiddleware.RequireAuth(testHandler)
 
 	// Test with valid token
 	req := httptest.NewRequest("GET", "/protected", nil)

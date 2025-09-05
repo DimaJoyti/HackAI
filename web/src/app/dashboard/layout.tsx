@@ -18,6 +18,7 @@ import {
 } from '@heroicons/react/24/outline'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { DataSyncProvider, ConnectionStatus } from '@/providers/data-sync-provider'
 import { Badge } from '@/components/ui/badge'
 import { useAuth } from '@/hooks/use-auth'
 import { useRequireAuth } from '@/hooks/use-auth'
@@ -67,7 +68,8 @@ export default function DashboardLayout({
   const isModerator = user?.role === 'moderator' || user?.role === 'admin'
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <DataSyncProvider autoConnect={true} syncInterval={30000}>
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Mobile sidebar */}
       <div className={cn(
         "fixed inset-0 z-50 lg:hidden",
@@ -234,6 +236,11 @@ export default function DashboardLayout({
             </div>
 
             <div className="flex items-center space-x-4">
+              {/* Connection Status */}
+              <div className="hidden sm:block">
+                <ConnectionStatus />
+              </div>
+
               {/* Notifications */}
               <Button variant="ghost" size="icon" className="relative">
                 <BellIcon className="h-5 w-5" />
@@ -279,5 +286,6 @@ export default function DashboardLayout({
         </main>
       </div>
     </div>
+    </DataSyncProvider>
   )
 }

@@ -14,12 +14,12 @@ type CreateUserRequest struct {
 	EmailVerified bool                   `json:"email_verified"`
 	Disabled      bool                   `json:"disabled"`
 	CustomClaims  map[string]interface{} `json:"custom_claims,omitempty"`
-	
+
 	// Additional fields for database sync
-	Username    string `json:"username,omitempty"`
-	FirstName   string `json:"first_name,omitempty"`
-	LastName    string `json:"last_name,omitempty"`
-	Role        string `json:"role,omitempty"`
+	Username     string `json:"username,omitempty"`
+	FirstName    string `json:"first_name,omitempty"`
+	LastName     string `json:"last_name,omitempty"`
+	Role         string `json:"role,omitempty"`
 	Organization string `json:"organization,omitempty"`
 }
 
@@ -32,7 +32,7 @@ type UpdateUserRequest struct {
 	EmailVerified *bool                  `json:"email_verified,omitempty"`
 	Disabled      *bool                  `json:"disabled,omitempty"`
 	CustomClaims  map[string]interface{} `json:"custom_claims,omitempty"`
-	
+
 	// Additional fields for database sync
 	Username     *string `json:"username,omitempty"`
 	FirstName    *string `json:"first_name,omitempty"`
@@ -52,7 +52,7 @@ type UserResponse struct {
 	CreatedAt     int64                  `json:"created_at"`
 	LastLoginAt   int64                  `json:"last_login_at"`
 	CustomClaims  map[string]interface{} `json:"custom_claims"`
-	
+
 	// Additional fields from database
 	Username     string `json:"username,omitempty"`
 	FirstName    string `json:"first_name,omitempty"`
@@ -88,16 +88,16 @@ type TokenValidationRequest struct {
 
 // TokenValidationResponse represents a token validation response
 type TokenValidationResponse struct {
-	Valid        bool                   `json:"valid"`
-	UID          string                 `json:"uid,omitempty"`
-	Email        string                 `json:"email,omitempty"`
-	Claims       map[string]interface{} `json:"claims,omitempty"`
-	ExpiresAt    int64                  `json:"expires_at,omitempty"`
-	IssuedAt     int64                  `json:"issued_at,omitempty"`
-	AuthTime     int64                  `json:"auth_time,omitempty"`
-	Issuer       string                 `json:"issuer,omitempty"`
-	Audience     string                 `json:"audience,omitempty"`
-	Subject      string                 `json:"subject,omitempty"`
+	Valid     bool                   `json:"valid"`
+	UID       string                 `json:"uid,omitempty"`
+	Email     string                 `json:"email,omitempty"`
+	Claims    map[string]interface{} `json:"claims,omitempty"`
+	ExpiresAt int64                  `json:"expires_at,omitempty"`
+	IssuedAt  int64                  `json:"issued_at,omitempty"`
+	AuthTime  int64                  `json:"auth_time,omitempty"`
+	Issuer    string                 `json:"issuer,omitempty"`
+	Audience  string                 `json:"audience,omitempty"`
+	Subject   string                 `json:"subject,omitempty"`
 }
 
 // CustomTokenRequest represents a custom token creation request
@@ -163,11 +163,11 @@ type HealthCheckResponse struct {
 
 // MetricsResponse represents metrics response
 type MetricsResponse struct {
-	TotalUsers       int64 `json:"total_users"`
-	ActiveUsers      int64 `json:"active_users"`
-	NewUsersToday    int64 `json:"new_users_today"`
+	TotalUsers           int64 `json:"total_users"`
+	ActiveUsers          int64 `json:"active_users"`
+	NewUsersToday        int64 `json:"new_users_today"`
 	AuthenticationsToday int64 `json:"authentications_today"`
-	ErrorsToday      int64 `json:"errors_today"`
+	ErrorsToday          int64 `json:"errors_today"`
 }
 
 // BatchOperationRequest represents a batch operation request

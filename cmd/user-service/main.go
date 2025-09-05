@@ -102,8 +102,9 @@ func main() {
 	authHandler := handler.NewAuthHandler(authService, log)
 	userHandler := handler.NewUserHandler(userUseCase, log)
 
-	// Initialize middleware
-	authMiddleware := middleware.NewAuthMiddleware(authService, log)
+	// Initialize RBAC manager and middleware
+	rbacManager := auth.NewRBACManager(log)
+	authMiddleware := auth.NewAuthMiddleware(authService, rbacManager, log, securityConfig)
 	loggingMiddleware := middleware.Logging(log)
 
 	// Setup HTTP server
@@ -131,8 +132,8 @@ func main() {
 	})
 
 	// Protected user endpoints
-	mux.Handle("GET /api/v1/auth/profile", authMiddleware.Authentication(http.HandlerFunc(authHandler.GetProfile)))
-	mux.Handle("PUT /api/v1/auth/profile", authMiddleware.Authentication(http.HandlerFunc(userHandler.UpdateProfile)))
+	mux.Handle("GET /api/v1/auth/profile", authMiddleware.RequireAuth(http.HandlerFunc(authHandler.GetProfile)))
+	mux.Handle("PUT /api/v1/auth/profile", authMiddleware.RequireAuth(http.HandlerFunc(userHandler.UpdateProfile)))
 
 	// Admin endpoints
 	mux.Handle("GET /api/v1/users", authMiddleware.RequireRole(domain.UserRoleAdmin)(http.HandlerFunc(userHandler.ListUsers)))

@@ -4,18 +4,18 @@
 # Development Environment
 development:
   firebase:
-    project_id: "hackai-dev"
-    api_key: "${FIREBASE_API_KEY_DEV}"
-    auth_domain: "hackai-dev.firebaseapp.com"
-    storage_bucket: "hackai-dev.appspot.com"
-    messaging_sender_id: "${FIREBASE_MESSAGING_SENDER_ID_DEV}"
-    app_id: "${FIREBASE_APP_ID_DEV}"
+    project_id: "hackai-auth-system"
+    api_key: "AIzaSyDWROT1zivWD8RMxKGqo3ZAaHznkUvUoUI"
+    auth_domain: "hackai-auth-system.firebaseapp.com"
+    storage_bucket: "hackai-auth-system.firebasestorage.app"
+    messaging_sender_id: "436006647060"
+    app_id: "1:436006647060:web:2de55c9b536fed4dc6be01"
     measurement_id: "${FIREBASE_MEASUREMENT_ID_DEV}"
-    
+
     # Admin SDK Configuration
     admin:
-      service_account_path: "./configs/firebase/service-accounts/hackai-dev-service-account.json"
-      database_url: "https://hackai-dev-default-rtdb.firebaseio.com"
+      service_account_path: "./configs/firebase/service-accounts/hackai-auth-system-service-account.json"
+      database_url: "https://hackai-auth-system-default-rtdb.firebaseio.com"
     
     # Authentication Configuration
     auth:

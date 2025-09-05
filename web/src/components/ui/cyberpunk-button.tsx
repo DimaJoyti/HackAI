@@ -43,6 +43,8 @@ const cyberpunkButtonVariants = cva(
         'ghost-blue': 'text-cyber-blue-neon hover:bg-cyber-blue-neon/10 hover:text-cyber-blue-glow active:scale-95',
         'ghost-pink': 'text-cyber-pink-neon hover:bg-cyber-pink-neon/10 hover:text-cyber-pink-glow active:scale-95',
         'ghost-green': 'text-cyber-green-neon hover:bg-cyber-green-neon/10 hover:text-cyber-green-glow active:scale-95',
+        'ghost-purple': 'text-cyber-purple-neon hover:bg-cyber-purple-neon/10 hover:text-cyber-purple-glow active:scale-95',
+        'ghost-orange': 'text-cyber-orange-neon hover:bg-cyber-orange-neon/10 hover:text-cyber-orange-glow active:scale-95',
       },
       size: {
         sm: 'h-9 px-3 text-xs',

@@ -54,6 +54,25 @@ install-multicloud-cli: build-multicloud-cli ## Install Multi-Cloud DevOps CLI t
 	sudo cp bin/multicloud-devops-cli /usr/local/bin/
 	@echo "CLI installed successfully! Run 'multicloud-devops-cli -help' to get started"
 
+# Firebase MCP Authentication Build targets
+build-firebase-mcp: ## Build Firebase MCP server
+	@echo "Building Firebase MCP server..."
+	@mkdir -p bin
+	go build -o bin/firebase-mcp-server ./cmd/firebase-mcp-server
+	@echo "Firebase MCP server built successfully"
+
+build-auth-server: ## Build authentication server
+	@echo "Building authentication server..."
+	@mkdir -p bin
+	go build -o bin/auth-server ./cmd/auth-server
+	@echo "Authentication server built successfully"
+
+build-auth-all: ## Build all authentication components
+	@echo "Building all authentication components..."
+	$(MAKE) build-firebase-mcp
+	$(MAKE) build-auth-server
+	@echo "All authentication components built successfully"
+
 # Test targets
 test: ## Run all tests
 	go test -v ./...
@@ -65,6 +84,7 @@ test-coverage: ## Run tests with coverage
 
 test-integration: ## Run integration tests
 	go test -v ./test/integration/...
+	go test -v ./tests/integration/...
 
 test-unit: ## Run unit tests only
 	go test -v ./test/unit/...
@@ -76,6 +96,31 @@ test-benchmark: ## Run benchmark tests
 test-race: ## Run tests with race detection
 	@echo "Running tests with race detection..."
 	go test -race -v ./...
+
+# Firebase MCP Authentication Test targets
+test-firebase-mcp: ## Run Firebase MCP authentication tests
+	@echo "Running Firebase MCP authentication tests..."
+	go test -v ./pkg/firebase/...
+
+test-auth-middleware: ## Run authentication middleware tests
+	@echo "Running authentication middleware tests..."
+	go test -v ./pkg/middleware/...
+
+test-auth-integration: ## Run authentication integration tests
+	@echo "Running authentication integration tests..."
+	go test -v ./tests/integration/...
+
+test-auth-all: ## Run all authentication-related tests
+	@echo "Running all authentication tests..."
+	$(MAKE) test-firebase-mcp
+	$(MAKE) test-auth-middleware
+	$(MAKE) test-auth-integration
+
+test-auth-coverage: ## Run authentication tests with coverage
+	@echo "Running authentication tests with coverage..."
+	go test -v -coverprofile=auth-coverage.out ./pkg/firebase/... ./pkg/middleware/...
+	go tool cover -html=auth-coverage.out -o auth-coverage.html
+	@echo "Authentication coverage report generated: auth-coverage.html"
 
 # Development targets
 run-gateway: build-gateway ## Run API Gateway
@@ -115,6 +160,36 @@ stop-services: ## Stop all running services
 	pkill -f "bin/threat-service" || true
 	pkill -f "bin/log-service" || true
 	@echo "All services stopped."
+
+# Firebase MCP Authentication Run targets
+run-firebase-mcp: build-firebase-mcp ## Run Firebase MCP server
+	@echo "Starting Firebase MCP server..."
+	./bin/firebase-mcp-server
+
+run-auth-server: build-auth-server ## Run authentication server
+	@echo "Starting authentication server..."
+	./bin/auth-server
+
+run-auth-services: build-auth-all ## Run all authentication services
+	@echo "Starting all authentication services..."
+	./bin/firebase-mcp-server &
+	./bin/auth-server &
+	@echo "Authentication services started. Use 'make stop-auth-services' to stop them."
+
+stop-auth-services: ## Stop all authentication services
+	@echo "Stopping authentication services..."
+	pkill -f "bin/firebase-mcp-server" || true
+	pkill -f "bin/auth-server" || true
+	@echo "Authentication services stopped."
+
+# Firebase MCP Development targets
+dev-firebase-mcp: ## Run Firebase MCP server in development mode
+	@echo "Running Firebase MCP server in development mode..."
+	go run ./cmd/firebase-mcp-server
+
+dev-auth-server: ## Run authentication server in development mode
+	@echo "Running authentication server in development mode..."
+	go run ./cmd/auth-server
 
 # Demo targets
 demo-auth: ## Run authentication demo

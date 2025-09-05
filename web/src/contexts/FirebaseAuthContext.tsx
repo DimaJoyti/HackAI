@@ -1,22 +1,38 @@
 'use client'
 
-import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react'
+import React, { createContext, useContext, useEffect, useState, ReactNode, useMemo } from 'react'
 import { User } from 'firebase/auth'
 import { authService, AuthUser, mapFirebaseUser } from '@/lib/firebase'
+import { enhancedFirebaseAuth, AuthResult, SignUpResult, SignInResult } from '../lib/firebase-enhanced-auth'
 
 // Context types
 interface FirebaseAuthContextType {
   user: AuthUser | null
   loading: boolean
-  signIn: (email: string, password: string) => Promise<{ user: User | null; error: string | null }>
-  signUp: (email: string, password: string, displayName?: string) => Promise<{ user: User | null; error: string | null }>
-  signInWithGoogle: () => Promise<{ user: User | null; error: string | null }>
-  signInWithGitHub: () => Promise<{ user: User | null; error: string | null }>
+  idToken: string | null
+
+  // Enhanced authentication methods
+  signIn: (email: string, password: string) => Promise<SignInResult>
+  signUp: (email: string, password: string, displayName?: string) => Promise<SignUpResult>
+  signInWithGoogle: () => Promise<SignInResult>
+  signInWithGitHub: () => Promise<SignInResult>
   signOut: () => Promise<{ error: string | null }>
+
+  // Account management
   resetPassword: (email: string) => Promise<{ error: string | null }>
   sendEmailVerification: () => Promise<{ error: string | null }>
   updateUserProfile: (profile: { displayName?: string; photoURL?: string }) => Promise<{ error: string | null }>
+  updatePassword: (currentPassword: string, newPassword: string) => Promise<{ error: string | null }>
+  deleteAccount: (password?: string) => Promise<{ error: string | null }>
+
+  // Provider linking
+  linkWithGoogle: () => Promise<{ user: User | null; error: string | null }>
+  linkWithGitHub: () => Promise<{ user: User | null; error: string | null }>
+  unlinkProvider: (providerId: string) => Promise<{ user: User | null; error: string | null }>
+
+  // Token management
   getIdToken: (forceRefresh?: boolean) => Promise<string | null>
+  getIdTokenResult: (forceRefresh?: boolean) => Promise<any>
   refreshUser: () => Promise<void>
 }
 
@@ -32,56 +48,66 @@ interface FirebaseAuthProviderProps {
 export const FirebaseAuthProvider: React.FC<FirebaseAuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<AuthUser | null>(null)
   const [loading, setLoading] = useState(true)
+  const [idToken, setIdToken] = useState<string | null>(null)
 
-  // Initialize auth state listener
+  // Initialize auth state listener with enhanced service
   useEffect(() => {
-    const unsubscribe = authService.onAuthStateChanged((firebaseUser) => {
+    const unsubscribe = enhancedFirebaseAuth.onAuthStateChange(async (firebaseUser) => {
       const mappedUser = mapFirebaseUser(firebaseUser)
       setUser(mappedUser)
+
+      // Get ID token if user is authenticated
+      if (firebaseUser) {
+        const token = await enhancedFirebaseAuth.getIdToken()
+        setIdToken(token)
+      } else {
+        setIdToken(null)
+      }
+
       setLoading(false)
     })
 
     return unsubscribe
   }, [])
 
-  // Sign in with email and password
-  const signIn = async (email: string, password: string) => {
+  // Enhanced sign in with email and password
+  const signIn = async (email: string, password: string): Promise<SignInResult> => {
     setLoading(true)
     try {
-      const result = await authService.signInWithEmail(email, password)
+      const result = await enhancedFirebaseAuth.signInWithEmail(email, password)
       return result
     } finally {
       setLoading(false)
     }
   }
 
-  // Sign up with email and password
-  const signUp = async (email: string, password: string, displayName?: string) => {
+  // Enhanced sign up with email and password
+  const signUp = async (email: string, password: string, displayName?: string): Promise<SignUpResult> => {
     setLoading(true)
     try {
-      const result = await authService.signUpWithEmail(email, password, displayName)
+      const result = await enhancedFirebaseAuth.signUpWithEmail(email, password, displayName)
       return result
     } finally {
       setLoading(false)
     }
   }
 
-  // Sign in with Google
-  const signInWithGoogle = async () => {
+  // Enhanced sign in with Google
+  const signInWithGoogle = async (): Promise<SignInResult> => {
     setLoading(true)
     try {
-      const result = await authService.signInWithGoogle()
+      const result = await enhancedFirebaseAuth.signInWithGoogle()
       return result
     } finally {
       setLoading(false)
     }
   }
 
-  // Sign in with GitHub
-  const signInWithGitHub = async () => {
+  // Enhanced sign in with GitHub
+  const signInWithGitHub = async (): Promise<SignInResult> => {
     setLoading(true)
     try {
-      const result = await authService.signInWithGitHub()
+      const result = await enhancedFirebaseAuth.signInWithGitHub()
       return result
     } finally {
       setLoading(false)
@@ -134,20 +160,50 @@ export const FirebaseAuthProvider: React.FC<FirebaseAuthProviderProps> = ({ chil
     return await authService.getIdToken(forceRefresh)
   }
 
+  // Enhanced methods
+  const updatePassword = async (currentPassword: string, newPassword: string) => {
+    return await enhancedFirebaseAuth.updatePassword(currentPassword, newPassword)
+  }
+
+  const deleteAccount = async (password?: string) => {
+    return await enhancedFirebaseAuth.deleteAccount(password)
+  }
+
+  const linkWithGoogle = async () => {
+    return await enhancedFirebaseAuth.linkWithGoogle()
+  }
+
+  const linkWithGitHub = async () => {
+    return await enhancedFirebaseAuth.linkWithGitHub()
+  }
+
+  const unlinkProvider = async (providerId: string) => {
+    return await enhancedFirebaseAuth.unlinkProvider(providerId)
+  }
+
+  const getIdTokenResult = async (forceRefresh = false) => {
+    return await enhancedFirebaseAuth.getIdTokenResult(forceRefresh)
+  }
+
   // Refresh user data
   const refreshUser = async () => {
-    const currentUser = authService.getCurrentUser()
+    const currentUser = enhancedFirebaseAuth.getCurrentUser()
     if (currentUser) {
       // Force refresh the user data
       await currentUser.reload()
       const mappedUser = mapFirebaseUser(currentUser)
       setUser(mappedUser)
+
+      // Refresh token
+      const token = await enhancedFirebaseAuth.getIdToken(true)
+      setIdToken(token)
     }
   }
 
-  const value: FirebaseAuthContextType = {
+  const value: FirebaseAuthContextType = useMemo(() => ({
     user,
     loading,
+    idToken,
     signIn,
     signUp,
     signInWithGoogle,
@@ -156,9 +212,15 @@ export const FirebaseAuthProvider: React.FC<FirebaseAuthProviderProps> = ({ chil
     resetPassword,
     sendEmailVerification,
     updateUserProfile,
+    updatePassword,
+    deleteAccount,
+    linkWithGoogle,
+    linkWithGitHub,
+    unlinkProvider,
     getIdToken,
+    getIdTokenResult,
     refreshUser
-  }
+  }), [user, loading, idToken])
 
   return (
     <FirebaseAuthContext.Provider value={value}>
@@ -223,7 +285,7 @@ export const useAuthStatus = () => {
 export const useProtectedAction = () => {
   const { user, getIdToken } = useFirebaseAuth()
 
-  const executeProtectedAction = async <T>(
+  const executeProtectedAction = async <T,>(
     action: (token: string) => Promise<T>,
     options: { requireEmailVerification?: boolean } = {}
   ): Promise<{ data: T | null; error: string | null }> => {
